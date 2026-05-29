@@ -1,1 +1,62 @@
-Initial VLM-Habitat code
+# TopoVLM
+
+TopoVLM is the canonical Habitat-first implementation surface for frozen-VLM
+topological navigation experiments. The current target is a PR2L-style baseline:
+
+1. collect or receive Habitat ObjectNav expert episodes,
+2. cache prompt-conditioned frozen VLM hidden states,
+3. compress frame features into topological graph nodes,
+4. train a graph-conditioned behavior-cloning policy.
+
+The repository intentionally uses root entrypoints plus responsibility folders,
+not a `src/` or `topovlm/` package wrapper.
+
+## Canonical Entrypoints
+
+- `train.py`: training, cache building, and train-owned preflight modes.
+- `validate.py`: validation, cache audit, and offline diagnostics.
+- `sweep_wandb.py`: W&B sweep creation/agent plumbing only.
+
+Semantic experiment choices live in committed YAML under `configs/`; command-line
+flags are reserved for operational selectors such as `--exp`, `--mode`, and
+runtime paths.
+
+## Storage Contract
+
+Large shared payloads are external to the repo:
+
+- Habitat data: `/data/topovlm/habitat`
+- VLM weights/cache: `/data/topovlm/vlm_weights/<vlm_name>`
+- Checkpoints: repo-local ignored `checkpoints/` unless a Slurm wrapper supplies
+  `CHECKPOINT_DIR`
+
+Repo-owned durable records, contracts, and small manifests belong under
+`artifacts/`. Runtime code must not import from `artifacts/`.
+
+## First Smoke Config
+
+The first canonical config is:
+
+```bash
+python train.py --exp habitat/prismatic_bc_smoke --debug
+python validate.py --runner data_preflight --exp habitat/prismatic_bc_smoke
+python validate.py --runner cache_audit --exp habitat/prismatic_bc_smoke
+```
+
+The debug train path uses a synthetic graph dataset so entrypoint, model, loss,
+checkpoint, and config plumbing can be checked before Habitat/Prismatic payloads
+are installed. Non-debug training reads graph caches declared by the Habitat data
+config.
+
+## Reference Prototype
+
+`individual_researcher_initial/` contains the initial individual-researcher code
+verbatim enough to preserve source lineage. It is reference-only: canonical code
+must not import it, run its `.slurm` files, or treat its hardcoded paths as the
+TopoVLM runtime contract.
+
+## Slurm Boundary
+
+Slurm scripts are generated under `slurm/habitat/` through the approved Slurm MCP
+after the repo is clean and committed. Do not submit scheduler jobs from the Mac
+mini or from ad hoc shell scripts.

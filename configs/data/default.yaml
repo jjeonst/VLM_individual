@@ -1,0 +1,21 @@
+data:
+  dataset_name: habitat_objectnav
+  domain: habitat
+  data_root: /data/topovlm/habitat
+  habitat_config: configs/habitat/pr2l_objectnav.yaml
+  split: train
+  episodes_manifest: episodes/train/manifest.jsonl
+  graph_manifest: graphs/prismatic_objectnav_train/manifest.jsonl
+  graph_cache_dir: graphs/prismatic_objectnav_train
+  embeddings_dir: embeddings/prismatic_objectnav_train
+  vlm_weights_dir: /data/topovlm/vlm_weights/prismatic
+  image_key: rgb
+  action_key: action
+  goal_key: goal_text
+  frame_stride: 1
+  max_episodes: null
+  batch_size: 16
+  num_workers: 4
+  pin_memory: true
+  synthetic_debug: false
+  require_existing_cache: true

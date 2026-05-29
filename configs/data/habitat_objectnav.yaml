@@ -1,0 +1,8 @@
+data:
+  dataset_name: habitat_objectnav_hm3d
+  split: train
+  episodes_manifest: episodes/train/manifest.jsonl
+  graph_manifest: graphs/prismatic_objectnav_train/manifest.jsonl
+  graph_cache_dir: graphs/prismatic_objectnav_train
+  embeddings_dir: embeddings/prismatic_objectnav_train
+  require_existing_cache: true

@@ -1,0 +1,9 @@
+defaults:
+  - train: habitat_smoke
+  - data: habitat_objectnav
+  - model: prismatic_graph_policy
+  - objectives: behavior_cloning
+  - eval: habitat_default
+
+config_name: habitat/prismatic_bc_smoke
+run_name: habitat_prismatic_bc_smoke

@@ -1,0 +1,26 @@
+model:
+  vlm:
+    backend: prismatic
+    model_id: prism-dinosiglip+7b
+    weights_path: /data/topovlm/vlm_weights/prismatic/prism-dinosiglip+7b
+    hf_token_path: null
+    device: cuda
+    dtype: bfloat16
+    frozen: true
+    output_dim: 4096
+    prompt_template: "You are navigating an indoor scene. Goal: {goal_text}"
+    cache_batch_size: 1
+  topology:
+    builder: sequential_similarity
+    similarity_threshold: 0.9
+    max_nodes: 128
+    min_segment_len: 1
+    normalize_embeddings: true
+  policy:
+    type: graph_transformer_bc
+    input_dim: 4096
+    hidden_dim: 256
+    transformer_heads: 8
+    transformer_layers: 2
+    dropout: 0.1
+    num_actions: 4
