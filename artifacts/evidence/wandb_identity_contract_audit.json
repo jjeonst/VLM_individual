@@ -1,0 +1,15 @@
+{
+  "artifact_type": "audit_report",
+  "auditor": "wandb_identity_contract",
+  "checked_items": 2,
+  "findings": [],
+  "generated_at_utc": "2026-05-29T15:19:18+00:00",
+  "schema_version": 1,
+  "source_paths": [
+    "artifacts/contracts/wandb_identity_contract.json"
+  ],
+  "status": "passed",
+  "summary": {
+    "role_count": 2
+  }
+}

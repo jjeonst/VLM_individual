@@ -11,6 +11,41 @@ topological navigation experiments. The current target is a PR2L-style baseline:
 The repository intentionally uses root entrypoints plus responsibility folders,
 not a `src/` or `topovlm/` package wrapper.
 
+## Setup
+
+Canonical development happens on `bmlslurm` in the `topovlm` conda environment.
+The first environment is Python 3.10, matching the PR2L example and Prismatic's
+tested stack. Python 3.12 is a future compatibility target, but it is not the
+first canonical env because Habitat-Lab/Habitat-Sim and Prismatic publish
+different tested-version guidance. On `bmlslurm`, `aihabitat` stable
+`habitat-sim 0.3.3` currently resolves to Python 3.9 builds, so live
+Habitat-Sim belongs behind a separate env/container gate.
+
+```bash
+source ~/miniconda3/etc/profile.d/conda.sh
+conda create -n topovlm python=3.10 pip cmake=3.27 -c conda-forge -y
+conda activate topovlm
+conda install -y pytorch==2.2.0 torchvision==0.17.0 torchaudio==2.2.0 pytorch-cuda=11.8 -c pytorch -c nvidia
+conda install -y "mkl<2025" "intel-openmp<2025" -c defaults
+python -m pip install --upgrade pip
+python -m pip install -e ".[dev]"
+python -m pip install "transformers==4.38.1" "huggingface-hub<1.0" "prismatic @ git+https://github.com/TRI-ML/prismatic-vlms.git"
+```
+
+See `docs/dependencies.md` for the dependency tiers and Habitat-Sim notes.
+
+## W&B
+
+The repo-local W&B contract is `artifacts/contracts/wandb_identity_contract.json`.
+Dave selected the canonical entity `topovlm`. New W&B-backed runs must resolve
+entity/project/group/run names from that contract rather than command-line
+overrides.
+
+Current canonical projects:
+
+- `TopoVLM`: ordinary training, validation, and final row logging.
+- `TopoVLM-sweep`: W&B sweep search runs created through `sweep_wandb.py`.
+
 ## Canonical Entrypoints
 
 - `train.py`: training, cache building, and train-owned preflight modes.
@@ -47,6 +82,16 @@ The debug train path uses a synthetic graph dataset so entrypoint, model, loss,
 checkpoint, and config plumbing can be checked before Habitat/Prismatic payloads
 are installed. Non-debug training reads graph caches declared by the Habitat data
 config.
+
+## Missing Live Inputs
+
+The repo is runnable for synthetic/debug smoke tests. Habitat-scale PR2L work
+still needs these live inputs before real training or evaluation:
+
+- `/data/topovlm/habitat` with Habitat scenes, ObjectNav episodes, and expert demonstrations.
+- `/data/topovlm/vlm_weights/prismatic/<model_id>` or Hugging Face access for Prismatic weights.
+- PR2L-faithful VLM token cache generation, PCA/projection metadata, and graph cache manifests.
+- A generated Slurm script after data, env, checkpoint, and W&B contracts are stable.
 
 ## Reference Prototype
 

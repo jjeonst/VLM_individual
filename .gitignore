@@ -6,6 +6,7 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
+*.egg-info/
 .venv/
 venv/
 
@@ -30,6 +31,8 @@ artifacts/logs/
 artifacts/evidence/
 artifacts/deprecated/
 !artifacts/README.md
+!artifacts/evidence/
+!artifacts/evidence/**/*.json
 !artifacts/contracts/
 !artifacts/contracts/README.md
 !artifacts/contracts/*.json

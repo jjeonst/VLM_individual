@@ -1,0 +1,113 @@
+{
+  "additional_entities": [],
+  "artifact_type": "wandb_identity_contract",
+  "canonical_entity": "topovlm",
+  "forbidden_tokens": [
+    "3090",
+    "4090",
+    "5090",
+    "a100",
+    "agent",
+    "bayes",
+    "bmlgd",
+    "bmlnx",
+    "bmlslurm",
+    "bmlws",
+    "cap",
+    "crash",
+    "debug",
+    "diagnostic",
+    "failed",
+    "gpu",
+    "h200",
+    "habitat",
+    "job",
+    "killed",
+    "node",
+    "preflight",
+    "recovery",
+    "run",
+    "slurm",
+    "smoke",
+    "sweep",
+    "test",
+    "tmp",
+    "topovlm"
+  ],
+  "generated_at_utc": "2026-05-30T00:00:00+00:00",
+  "repo_id": "TopoVLM",
+  "roles": [
+    {
+      "allowed_scope": [
+        "habitat_objectnav_bc_training",
+        "habitat_objectnav_validation",
+        "pr2l_representation_cache_audit"
+      ],
+      "examples": [
+        {
+          "seed": 42,
+          "sweep_name": null,
+          "wandb_entity": "topovlm",
+          "wandb_group": "prismatic_graph_policy",
+          "wandb_project": "TopoVLM",
+          "wandb_run_name": "prismatic_graph_policy_seed42_20260530-000000"
+        },
+        {
+          "seed": 7,
+          "sweep_name": null,
+          "wandb_entity": "topovlm",
+          "wandb_group": "prismatic_graph_policy",
+          "wandb_project": "TopoVLM",
+          "wandb_run_name": "prismatic_graph_policy_seed7_20260530-000000"
+        }
+      ],
+      "finality_scope": "diagnostic_to_final_training_rows_after_artifact_audit",
+      "group_pattern": "{model_key}",
+      "purpose": "Habitat ObjectNav behavior-cloning training, validation, and representation-cache diagnostics. W&B group is the model family, not the dataset, host, scheduler, or smoke state.",
+      "role_id": "habitat_bc",
+      "run_name_pattern": "{model_key}_seed{seed}_{timestamp}",
+      "sweep_name_pattern": null,
+      "wandb_project": "TopoVLM"
+    },
+    {
+      "allowed_scope": [
+        "habitat_objectnav_hyperparameter_sweep",
+        "pr2l_prompt_or_cache_design_sweep"
+      ],
+      "examples": [
+        {
+          "seed": null,
+          "sweep_name": "prompt_cot_axis",
+          "wandb_entity": "topovlm",
+          "wandb_group": null,
+          "wandb_project": "TopoVLM-sweep",
+          "wandb_run_name": null
+        },
+        {
+          "seed": 42,
+          "sweep_name": null,
+          "wandb_entity": "topovlm",
+          "wandb_group": "prompt_cot_axis",
+          "wandb_project": "TopoVLM-sweep",
+          "wandb_run_name": "seed42_20260530-000000"
+        }
+      ],
+      "finality_scope": "sweep_search_candidate",
+      "group_pattern": "{hypothesis_slug}",
+      "purpose": "W&B sweeps created or admitted only through sweep_wandb.py with external cap-controller supervision when the sweep is open-ended.",
+      "role_id": "habitat_sweep",
+      "run_name_pattern": "seed{seed}_{timestamp}",
+      "sweep_name_pattern": "{hypothesis_slug}",
+      "wandb_project": "TopoVLM-sweep"
+    }
+  ],
+  "schema_version": 1,
+  "source_paths": [
+    "README.md",
+    "configs/exp/habitat",
+    "configs/model/prismatic_graph_policy.yaml",
+    "configs/train/habitat_smoke.yaml",
+    "sweep_wandb.py"
+  ],
+  "status": "active"
+}

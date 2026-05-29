@@ -11,12 +11,17 @@ dependencies = [
   "Pillow",
   "PyYAML",
   "torch",
+  "wandb>=0.16",
 ]
 
 [project.optional-dependencies]
-habitat = ["habitat-lab"]
-prismatic = ["prismatic-vlms @ git+https://github.com/TRI-ML/prismatic-vlms.git"]
-dev = ["pytest", "ruff"]
+habitat = ["habitat-lab @ git+https://github.com/facebookresearch/habitat-lab.git@stable#subdirectory=habitat-lab"]
+prismatic = [
+  "transformers==4.38.1",
+  "huggingface-hub<1.0",
+  "prismatic @ git+https://github.com/TRI-ML/prismatic-vlms.git",
+]
+dev = ["pytest", "ruff", "build"]
 
 [tool.setuptools]
 packages = [

@@ -1,5 +1,6 @@
 # Contracts
 
-Place small reviewed runtime contracts here, such as a future W&B identity
-contract. The first TopoVLM scaffold intentionally leaves W&B disabled until a
-project-specific contract is assigned.
+Place small reviewed runtime contracts here. `wandb_identity_contract.json` is
+the source of truth for W&B entity, project, group, run, and sweep naming. Do
+not override W&B identity through ad hoc command-line flags, Slurm script text,
+or notebook-local defaults.

@@ -1,0 +1,56 @@
+{
+  "artifact_type": "topovlm_env_validation",
+  "checked_at_utc": "2026-05-29T15:45:00+00:00",
+  "env_name": "topovlm",
+  "host": "bmlslurm",
+  "status": "passed_with_missing_live_inputs",
+  "imports": {
+    "habitat_sim_available": false,
+    "huggingface_hub": "0.36.2",
+    "numpy": "1.24.3",
+    "prismatic": "import_ok",
+    "torch": "2.2.0",
+    "torch_cuda_available": true,
+    "transformers": "4.38.1",
+    "wandb": "0.27.0",
+    "yaml": "6.0.3"
+  },
+  "checks": [
+    {
+      "name": "pip_check",
+      "status": "passed",
+      "evidence": "No broken requirements found."
+    },
+    {
+      "name": "compileall",
+      "status": "passed",
+      "evidence": "train.py, validate.py, sweep_wandb.py, packages, and tests compile under topovlm."
+    },
+    {
+      "name": "pytest",
+      "status": "passed",
+      "evidence": "2 passed in 0.22s."
+    },
+    {
+      "name": "train_preflight_missing_allowed",
+      "status": "passed",
+      "evidence": "Data root, episode manifest, graph manifest, and VLM weights are missing but allowed by --allow-missing-data."
+    },
+    {
+      "name": "validate_cache_audit_missing_allowed",
+      "status": "passed",
+      "evidence": "Graph manifest is missing but allowed by --allow-missing-data."
+    },
+    {
+      "name": "sweep_wandb_dry_run",
+      "status": "passed",
+      "evidence": "sweep_wandb.py returned {\"role_id\":\"habitat_sweep\",\"status\":\"dry_run_ok\"} with the repo W&B contract."
+    }
+  ],
+  "known_blockers": [
+    "/data/topovlm/habitat is absent.",
+    "/data/topovlm/vlm_weights/prismatic/prism-dinosiglip+7b is absent.",
+    "habitat_sim is not installed in the topovlm core env.",
+    "PR2L-faithful token/PCA cache generation is not implemented yet."
+  ]
+}
