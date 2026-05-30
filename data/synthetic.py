@@ -28,6 +28,8 @@ class SyntheticGraphDataset:
         return len(self.examples)
 
     def __getitem__(self, index: int) -> dict[str, object]:
+        import torch
+
         nodes, target, node_actions = self.examples[index]
         item = {
             "episode_id": f"synthetic_{index}",
