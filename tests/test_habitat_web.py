@@ -6,7 +6,7 @@ from pathlib import Path
 
 from configs.schema import DataConfig
 from data.habitat_web import HABITAT_WEB_ACTION_TO_ID, is_git_lfs_pointer
-from data.habitat_web import load_habitat_web_summary
+from data.habitat_web import load_habitat_web_inventory, load_habitat_web_summary
 
 
 class HabitatWebReplayTest(unittest.TestCase):
@@ -95,6 +95,71 @@ class HabitatWebReplayTest(unittest.TestCase):
                 encoding="utf-8",
             )
             self.assertTrue(is_git_lfs_pointer(pointer))
+
+    def test_inventory_counts_scenes_objects_and_actions(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            split_dir = root / "sources/habitat_web/train"
+            content_dir = split_dir / "content"
+            content_dir.mkdir(parents=True)
+            existing_scene = root / "scene_datasets/mp3d/existing/existing.glb"
+            existing_scene.parent.mkdir(parents=True)
+            existing_scene.write_text("placeholder", encoding="utf-8")
+            _write_json_gz(
+                split_dir / "train.json.gz",
+                {"episodes": [], "category_to_task_category_id": {}},
+            )
+            _write_json_gz(
+                content_dir / "batch.json.gz",
+                {
+                    "episodes": [
+                        {
+                            "episode_id": "episode_0",
+                            "scene_id": "mp3d/existing/existing.glb",
+                            "object_category": "chair",
+                            "reference_replay": [
+                                {"action": "MOVE_FORWARD", "agent_state": {}},
+                                {"action": "STOP", "agent_state": {}},
+                            ],
+                        },
+                        {
+                            "episode_id": "episode_1",
+                            "scene_id": "mp3d/missing/missing.glb",
+                            "object_category": "table",
+                            "reference_replay": [
+                                {"action": "TURN_LEFT", "agent_state": {}},
+                                {"action": "LOOK_UP", "agent_state": {}},
+                                {"action": "STOP", "agent_state": {}},
+                            ],
+                        },
+                    ]
+                },
+            )
+            cfg = DataConfig(
+                data_root=str(root),
+                objectnav_dataset_dir="sources/habitat_web",
+                scene_dataset_dir="scene_datasets",
+                split="train",
+            )
+
+            inventory = load_habitat_web_inventory(cfg)
+
+            self.assertEqual(inventory["episodes"], 2)
+            self.assertEqual(inventory["unique_scenes"], 2)
+            self.assertEqual(inventory["unique_object_categories"], 2)
+            self.assertEqual(inventory["existing_scene_count"], 1)
+            self.assertEqual(inventory["missing_scene_count"], 1)
+            self.assertEqual(inventory["missing_scene_ids"], ["mp3d/missing/missing.glb"])
+            self.assertEqual(inventory["replay_length_min"], 2)
+            self.assertEqual(inventory["replay_length_max"], 3)
+            self.assertEqual(inventory["action_counts"][0], {"action": "LOOK_UP", "count": 1})
+            self.assertEqual(
+                inventory["object_counts_top"],
+                [
+                    {"object_category": "chair", "count": 1},
+                    {"object_category": "table", "count": 1},
+                ],
+            )
 
 
 def _write_json_gz(path: Path, payload: dict[str, object]) -> None:

@@ -7,7 +7,11 @@ from pathlib import Path
 from configs.schema import TopoVLMConfig
 from data.habitat_manifest import load_episode_records, load_graph_records, resolve_data_path
 from data.habitat_objectnav import load_objectnav_summary
-from data.habitat_web import load_habitat_web_summary, is_git_lfs_pointer
+from data.habitat_web import (
+    load_habitat_web_inventory,
+    load_habitat_web_summary,
+    is_git_lfs_pointer,
+)
 
 
 def run_data_preflight(
@@ -159,6 +163,32 @@ def run_habitat_web_audit(
         "schema_sample": schema_sample,
         "missing_inputs": missing[:20],
         "missing_input_count": len(missing),
+    }
+
+
+def run_habitat_web_scene_audit(
+    cfg: TopoVLMConfig, *, allow_missing_data: bool = False
+) -> dict[str, object]:
+    inventory = load_habitat_web_inventory(
+        cfg.data, max_episodes=cfg.data.max_episodes
+    )
+    missing = []
+    metadata_missing_count = 0
+    if not inventory["split_index_materialized"]:
+        missing.append(str(inventory["split_index"]))
+        metadata_missing_count += 1
+    if inventory["materialized_content_shards"] == 0:
+        missing.append(str(inventory["content_dir"]))
+        metadata_missing_count += 1
+    missing.extend(inventory["missing_scene_paths"])
+    if missing and not allow_missing_data:
+        raise FileNotFoundError(f"Missing Habitat-Web scene inputs: {missing[:5]}")
+    return {
+        "status": "ok" if not missing else "missing_allowed",
+        "config_name": cfg.config_name,
+        "habitat_web_scene_inventory": inventory,
+        "missing_inputs": missing[:20],
+        "missing_input_count": metadata_missing_count + inventory["missing_scene_count"],
     }
 
 

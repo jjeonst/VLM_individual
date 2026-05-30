@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import gzip
 import json
+from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterator
@@ -21,6 +22,8 @@ HABITAT_WEB_ACTION_TO_ID = {
     "LOOK_UP": 4,
     "LOOK_DOWN": 5,
 }
+INVENTORY_LIST_LIMIT = 500
+INVENTORY_TOP_COUNT = 30
 
 
 @dataclass(frozen=True)
@@ -139,12 +142,116 @@ class HabitatWebReplayDataset:
             "requires_scene_rendering": any(not sample["has_embedded_rgb"] for sample in samples),
         }
 
+    def inventory(self, *, max_episodes: int | None = None) -> dict[str, object]:
+        split_index_materialized = self.split_index.exists() and not is_git_lfs_pointer(
+            self.split_index
+        )
+        pointer_shards = [str(path) for path in self.content_files if is_git_lfs_pointer(path)]
+        materialized_shards = [
+            str(path) for path in self.content_files if path.exists() and not is_git_lfs_pointer(path)
+        ]
+        scene_counts: Counter[str] = Counter()
+        object_counts: Counter[str] = Counter()
+        action_counts: Counter[str] = Counter()
+        scene_paths: dict[str, str] = {}
+        existing_scene_ids = set()
+        missing_scene_ids = set()
+        replay_length_min = None
+        replay_length_max = None
+        replay_length_sum = 0
+        episodes = 0
+        episodes_with_embedded_rgb = 0
+
+        for episode in self.iter_episodes(max_episodes=max_episodes):
+            episodes += 1
+            scene_counts[episode.scene_id] += 1
+            object_counts[episode.object_category] += 1
+            action_counts.update(episode.actions)
+            replay_length_sum += episode.replay_length
+            replay_length_min = (
+                episode.replay_length
+                if replay_length_min is None
+                else min(replay_length_min, episode.replay_length)
+            )
+            replay_length_max = (
+                episode.replay_length
+                if replay_length_max is None
+                else max(replay_length_max, episode.replay_length)
+            )
+            if episode.has_embedded_rgb:
+                episodes_with_embedded_rgb += 1
+            scene_path = resolve_objectnav_scene_path(self.config, episode.scene_id)
+            scene_paths[episode.scene_id] = str(scene_path)
+            if scene_path.exists():
+                existing_scene_ids.add(episode.scene_id)
+            else:
+                missing_scene_ids.add(episode.scene_id)
+
+        sorted_scene_ids = sorted(scene_counts)
+        sorted_missing_scene_ids = sorted(missing_scene_ids)
+        sorted_existing_scene_ids = sorted(existing_scene_ids)
+        return {
+            "split": self.split,
+            "max_episodes_applied": max_episodes,
+            "dataset_dir": str(self.dataset_dir),
+            "split_index": str(self.split_index),
+            "split_index_materialized": split_index_materialized,
+            "content_dir": str(self.content_dir),
+            "content_shards": len(self.content_files),
+            "materialized_content_shards": len(materialized_shards),
+            "lfs_pointer_content_shards": len(pointer_shards),
+            "episodes": episodes,
+            "unique_scenes": len(scene_counts),
+            "unique_object_categories": len(object_counts),
+            "unique_actions": len(action_counts),
+            "action_counts": [
+                {"action": action, "count": count}
+                for action, count in sorted(action_counts.items())
+            ],
+            "object_counts_top": [
+                {"object_category": category, "count": count}
+                for category, count in object_counts.most_common(INVENTORY_TOP_COUNT)
+            ],
+            "scene_counts_top": [
+                {"scene_id": scene_id, "count": count}
+                for scene_id, count in scene_counts.most_common(INVENTORY_TOP_COUNT)
+            ],
+            "required_scene_ids": sorted_scene_ids[:INVENTORY_LIST_LIMIT],
+            "required_scene_ids_listed": min(len(sorted_scene_ids), INVENTORY_LIST_LIMIT),
+            "missing_scene_ids": sorted_missing_scene_ids[:INVENTORY_LIST_LIMIT],
+            "missing_scene_ids_listed": min(
+                len(sorted_missing_scene_ids), INVENTORY_LIST_LIMIT
+            ),
+            "missing_scene_paths": [
+                scene_paths[scene_id]
+                for scene_id in sorted_missing_scene_ids[:INVENTORY_LIST_LIMIT]
+            ],
+            "missing_scene_count": len(missing_scene_ids),
+            "existing_scene_ids": sorted_existing_scene_ids[:INVENTORY_LIST_LIMIT],
+            "existing_scene_ids_listed": min(
+                len(sorted_existing_scene_ids), INVENTORY_LIST_LIMIT
+            ),
+            "existing_scene_count": len(existing_scene_ids),
+            "episodes_with_embedded_rgb": episodes_with_embedded_rgb,
+            "requires_scene_rendering": episodes_with_embedded_rgb != episodes,
+            "replay_length_min": replay_length_min,
+            "replay_length_max": replay_length_max,
+            "replay_length_mean": (replay_length_sum / episodes) if episodes else None,
+        }
+
 
 def load_habitat_web_summary(
     config: DataConfig, *, sample_episodes: int = 4, split: str | None = None
 ) -> dict[str, object]:
     dataset = HabitatWebReplayDataset(config, split=split)
     return dataset.summary(sample_episodes=sample_episodes)
+
+
+def load_habitat_web_inventory(
+    config: DataConfig, *, split: str | None = None, max_episodes: int | None = None
+) -> dict[str, object]:
+    dataset = HabitatWebReplayDataset(config, split=split)
+    return dataset.inventory(max_episodes=max_episodes)
 
 
 def is_git_lfs_pointer(path: Path) -> bool:
