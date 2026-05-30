@@ -68,6 +68,20 @@ Large shared payloads are external to the repo:
 Repo-owned durable records, contracts, and small manifests belong under
 `artifacts/`. Runtime code must not import from `artifacts/`.
 
+## Dataset License Boundary
+
+HM3D is licensed for non-commercial academic use. Matterport's academic-use
+terms define derived information broadly enough to include models or algorithms
+trained on the dataset. Treat Habitat/HM3D scene files, semantic annotations,
+episode-derived caches, topological graphs, VLM feature caches, trained policy
+checkpoints, and any other HM3D-derived payloads as non-redistributable unless a
+separate reviewed license decision says otherwise.
+
+This likely explains why PR2L released paper/project material but not a public
+trained checkpoint or full derived cache bundle. TopoVLM code may be open, but
+HM3D-derived weights, caches, manifests containing substantial scene-derived
+content, and hosted interactive demos must stay private/internal by default.
+
 ## First Smoke Config
 
 The first canonical config is:
