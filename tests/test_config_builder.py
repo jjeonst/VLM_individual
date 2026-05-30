@@ -84,6 +84,25 @@ class ConfigBuilderTest(unittest.TestCase):
             "episodes/pr2l_habitat_web_balanced_subset/train/manifest.jsonl",
         )
 
+    def test_pr2l_tiny_smoke_config_loads(self):
+        cfg = build_config_from_exp("habitat/pr2l_habitat_bc_tiny_smoke")
+        self.assertEqual(cfg.config_name, "habitat/pr2l_habitat_bc_tiny_smoke")
+        self.assertEqual(cfg.run_name, "pr2l_habitat_bc_tiny_smoke")
+        self.assertEqual(cfg.max_epochs, 1)
+        self.assertEqual(cfg.gradient_accumulation_steps, 1)
+        self.assertEqual(cfg.data.dataset_name, "pr2l_habitat_web_tiny_smoke")
+        self.assertEqual(cfg.data.max_episodes, 4)
+        self.assertEqual(
+            cfg.data.episodes_manifest,
+            "episodes/pr2l_habitat_web_tiny_smoke/train/manifest.jsonl",
+        )
+        self.assertEqual(
+            cfg.data.graph_manifest,
+            "graphs/pr2l_habitat_bc_tiny_smoke/train/manifest.jsonl",
+        )
+        self.assertEqual(cfg.data.batch_size, 2)
+        self.assertEqual(cfg.data.num_workers, 0)
+
     def test_pr2l_balanced_subset_staged_config_loads(self):
         cfg = build_config_from_exp("habitat/pr2l_habitat_bc_balanced_subset_staged")
         self.assertEqual(cfg.config_name, "habitat/pr2l_habitat_bc_balanced_subset_staged")
