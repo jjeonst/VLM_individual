@@ -46,6 +46,14 @@ The graph-cache builder reads `rgb_path` as a NumPy RGB frame array and
 `source_trajectory_id`, and `object_category` fields preserve Habitat-Web
 lineage when that source is available.
 
+Habitat-Web source data is kept under
+`/data/topovlm/habitat/sources/habitat_web_hf_metadata`. The source shards store
+`reference_replay` action/state records, not embedded RGB frames. A PR2L-ready
+episode manifest must therefore be produced by rendering those replay states
+against MP3D scenes and writing NumPy RGB/action arrays. Action ids are:
+`STOP=0`, `MOVE_FORWARD=1`, `TURN_LEFT=2`, `TURN_RIGHT=3`, `LOOK_UP=4`, and
+`LOOK_DOWN=5`.
+
 For `cache_format: pr2l_token_trajectory`, graph cache payloads contain
 node-level action labels:
 
@@ -63,9 +71,9 @@ and projection lineage.
 
 ## Still Missing
 
-- Habitat-Web or replacement expert demonstrations for behavior cloning.
-- A Slurm stage-in/stage-out contract after the data and checkpoint roots are
-  fixed.
+- MP3D scene assets under `/data/topovlm/habitat/scene_datasets/mp3d`.
+- A replay renderer that converts Habitat-Web action/state records into the
+  PR2L-ready episode manifest payloads above.
 
 ## PR2L Reference Targets
 

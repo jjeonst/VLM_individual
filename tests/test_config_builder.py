@@ -48,10 +48,20 @@ class ConfigBuilderTest(unittest.TestCase):
         cfg = build_config_from_exp("habitat/pr2l_habitat_bc_faithful")
         self.assertEqual(cfg.config_name, "habitat/pr2l_habitat_bc_faithful")
         self.assertEqual(cfg.data.cache_format, "pr2l_token_trajectory")
+        self.assertEqual(
+            cfg.data.objectnav_dataset_dir,
+            "sources/habitat_web_hf_metadata/objectnav/objectnav_mp3d_thda_70k",
+        )
+        self.assertEqual(cfg.data.scene_dataset_dir, "scene_datasets")
+        self.assertEqual(
+            cfg.data.scene_dataset_config,
+            "scene_datasets/mp3d/mp3d.scene_dataset_config.json",
+        )
         self.assertEqual(cfg.model.vlm.representation, "pr2l_visual_tokens_last_two_layers")
         self.assertEqual(cfg.model.vlm.hidden_layer_indices, [-2, -1])
         self.assertEqual(cfg.model.vlm.visual_pool_grid, 4)
         self.assertEqual(cfg.model.vlm.projection, "pca")
+        self.assertEqual(cfg.model.policy.num_actions, 6)
         self.assertEqual(cfg.model.policy.prediction_target, "nodes")
         self.assertEqual(cfg.objectives.behavior_cloning.stop_turn_weight, 1.5)
         self.assertEqual(cfg.gradient_accumulation_steps, 8)

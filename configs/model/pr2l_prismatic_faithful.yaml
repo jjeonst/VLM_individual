@@ -13,4 +13,5 @@ model:
     prompt_template: "Would a {goal_text} be found here? Why or why not?"
   policy:
     input_dim: 2048
+    num_actions: 6
     prediction_target: nodes

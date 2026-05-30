@@ -41,11 +41,12 @@ From the paper's Habitat appendix:
 - Compute reported by paper: Habitat training on A100; data generation and
   evaluation parallelized on A5000 GPUs.
 
-## Gap Against Current Scaffold
+## Current Scaffold Scope
 
-The current TopoVLM scaffold is intentionally narrower than the PR2L Habitat
-implementation. It can smoke-test config, policy, loss, and checkpoint plumbing,
-but it does not yet implement the PR2L-faithful representation path.
+The current TopoVLM scaffold implements the PR2L-faithful representation and
+behavior-cloning path, but only the synthetic/debug scale has been executed so
+far. Live Habitat-Web training still needs rendered RGB/action trajectory arrays
+derived from the Habitat-Web replays and MP3D scenes.
 
 Current implementation pieces:
 
@@ -56,15 +57,20 @@ Current implementation pieces:
   PCA projection, and writes node-level action labels.
 - `GraphTransformerPolicy` supports node-level action logits for trajectory BC.
 - The BC objective supports inflection weighting and stop/turn action weighting.
+- Habitat-Web action ids are `STOP=0`, `MOVE_FORWARD=1`, `TURN_LEFT=2`,
+  `TURN_RIGHT=3`, `LOOK_UP=4`, and `LOOK_DOWN=5`.
+- `validate.py --runner habitat_web_audit` checks Habitat-Web Git LFS
+  materialization, samples replay actions, and reports missing MP3D scenes.
 - `validate.py --runner pr2l_manifest_audit` checks PR2L trajectory manifests
   and missing payloads before cache building.
 
 Still missing live input:
 
-- Habitat-Web human demonstration trajectories are not present under
-  `/data/topovlm/habitat` yet. Without those trajectories, TopoVLM can validate
-  code/config/synthetic smoke paths but cannot claim PR2L reproduction or
-  paper-scale training.
+- Habitat-Web replays are action/state records and do not embed RGB frames.
+  Without MP3D scene assets and a replay renderer that writes NumPy RGB/action
+  arrays under `/data/topovlm/habitat/episodes/pr2l_habitat_web`, TopoVLM can
+  validate code/config/synthetic smoke paths but cannot claim PR2L reproduction
+  or paper-scale training.
 
 ## Canonical TopoVLM Implication
 

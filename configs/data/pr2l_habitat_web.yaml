@@ -1,6 +1,9 @@
 data:
   dataset_name: pr2l_habitat_web
   cache_format: pr2l_token_trajectory
+  objectnav_dataset_dir: sources/habitat_web_hf_metadata/objectnav/objectnav_mp3d_thda_70k
+  scene_dataset_dir: scene_datasets
+  scene_dataset_config: scene_datasets/mp3d/mp3d.scene_dataset_config.json
   episodes_manifest: episodes/pr2l_habitat_web/train/manifest.jsonl
   graph_manifest: graphs/pr2l_habitat_bc_faithful/train/manifest.jsonl
   graph_cache_dir: graphs/pr2l_habitat_bc_faithful/train

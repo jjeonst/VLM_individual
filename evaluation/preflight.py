@@ -7,6 +7,7 @@ from pathlib import Path
 from configs.schema import TopoVLMConfig
 from data.habitat_manifest import load_episode_records, load_graph_records, resolve_data_path
 from data.habitat_objectnav import load_objectnav_summary
+from data.habitat_web import load_habitat_web_summary, is_git_lfs_pointer
 
 
 def run_data_preflight(
@@ -26,6 +27,9 @@ def run_data_preflight(
     content_shards = (
         sorted(objectnav_content_dir.glob("*.json.gz")) if objectnav_content_dir.exists() else []
     )
+    materialized_content_shards = [
+        path for path in content_shards if not is_git_lfs_pointer(path)
+    ]
     checks = {
         "data_root": data_root.exists(),
         "habitat_config": habitat_config.exists(),
@@ -33,6 +37,7 @@ def run_data_preflight(
         "objectnav_split_index": objectnav_split_index.exists(),
         "objectnav_content_dir": objectnav_content_dir.exists(),
         "objectnav_content_shards": bool(content_shards),
+        "objectnav_content_shards_materialized": bool(materialized_content_shards),
         "scene_dataset_dir": scene_dataset_dir.exists(),
         "scene_dataset_config": scene_dataset_config.exists(),
         "episode_manifest": episode_manifest.exists(),
@@ -59,6 +64,7 @@ def run_data_preflight(
             "vlm_weights_path": str(vlm_weights),
         },
         "objectnav_content_shards": len(content_shards),
+        "objectnav_materialized_content_shards": len(materialized_content_shards),
     }
 
 
@@ -73,6 +79,7 @@ def run_objectnav_audit(
     if not scene_dataset_config.exists():
         missing.append(str(scene_dataset_config))
     missing.extend(summary["missing_sample_scenes"])
+    missing = sorted(set(missing))
     if missing and not allow_missing_data:
         raise FileNotFoundError(f"Missing ObjectNav/HM3D inputs: {missing[:5]}")
     return {
@@ -122,6 +129,36 @@ def run_pr2l_manifest_audit(
         "unique_object_categories": len(objects),
         "missing_payloads": missing_payloads[:20],
         "missing_payload_count": len(missing_payloads),
+    }
+
+
+def run_habitat_web_audit(
+    cfg: TopoVLMConfig, *, allow_missing_data: bool = False
+) -> dict[str, object]:
+    summary = load_habitat_web_summary(cfg.data, sample_episodes=4)
+    schema_sample = None
+    if cfg.data.split != "train_sample":
+        try:
+            schema_sample = load_habitat_web_summary(
+                cfg.data, sample_episodes=4, split="train_sample"
+            )
+        except FileNotFoundError:
+            schema_sample = None
+    missing = []
+    if not summary["split_index_materialized"]:
+        missing.append(str(summary["split_index"]))
+    if summary["materialized_content_shards"] == 0:
+        missing.append(str(summary["content_dir"]))
+    missing.extend(summary["missing_sample_scenes"])
+    if missing and not allow_missing_data:
+        raise FileNotFoundError(f"Missing Habitat-Web inputs: {missing[:5]}")
+    return {
+        "status": "ok" if not missing else "missing_allowed",
+        "config_name": cfg.config_name,
+        "habitat_web": summary,
+        "schema_sample": schema_sample,
+        "missing_inputs": missing[:20],
+        "missing_input_count": len(missing),
     }
 
 
