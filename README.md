@@ -114,6 +114,7 @@ The canonical paper-faithful reimplementation config is:
 python validate.py --runner habitat_web_audit --exp habitat/pr2l_habitat_bc_faithful --allow-missing-data
 python validate.py --runner habitat_web_scene_audit --exp habitat/pr2l_habitat_bc_faithful --allow-missing-data
 python validate.py --runner pr2l_manifest_audit --exp habitat/pr2l_habitat_bc_faithful --allow-missing-data
+python validate.py --runner vlm_auth_audit --exp habitat/pr2l_habitat_bc_faithful --allow-missing-data
 python train.py --exp habitat/pr2l_habitat_bc_faithful --mode build_episodes
 python train.py --exp habitat/pr2l_habitat_bc_faithful --mode build_cache
 python train.py --exp habitat/pr2l_habitat_bc_faithful --mode train

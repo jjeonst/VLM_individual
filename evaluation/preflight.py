@@ -239,6 +239,28 @@ def run_habitat_web_selection_audit(
     }
 
 
+def run_vlm_auth_audit(
+    cfg: TopoVLMConfig, *, allow_missing_data: bool = False
+) -> dict[str, object]:
+    if cfg.model.vlm.backend != "prismatic":
+        raise ValueError(f"Unsupported VLM backend: {cfg.model.vlm.backend}")
+    from encoders.prismatic import inspect_prismatic_hf_auth
+
+    audit = inspect_prismatic_hf_auth(cfg.model.vlm)
+    missing = []
+    if audit["requires_private_hf_auth"] and not audit["token_available"]:
+        missing.append("hf_token")
+    if missing and not allow_missing_data:
+        raise FileNotFoundError("Missing Prismatic Hugging Face token for gated LLM metadata")
+    return {
+        "status": "ok" if not missing else "missing_allowed",
+        "config_name": cfg.config_name,
+        "vlm_auth": audit,
+        "missing_inputs": missing,
+        "missing_input_count": len(missing),
+    }
+
+
 def run_cache_audit(cfg: TopoVLMConfig, *, allow_missing_data: bool = False) -> dict[str, object]:
     source_data_root = Path(cfg.data.data_root)
     audit_data_root = resolve_materialization_data_root(cfg.data.data_root)

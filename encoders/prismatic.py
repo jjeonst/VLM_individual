@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 
@@ -197,6 +198,67 @@ def _resolve_dtype(torch, dtype_name: str):
     raise ValueError(f"Unsupported dtype: {dtype_name}")
 
 
+def inspect_prismatic_hf_auth(config: VLMConfig) -> dict[str, object]:
+    load_id = _resolve_load_id(config.model_id, config.weights_path)
+    model_config_path = _audit_prismatic_config_path(load_id, config.weights_path)
+    llm_backbone_id = None
+    if model_config_path is not None:
+        llm_backbone_id = _read_llm_backbone_id(model_config_path)
+    hf_repo = _known_llm_hf_repo(llm_backbone_id)
+    token_source = _find_token_source(config.hf_token_path)
+    requires_private_hf_auth = hf_repo is not None and hf_repo.startswith("meta-llama/")
+    return {
+        "backend": config.backend,
+        "model_id": config.model_id,
+        "weights_path": config.weights_path,
+        "load_id": load_id,
+        "model_config_path": None if model_config_path is None else str(model_config_path),
+        "llm_backbone_id": llm_backbone_id,
+        "hf_repo": hf_repo,
+        "requires_private_hf_auth": requires_private_hf_auth,
+        "token_available": token_source is not None,
+        "token_source": token_source,
+    }
+
+
+def _audit_prismatic_config_path(load_id: str, weights_path: str) -> Path | None:
+    config_path = _local_prismatic_config_path(load_id)
+    if config_path is not None:
+        return config_path
+    staged_mirror = _absolute_data_mirror_path(weights_path)
+    if staged_mirror is None or not staged_mirror.exists():
+        return None
+    return _local_prismatic_config_path(str(staged_mirror))
+
+
+def _local_prismatic_config_path(load_id: str) -> Path | None:
+    path = Path(load_id)
+    if not path.is_dir():
+        return None
+    config_path = path / "config.json"
+    if not config_path.exists():
+        raise FileNotFoundError(config_path)
+    return config_path
+
+
+def _absolute_data_mirror_path(path_value: str) -> Path | None:
+    path = Path(path_value)
+    if path.is_absolute():
+        return None
+    parts = path.parts
+    if not parts or parts[0] != "data":
+        return None
+    return Path("/").joinpath(*parts)
+
+
+def _read_llm_backbone_id(config_path: Path) -> str:
+    raw = json.loads(config_path.read_text(encoding="utf-8"))
+    model = raw.get("model")
+    if not isinstance(model, dict) or "llm_backbone_id" not in model:
+        raise ValueError(f"Missing model.llm_backbone_id in {config_path}")
+    return str(model["llm_backbone_id"])
+
+
 def _read_token(token_path: str | None) -> str | None:
     if token_path is None:
         env_token = os.environ.get("HF_TOKEN") or os.environ.get("HUGGING_FACE_HUB_TOKEN")
@@ -212,9 +274,35 @@ def _read_token(token_path: str | None) -> str | None:
     return path.read_text(encoding="utf-8").strip()
 
 
+def _find_token_source(token_path: str | None) -> str | None:
+    if token_path is not None:
+        path = Path(token_path).expanduser()
+        if path.exists() and path.read_text(encoding="utf-8").strip():
+            return str(path)
+        return None
+    for env_name in ("HF_TOKEN", "HUGGING_FACE_HUB_TOKEN"):
+        token = os.environ.get(env_name)
+        if token and token.strip():
+            return env_name
+    for candidate in _default_hf_token_paths():
+        if candidate.exists() and candidate.read_text(encoding="utf-8").strip():
+            return str(candidate)
+    return None
+
+
 def _default_hf_token_paths() -> tuple[Path, ...]:
     home = Path.home()
     return (home / ".cache/huggingface/token", home / ".huggingface/token")
+
+
+def _known_llm_hf_repo(llm_backbone_id: str | None) -> str | None:
+    repos = {
+        "llama2-7b-pure": "meta-llama/Llama-2-7b-hf",
+        "llama2-13b-pure": "meta-llama/Llama-2-13b-hf",
+        "llama2-7b-chat": "meta-llama/Llama-2-7b-chat-hf",
+        "llama2-13b-chat": "meta-llama/Llama-2-13b-chat-hf",
+    }
+    return repos.get(llm_backbone_id)
 
 
 def _resolve_load_id(model_id: str, weights_path: str) -> str:

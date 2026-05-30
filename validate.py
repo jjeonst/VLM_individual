@@ -14,6 +14,7 @@ RUNNERS = (
     "habitat_web_selection_audit",
     "pr2l_manifest_audit",
     "cache_audit",
+    "vlm_auth_audit",
     "offline_policy_eval",
 )
 
@@ -61,6 +62,10 @@ def main(argv: list[str] | None = None) -> None:
         from evaluation.preflight import run_cache_audit
 
         result = run_cache_audit(cfg, allow_missing_data=args.allow_missing_data)
+    elif args.runner == "vlm_auth_audit":
+        from evaluation.preflight import run_vlm_auth_audit
+
+        result = run_vlm_auth_audit(cfg, allow_missing_data=args.allow_missing_data)
     elif args.runner == "offline_policy_eval":
         if args.checkpoint_dir is None:
             raise ValueError("offline_policy_eval requires --checkpoint-dir")

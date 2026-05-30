@@ -71,6 +71,8 @@ metadata. Do not commit tokens. Use one of these runtime credential routes:
 - the standard user token file `~/.cache/huggingface/token`
 - `model.vlm.hf_token_path` pointing to a private token file outside the repo
 
+Check the active config with `python validate.py --runner vlm_auth_audit --exp <exp> --allow-missing-data` before submitting a Prismatic cache job.
+
 `flash-attn` is not installed by default. Prismatic documents it as required for
 VLM training; TopoVLM's first target is frozen-VLM feature extraction. Add and
 verify `flash-attn` only when a run path actually requires it.
