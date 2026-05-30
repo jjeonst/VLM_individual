@@ -83,6 +83,12 @@ trained checkpoint or full derived cache bundle. TopoVLM code may be open, but
 HM3D-derived weights, caches, manifests containing substantial scene-derived
 content, and hosted interactive demos must stay private/internal by default.
 
+The PR2L-faithful Habitat-Web path uses Matterport3D v1 scene ids such as
+`mp3d/17DRP5sb8fy/17DRP5sb8fy.glb`, not HM3D scene ids. MP3D v1 has a separate
+Matterport3D terms/access route from HM3D. Do not treat HM3D account access as
+MP3D v1 approval; acquire or confirm MP3D v1 access before downloading or using
+the MP3D habitat archive for this path.
+
 ## First Smoke Config
 
 The first smoke config is:
@@ -106,6 +112,7 @@ The canonical paper-faithful reimplementation config is:
 
 ```bash
 python validate.py --runner habitat_web_audit --exp habitat/pr2l_habitat_bc_faithful --allow-missing-data
+python validate.py --runner habitat_web_scene_audit --exp habitat/pr2l_habitat_bc_faithful --allow-missing-data
 python validate.py --runner pr2l_manifest_audit --exp habitat/pr2l_habitat_bc_faithful --allow-missing-data
 python train.py --exp habitat/pr2l_habitat_bc_faithful --mode build_episodes
 python train.py --exp habitat/pr2l_habitat_bc_faithful --mode build_cache
@@ -143,6 +150,10 @@ materialized, samples `reference_replay` actions, and reports missing MP3D
 scenes. Habitat-Web stores action/state replays, not embedded RGB frames, so
 `train.py --mode build_episodes` renders those replays against MP3D scenes
 before `episodes/.../manifest.jsonl` can point to NumPy RGB/action arrays.
+`habitat_web_scene_audit` scans the materialized Habitat-Web train split and
+writes the current scene/object/action inventory to
+`artifacts/evidence/habitat_web_scene_inventory_audit.json`; this diagnostic
+artifact currently lists 56 required MP3D scene GLBs and 28 object categories.
 
 ## Reference Prototype
 
