@@ -57,6 +57,7 @@ class PR2LTrajectoryTest(unittest.TestCase):
                         representation="pr2l_visual_tokens_last_two_layers",
                         projection="none",
                         output_dim=8,
+                        weights_path=str(root / "fake_prismatic"),
                     ),
                     policy=PolicyConfig(input_dim=8, prediction_target="nodes"),
                 ),
@@ -111,6 +112,7 @@ class PR2LTrajectoryTest(unittest.TestCase):
                         representation="pr2l_visual_tokens_last_two_layers",
                         projection="none",
                         output_dim=8,
+                        weights_path=str(source_root / "fake_prismatic"),
                     ),
                     policy=PolicyConfig(input_dim=8, prediction_target="nodes"),
                 ),
@@ -124,6 +126,36 @@ class PR2LTrajectoryTest(unittest.TestCase):
             self.assertEqual(result["output_data_root"], str(output_root))
             self.assertTrue((output_root / "graphs/pr2l/manifest.jsonl").exists())
             self.assertFalse((source_root / "graphs/pr2l/manifest.jsonl").exists())
+
+    def test_pr2l_cache_builder_fails_before_encoder_load_without_hf_token(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            weights = root / "prism-dinosiglip+7b"
+            weights.mkdir()
+            (weights / "config.json").write_text(
+                '{"model": {"llm_backbone_id": "llama2-7b-pure"}}\n',
+                encoding="utf-8",
+            )
+            cfg = TopoVLMConfig(
+                data=DataConfig(
+                    data_root=str(root),
+                    cache_format="pr2l_token_trajectory",
+                    episodes_manifest="episodes/pr2l_habitat_web/train/manifest.jsonl",
+                ),
+                model=ModelConfig(
+                    vlm=VLMConfig(
+                        representation="pr2l_visual_tokens_last_two_layers",
+                        weights_path=str(weights),
+                    )
+                ),
+            )
+
+            with patch.dict(os.environ, {"HOME": tmpdir}, clear=True):
+                with patch("data.habitat_cache.build_vlm_encoder") as build_encoder:
+                    with self.assertRaisesRegex(FileNotFoundError, "meta-llama/Llama-2-7b-hf"):
+                        build_habitat_graph_cache(cfg)
+
+            build_encoder.assert_not_called()
 
     def test_pr2l_audits_can_read_materialization_output_root(self):
         with tempfile.TemporaryDirectory() as tmpdir:

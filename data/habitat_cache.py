@@ -24,6 +24,7 @@ def build_habitat_graph_cache(cfg: TopoVLMConfig) -> dict[str, object]:
         raise ValueError(f"Unsupported VLM backend: {cfg.model.vlm.backend}")
     if cfg.model.topology.builder != "sequential_similarity":
         raise ValueError(f"Unsupported topology builder: {cfg.model.topology.builder}")
+    _require_prismatic_auth_ready(cfg)
 
     import numpy as np
     from PIL import Image
@@ -116,6 +117,7 @@ def _build_pr2l_token_trajectory_cache(cfg: TopoVLMConfig) -> dict[str, object]:
         raise ValueError(f"Unsupported PR2L VLM representation: {cfg.model.vlm.representation}")
     if cfg.model.topology.builder != "sequential_similarity":
         raise ValueError(f"Unsupported topology builder: {cfg.model.topology.builder}")
+    _require_prismatic_auth_ready(cfg)
 
     import numpy as np
     from PIL import Image
@@ -213,6 +215,19 @@ def _build_pr2l_token_trajectory_cache(cfg: TopoVLMConfig) -> dict[str, object]:
         "cache_format": cfg.data.cache_format,
         "representation_id": _representation_id(cfg),
     }
+
+
+def _require_prismatic_auth_ready(cfg: TopoVLMConfig) -> None:
+    from encoders.prismatic import inspect_prismatic_hf_auth
+
+    audit = inspect_prismatic_hf_auth(cfg.model.vlm)
+    if audit["requires_private_hf_auth"] and not audit["token_available"]:
+        hf_repo = audit["hf_repo"]
+        model_config_path = audit["model_config_path"]
+        raise FileNotFoundError(
+            f"Missing Hugging Face token for gated Prismatic LLM metadata: "
+            f"hf_repo={hf_repo} model_config_path={model_config_path}"
+        )
 
 
 def _encode_record_pr2l_tokens(cfg, encoder, record, data_root, projection, np, Image):
