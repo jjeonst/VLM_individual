@@ -83,6 +83,10 @@ class ConfigBuilderTest(unittest.TestCase):
             cfg.data.episodes_manifest,
             "episodes/pr2l_habitat_web_balanced_subset/train/manifest.jsonl",
         )
+        self.assertEqual(
+            cfg.model.vlm.projection_path,
+            "embeddings/pr2l_habitat_bc_balanced_subset/projection_pca.npz",
+        )
 
     def test_pr2l_tiny_smoke_config_loads(self):
         cfg = build_config_from_exp("habitat/pr2l_habitat_bc_tiny_smoke")
@@ -100,6 +104,10 @@ class ConfigBuilderTest(unittest.TestCase):
             cfg.data.graph_manifest,
             "graphs/pr2l_habitat_bc_tiny_smoke/train/manifest.jsonl",
         )
+        self.assertEqual(
+            cfg.model.vlm.projection_path,
+            "embeddings/pr2l_habitat_bc_tiny_smoke/projection_pca.npz",
+        )
         self.assertEqual(cfg.data.batch_size, 2)
         self.assertEqual(cfg.data.num_workers, 0)
 
@@ -114,6 +122,10 @@ class ConfigBuilderTest(unittest.TestCase):
             cfg.model.vlm.weights_path,
             "data/topovlm/vlm_weights/prismatic/prism-dinosiglip+7b",
         )
+        self.assertEqual(
+            cfg.model.vlm.projection_path,
+            "embeddings/pr2l_habitat_bc_tiny_smoke/projection_pca.npz",
+        )
 
     def test_pr2l_balanced_subset_staged_config_loads(self):
         cfg = build_config_from_exp("habitat/pr2l_habitat_bc_balanced_subset_staged")
@@ -123,6 +135,10 @@ class ConfigBuilderTest(unittest.TestCase):
         self.assertEqual(
             cfg.model.vlm.weights_path,
             "data/topovlm/vlm_weights/prismatic/prism-dinosiglip+7b",
+        )
+        self.assertEqual(
+            cfg.model.vlm.projection_path,
+            "embeddings/pr2l_habitat_bc_balanced_subset/projection_pca.npz",
         )
 
     def test_domain_configs_only_declare_default_overrides(self):

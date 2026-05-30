@@ -18,3 +18,6 @@ data:
   embeddings_dir: embeddings/pr2l_habitat_bc_tiny_smoke/train
   batch_size: 2
   num_workers: 0
+model:
+  vlm:
+    projection_path: embeddings/pr2l_habitat_bc_tiny_smoke/projection_pca.npz

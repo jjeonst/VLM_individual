@@ -23,3 +23,4 @@ data:
 model:
   vlm:
     weights_path: data/topovlm/vlm_weights/prismatic/prism-dinosiglip+7b
+    projection_path: embeddings/pr2l_habitat_bc_tiny_smoke/projection_pca.npz
