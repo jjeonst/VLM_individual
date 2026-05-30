@@ -31,6 +31,8 @@ class DataConfig:
     goal_key: str = "goal_text"
     frame_stride: int = 1
     max_episodes: Optional[int] = None
+    episode_selection_manifest: Optional[str] = None
+    balanced_subset_size: Optional[int] = None
     batch_size: int = 16
     num_workers: int = 4
     pin_memory: bool = True

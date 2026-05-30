@@ -12,7 +12,11 @@ import numpy as np
 from configs.schema import TopoVLMConfig
 from data.habitat_manifest import resolve_data_path
 from data.habitat_objectnav import resolve_objectnav_scene_path
-from data.habitat_web import HABITAT_WEB_ACTION_TO_ID, HabitatWebReplayDataset
+from data.habitat_web import (
+    HABITAT_WEB_ACTION_TO_ID,
+    HabitatWebReplayDataset,
+    load_habitat_web_selection_ids,
+)
 
 
 class ReplayRenderer(Protocol):
@@ -38,12 +42,23 @@ def build_habitat_web_episode_manifest(
     tmp_manifest_path = manifest_path.with_suffix(manifest_path.suffix + ".tmp")
     if renderer is None:
         renderer = HabitatSimReplayRenderer(cfg)
+    selection_ids = (
+        load_habitat_web_selection_ids(cfg.data)
+        if cfg.data.episode_selection_manifest is not None
+        else None
+    )
+    seen_selection_ids = set()
 
     written = []
     dropped_leading_stop_count = 0
     try:
         with tmp_manifest_path.open("w", encoding="utf-8") as handle:
-            for raw, shard in dataset.iter_raw_records(max_episodes=cfg.data.max_episodes):
+            max_episodes = None if selection_ids is not None else cfg.data.max_episodes
+            for raw, shard in dataset.iter_raw_records(max_episodes=max_episodes):
+                source_trajectory_id = str(raw["episode_id"])
+                if selection_ids is not None and source_trajectory_id not in selection_ids:
+                    continue
+                seen_selection_ids.add(source_trajectory_id)
                 replay = _validated_replay(raw, shard)
                 replay, dropped_leading_stop = _drop_leading_initial_stop(replay)
                 dropped_leading_stop_count += int(dropped_leading_stop)
@@ -81,11 +96,16 @@ def build_habitat_web_episode_manifest(
                     "rgb_path": str(rgb_rel),
                     "actions_path": str(actions_rel),
                     "source_dataset": "habitat_web",
-                    "source_trajectory_id": str(raw["episode_id"]),
+                    "source_trajectory_id": source_trajectory_id,
                     "object_category": str(raw["object_category"]),
                 }
                 handle.write(json.dumps(record, sort_keys=True) + "\n")
                 written.append(record)
+            if selection_ids is not None and seen_selection_ids != selection_ids:
+                missing_ids = sorted(selection_ids.difference(seen_selection_ids))
+                raise ValueError(
+                    f"Selection manifest contains Habitat-Web ids absent from source: {missing_ids[:5]}"
+                )
         tmp_manifest_path.replace(manifest_path)
     except Exception:
         tmp_manifest_path.unlink(missing_ok=True)
@@ -102,6 +122,8 @@ def build_habitat_web_episode_manifest(
         "rgb_dir": str(rgb_dir),
         "actions_dir": str(actions_dir),
         "dropped_leading_stop_count": dropped_leading_stop_count,
+        "selection_manifest": cfg.data.episode_selection_manifest,
+        "selected_source_episodes": len(selection_ids) if selection_ids is not None else None,
     }
 
 

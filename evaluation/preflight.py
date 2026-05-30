@@ -8,6 +8,7 @@ from configs.schema import TopoVLMConfig
 from data.habitat_manifest import load_episode_records, load_graph_records, resolve_data_path
 from data.habitat_objectnav import load_objectnav_summary
 from data.habitat_web import (
+    load_habitat_web_selection_summary,
     load_habitat_web_inventory,
     load_habitat_web_summary,
     is_git_lfs_pointer,
@@ -189,6 +190,40 @@ def run_habitat_web_scene_audit(
         "habitat_web_scene_inventory": inventory,
         "missing_inputs": missing[:20],
         "missing_input_count": metadata_missing_count + inventory["missing_scene_count"],
+    }
+
+
+def run_habitat_web_selection_audit(
+    cfg: TopoVLMConfig, *, allow_missing_data: bool = False
+) -> dict[str, object]:
+    missing = []
+    if cfg.data.episode_selection_manifest is None:
+        raise ValueError("DataConfig.episode_selection_manifest is required")
+    selection_manifest = resolve_data_path(
+        Path(cfg.data.data_root), cfg.data.episode_selection_manifest
+    )
+    if not selection_manifest.exists():
+        missing.append(str(selection_manifest))
+        summary = {
+            "selection_manifest": str(selection_manifest),
+            "selected_episodes": 0,
+        }
+    else:
+        summary = load_habitat_web_selection_summary(cfg.data)
+        missing.extend(summary["missing_scene_paths"])
+    if missing and not allow_missing_data:
+        raise FileNotFoundError(f"Missing Habitat-Web selection inputs: {missing[:5]}")
+    missing_input_count = 0 if not missing else len(missing)
+    if "missing_scene_count" in summary:
+        missing_input_count = summary["missing_scene_count"]
+        if not selection_manifest.exists():
+            missing_input_count += 1
+    return {
+        "status": "ok" if not missing else "missing_allowed",
+        "config_name": cfg.config_name,
+        "habitat_web_selection": summary,
+        "missing_inputs": missing[:20],
+        "missing_input_count": missing_input_count,
     }
 
 

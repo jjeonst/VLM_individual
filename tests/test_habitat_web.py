@@ -6,7 +6,12 @@ from pathlib import Path
 
 from configs.schema import DataConfig
 from data.habitat_web import HABITAT_WEB_ACTION_TO_ID, is_git_lfs_pointer
-from data.habitat_web import load_habitat_web_inventory, load_habitat_web_summary
+from data.habitat_web import (
+    build_habitat_web_balanced_selection_manifest,
+    load_habitat_web_inventory,
+    load_habitat_web_selection_summary,
+    load_habitat_web_summary,
+)
 
 
 class HabitatWebReplayTest(unittest.TestCase):
@@ -161,10 +166,63 @@ class HabitatWebReplayTest(unittest.TestCase):
                 ],
             )
 
+    def test_balanced_selection_manifest_spreads_scenes_and_objects(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            split_dir = root / "sources/habitat_web/train"
+            content_dir = split_dir / "content"
+            content_dir.mkdir(parents=True)
+            _write_json_gz(split_dir / "train.json.gz", {"episodes": []})
+            _write_json_gz(
+                content_dir / "batch.json.gz",
+                {
+                    "episodes": [
+                        _episode("a0", "mp3d/a/a.glb", "chair"),
+                        _episode("a1", "mp3d/a/a.glb", "chair"),
+                        _episode("a2", "mp3d/a/a.glb", "table"),
+                        _episode("b0", "mp3d/b/b.glb", "chair"),
+                        _episode("b1", "mp3d/b/b.glb", "table"),
+                    ]
+                },
+            )
+            cfg = DataConfig(
+                data_root=str(root),
+                objectnav_dataset_dir="sources/habitat_web",
+                scene_dataset_dir="scene_datasets",
+                split="train",
+                episode_selection_manifest="episode_selections/balanced.jsonl",
+                balanced_subset_size=4,
+            )
+
+            result = build_habitat_web_balanced_selection_manifest(cfg)
+            summary = load_habitat_web_selection_summary(cfg)
+            manifest_lines = (
+                root / "episode_selections/balanced.jsonl"
+            ).read_text(encoding="utf-8").strip().splitlines()
+
+            self.assertEqual(result["selected_episodes"], 4)
+            self.assertEqual(summary["selected_episodes"], 4)
+            self.assertEqual(summary["unique_scenes"], 2)
+            self.assertEqual(summary["unique_object_categories"], 2)
+            self.assertEqual(summary["scene_count_min"], 2)
+            self.assertEqual(summary["scene_count_max"], 2)
+            self.assertEqual(summary["object_count_min"], 2)
+            self.assertEqual(summary["object_count_max"], 2)
+            self.assertEqual(len(manifest_lines), 4)
+
 
 def _write_json_gz(path: Path, payload: dict[str, object]) -> None:
     with gzip.open(path, "wt", encoding="utf-8") as handle:
         json.dump(payload, handle)
+
+
+def _episode(episode_id: str, scene_id: str, object_category: str) -> dict[str, object]:
+    return {
+        "episode_id": episode_id,
+        "scene_id": scene_id,
+        "object_category": object_category,
+        "reference_replay": [{"action": "STOP", "agent_state": {}}],
+    }
 
 
 if __name__ == "__main__":

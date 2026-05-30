@@ -20,6 +20,8 @@ data:
   goal_key: goal_text
   frame_stride: 1
   max_episodes: null
+  episode_selection_manifest: null
+  balanced_subset_size: null
   batch_size: 16
   num_workers: 4
   pin_memory: true

@@ -14,6 +14,7 @@ VLM payload root.
       val/manifest.jsonl
     rgb/
     actions/
+    episode_selections/
     scene_datasets/
     graphs/
     embeddings/
@@ -53,6 +54,12 @@ episode manifest is produced by `train.py --mode build_episodes`, which renders
 those replay states against MP3D scenes and writes NumPy RGB/action arrays.
 Action ids are: `STOP=0`, `MOVE_FORWARD=1`, `TURN_LEFT=2`, `TURN_RIGHT=3`,
 `LOOK_UP=4`, and `LOOK_DOWN=5`.
+
+For scene/object-balanced subset runs, `train.py --mode build_selection` writes
+`episode_selections/.../*.jsonl` under `data_root`. Each line names a
+Habitat-Web `source_trajectory_id`, `scene_id`, `object_category`, source shard,
+and replay length. If `data.episode_selection_manifest` is configured,
+`build_episodes` renders only those selected source trajectories.
 
 For `cache_format: pr2l_token_trajectory`, graph cache payloads contain
 node-level action labels:

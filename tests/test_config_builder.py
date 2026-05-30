@@ -70,6 +70,20 @@ class ConfigBuilderTest(unittest.TestCase):
         self.assertEqual(cfg.wandb_group, "pr2l_prismatic_policy")
         self.assertEqual(cfg.wandb_contract_role_id, "habitat_bc")
 
+    def test_pr2l_balanced_subset_config_loads(self):
+        cfg = build_config_from_exp("habitat/pr2l_habitat_bc_balanced_subset")
+        self.assertEqual(cfg.config_name, "habitat/pr2l_habitat_bc_balanced_subset")
+        self.assertEqual(cfg.data.dataset_name, "pr2l_habitat_web_balanced_subset")
+        self.assertEqual(
+            cfg.data.episode_selection_manifest,
+            "episode_selections/pr2l_habitat_web/train_scene_object_balanced.jsonl",
+        )
+        self.assertEqual(cfg.data.balanced_subset_size, 560)
+        self.assertEqual(
+            cfg.data.episodes_manifest,
+            "episodes/pr2l_habitat_web_balanced_subset/train/manifest.jsonl",
+        )
+
     def test_domain_configs_only_declare_default_overrides(self):
         config_root = Path(__file__).resolve().parents[1] / "configs"
         for domain in ("data", "eval", "model", "objectives", "train"):

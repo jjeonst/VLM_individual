@@ -1,0 +1,21 @@
+{
+  "artifact_type": "topovlm_habitat_web_balanced_build_episodes_attempt",
+  "classification": "diagnostic",
+  "command": "python train.py --exp habitat/pr2l_habitat_bc_balanced_subset --mode build_episodes",
+  "exit_code": 1,
+  "expected_status": "blocked_on_missing_mp3d_scene_assets",
+  "manifest_exists_after_failure": false,
+  "manifest_path": "/data/topovlm/habitat/episodes/pr2l_habitat_web_balanced_subset/train/manifest.jsonl",
+  "missing_scene_path": "/data/topovlm/habitat/scene_datasets/mp3d/17DRP5sb8fy/17DRP5sb8fy.glb",
+  "stderr_tail": [
+    "  File \"/home/heejun/Projects/TopoVLM/train.py\", line 58, in <module>",
+    "    main()",
+    "  File \"/home/heejun/Projects/TopoVLM/train.py\", line 47, in main",
+    "    result = build_habitat_web_episode_manifest(cfg)",
+    "  File \"/home/heejun/Projects/TopoVLM/data/habitat_web_render.py\", line 68, in build_habitat_web_episode_manifest",
+    "    raise FileNotFoundError(scene_path)",
+    "FileNotFoundError: /data/topovlm/habitat/scene_datasets/mp3d/17DRP5sb8fy/17DRP5sb8fy.glb",
+    "ERROR conda.cli.main_run:execute(148): `conda run python train.py --exp habitat/pr2l_habitat_bc_balanced_subset --mode build_episodes` failed. (See above for error)"
+  ],
+  "tmp_manifest_exists_after_failure": false
+}

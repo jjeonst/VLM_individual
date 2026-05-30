@@ -11,6 +11,7 @@ RUNNERS = (
     "objectnav_audit",
     "habitat_web_audit",
     "habitat_web_scene_audit",
+    "habitat_web_selection_audit",
     "pr2l_manifest_audit",
     "cache_audit",
     "offline_policy_eval",
@@ -48,6 +49,10 @@ def main(argv: list[str] | None = None) -> None:
         from evaluation.preflight import run_habitat_web_scene_audit
 
         result = run_habitat_web_scene_audit(cfg, allow_missing_data=args.allow_missing_data)
+    elif args.runner == "habitat_web_selection_audit":
+        from evaluation.preflight import run_habitat_web_selection_audit
+
+        result = run_habitat_web_selection_audit(cfg, allow_missing_data=args.allow_missing_data)
     elif args.runner == "pr2l_manifest_audit":
         from evaluation.preflight import run_pr2l_manifest_audit
 

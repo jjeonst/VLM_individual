@@ -7,7 +7,7 @@ import json
 import os
 
 
-MODES = ("train", "build_episodes", "build_cache", "preflight")
+MODES = ("train", "build_selection", "build_episodes", "build_cache", "preflight")
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -33,6 +33,10 @@ def main(argv: list[str] | None = None) -> None:
         from evaluation.preflight import run_data_preflight
 
         result = run_data_preflight(cfg, allow_missing_data=args.allow_missing_data)
+    elif args.mode == "build_selection":
+        from data.habitat_web import build_habitat_web_balanced_selection_manifest
+
+        result = build_habitat_web_balanced_selection_manifest(cfg.data)
     elif args.mode == "build_cache":
         from data.habitat_cache import build_habitat_graph_cache
 

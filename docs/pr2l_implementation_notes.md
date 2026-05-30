@@ -61,6 +61,11 @@ Current implementation pieces:
   `TURN_RIGHT=3`, `LOOK_UP=4`, and `LOOK_DOWN=5`.
 - `validate.py --runner habitat_web_audit` checks Habitat-Web Git LFS
   materialization, samples replay actions, and reports missing MP3D scenes.
+- `train.py --mode build_selection` materializes a deterministic
+  scene/object-balanced Habitat-Web source-trajectory manifest for the subset
+  stage.
+- `validate.py --runner habitat_web_selection_audit` checks that subset
+  manifest and reports its scene/object balance plus missing MP3D scenes.
 - `train.py --mode build_episodes` renders Habitat-Web replay states against
   MP3D scenes and writes the PR2L-ready episode manifest plus NumPy RGB/action
   arrays.

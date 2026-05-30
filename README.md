@@ -128,6 +128,20 @@ prompt, caches last-two-layer visual-token representations, pools visual tokens,
 applies PCA projection, builds topology graph nodes, and trains node-level
 behavior cloning with inflection and stop/turn weighting.
 
+The scene/object-balanced stage-3 config is:
+
+```bash
+python train.py --exp habitat/pr2l_habitat_bc_balanced_subset --mode build_selection
+python validate.py --runner habitat_web_selection_audit --exp habitat/pr2l_habitat_bc_balanced_subset --allow-missing-data
+python train.py --exp habitat/pr2l_habitat_bc_balanced_subset --mode build_episodes
+python train.py --exp habitat/pr2l_habitat_bc_balanced_subset --mode build_cache
+python train.py --exp habitat/pr2l_habitat_bc_balanced_subset --mode train
+```
+
+`build_selection` writes a deterministic source-trajectory manifest under
+`/data/topovlm/habitat/episode_selections/...`; `build_episodes` then renders
+only those selected Habitat-Web replays.
+
 ## Missing Live Inputs
 
 The repo is runnable for synthetic/debug smoke tests. Habitat-scale PR2L work
