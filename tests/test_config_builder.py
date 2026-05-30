@@ -103,6 +103,18 @@ class ConfigBuilderTest(unittest.TestCase):
         self.assertEqual(cfg.data.batch_size, 2)
         self.assertEqual(cfg.data.num_workers, 0)
 
+    def test_pr2l_tiny_smoke_staged_config_loads(self):
+        cfg = build_config_from_exp("habitat/pr2l_habitat_bc_tiny_smoke_staged")
+        self.assertEqual(cfg.config_name, "habitat/pr2l_habitat_bc_tiny_smoke_staged")
+        self.assertEqual(cfg.data.data_root, "data/topovlm/habitat")
+        self.assertEqual(cfg.data.habitat_config, "configs/habitat/pr2l_objectnav_staged.yaml")
+        self.assertEqual(cfg.data.dataset_name, "pr2l_habitat_web_tiny_smoke")
+        self.assertEqual(cfg.data.max_episodes, 4)
+        self.assertEqual(
+            cfg.model.vlm.weights_path,
+            "data/topovlm/vlm_weights/prismatic/prism-dinosiglip+7b",
+        )
+
     def test_pr2l_balanced_subset_staged_config_loads(self):
         cfg = build_config_from_exp("habitat/pr2l_habitat_bc_balanced_subset_staged")
         self.assertEqual(cfg.config_name, "habitat/pr2l_habitat_bc_balanced_subset_staged")
