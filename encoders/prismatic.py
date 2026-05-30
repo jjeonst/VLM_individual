@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from configs.schema import VLMConfig
@@ -198,11 +199,22 @@ def _resolve_dtype(torch, dtype_name: str):
 
 def _read_token(token_path: str | None) -> str | None:
     if token_path is None:
+        env_token = os.environ.get("HF_TOKEN") or os.environ.get("HUGGING_FACE_HUB_TOKEN")
+        if env_token:
+            return env_token.strip()
+        for candidate in _default_hf_token_paths():
+            if candidate.exists():
+                return candidate.read_text(encoding="utf-8").strip()
         return None
     path = Path(token_path).expanduser()
     if not path.exists():
         raise FileNotFoundError(path)
     return path.read_text(encoding="utf-8").strip()
+
+
+def _default_hf_token_paths() -> tuple[Path, ...]:
+    home = Path.home()
+    return (home / ".cache/huggingface/token", home / ".huggingface/token")
 
 
 def _resolve_load_id(model_id: str, weights_path: str) -> str:

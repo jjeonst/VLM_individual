@@ -62,6 +62,15 @@ Required for prompt-conditioned VLM feature extraction:
   `timm`, `sentencepiece`, `jsonlines`, `rich`, and `huggingface_hub`
 - Hugging Face access for gated language backbones when the selected model needs it
 
+`prism-dinosiglip+7b` uses the Llama2-7B-pure language backbone. Even when the
+Prismatic checkpoint is stored under `/data/topovlm/vlm_weights`, the loader may
+need Hugging Face authorization for `meta-llama/Llama-2-7b-hf` tokenizer/config
+metadata. Do not commit tokens. Use one of these runtime credential routes:
+
+- `HF_TOKEN` or `HUGGING_FACE_HUB_TOKEN` in the runtime environment
+- the standard user token file `~/.cache/huggingface/token`
+- `model.vlm.hf_token_path` pointing to a private token file outside the repo
+
 `flash-attn` is not installed by default. Prismatic documents it as required for
 VLM training; TopoVLM's first target is frozen-VLM feature extraction. Add and
 verify `flash-attn` only when a run path actually requires it.
