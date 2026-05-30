@@ -11,6 +11,7 @@ import torch
 from configs.schema import DataConfig, ModelConfig, PolicyConfig, TopoVLMConfig, VLMConfig
 from data.habitat_cache import build_habitat_graph_cache
 from data.habitat_dataset import HabitatGraphDataset, collate_graph_batch
+from evaluation.preflight import run_cache_audit, run_pr2l_manifest_audit
 from policies import build_policy
 from training.runner import run_training
 
@@ -123,6 +124,72 @@ class PR2LTrajectoryTest(unittest.TestCase):
             self.assertEqual(result["output_data_root"], str(output_root))
             self.assertTrue((output_root / "graphs/pr2l/manifest.jsonl").exists())
             self.assertFalse((source_root / "graphs/pr2l/manifest.jsonl").exists())
+
+    def test_pr2l_audits_can_read_materialization_output_root(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            source_root = Path(tmpdir) / "source"
+            output_root = Path(tmpdir) / "outputs/data/topovlm/habitat"
+            (output_root / "episodes/pr2l_habitat_web/train").mkdir(parents=True)
+            (output_root / "rgb").mkdir()
+            (output_root / "actions").mkdir()
+            (output_root / "graphs/pr2l").mkdir(parents=True)
+            (output_root / "embeddings/pr2l").mkdir(parents=True)
+            np.save(output_root / "rgb/episode_0.npy", np.zeros((2, 2, 2, 3), dtype="uint8"))
+            np.save(output_root / "actions/episode_0.npy", np.asarray([1, 0], dtype="int64"))
+            np.savez_compressed(
+                output_root / "graphs/pr2l/episode_0.npz",
+                nodes=np.zeros((1, 4, 8), dtype="float32"),
+                target_action=np.asarray(0, dtype="int64"),
+            )
+            np.save(output_root / "embeddings/pr2l/episode_0.npy", np.zeros((1, 8), dtype="float32"))
+            (output_root / "episodes/pr2l_habitat_web/train/manifest.jsonl").write_text(
+                json.dumps(
+                    {
+                        "episode_id": "episode_0",
+                        "split": "train",
+                        "scene_id": "scene",
+                        "goal_text": "chair",
+                        "rgb_path": "rgb/episode_0.npy",
+                        "actions_path": "actions/episode_0.npy",
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (output_root / "graphs/pr2l/manifest.jsonl").write_text(
+                json.dumps(
+                    {
+                        "episode_id": "episode_0",
+                        "split": "train",
+                        "scene_id": "scene",
+                        "goal_text": "chair",
+                        "graph_path": "graphs/pr2l/episode_0.npz",
+                        "embedding_path": "embeddings/pr2l/episode_0.npy",
+                        "target_action": 0,
+                        "num_nodes": 1,
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            cfg = TopoVLMConfig(
+                data=DataConfig(
+                    data_root=str(source_root),
+                    episodes_manifest="episodes/pr2l_habitat_web/train/manifest.jsonl",
+                    graph_manifest="graphs/pr2l/manifest.jsonl",
+                )
+            )
+
+            with patch.dict(os.environ, {"TOPOVLM_DATA_OUTPUT_ROOT": str(output_root)}):
+                episode_result = run_pr2l_manifest_audit(cfg)
+                cache_result = run_cache_audit(cfg)
+
+            self.assertEqual(episode_result["audit_data_root"], str(output_root))
+            self.assertEqual(episode_result["records"], 1)
+            self.assertEqual(episode_result["missing_payload_count"], 0)
+            self.assertEqual(cache_result["audit_data_root"], str(output_root))
+            self.assertEqual(cache_result["records"], 1)
+            self.assertEqual(cache_result["missing_graph_count"], 0)
 
     def test_dataset_collates_token_nodes_and_node_actions(self):
         with tempfile.TemporaryDirectory() as tmpdir:

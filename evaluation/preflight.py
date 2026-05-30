@@ -5,7 +5,12 @@ from __future__ import annotations
 from pathlib import Path
 
 from configs.schema import TopoVLMConfig
-from data.habitat_manifest import load_episode_records, load_graph_records, resolve_data_path
+from data.habitat_manifest import (
+    load_episode_records,
+    load_graph_records,
+    resolve_data_path,
+    resolve_materialization_data_root,
+)
 from data.habitat_objectnav import load_objectnav_summary
 from data.habitat_web import (
     load_habitat_web_selection_summary,
@@ -98,15 +103,20 @@ def run_objectnav_audit(
 def run_pr2l_manifest_audit(
     cfg: TopoVLMConfig, *, allow_missing_data: bool = False
 ) -> dict[str, object]:
-    data_root = Path(cfg.data.data_root)
-    episode_manifest = resolve_data_path(data_root, cfg.data.episodes_manifest)
+    source_data_root = Path(cfg.data.data_root)
+    audit_data_root = resolve_materialization_data_root(cfg.data.data_root)
+    episode_manifest = resolve_data_path(audit_data_root, cfg.data.episodes_manifest)
     if not episode_manifest.exists():
         if allow_missing_data:
             return {
                 "status": "missing_allowed",
+                "config_name": cfg.config_name,
+                "source_data_root": str(source_data_root),
+                "audit_data_root": str(audit_data_root),
                 "episode_manifest": str(episode_manifest),
                 "records": 0,
                 "missing_payloads": [str(episode_manifest)],
+                "missing_payload_count": 1,
             }
         raise FileNotFoundError(episode_manifest)
     records = load_episode_records(episode_manifest)
@@ -120,7 +130,7 @@ def run_pr2l_manifest_audit(
         if record.object_category is not None:
             objects.add(record.object_category)
         for relative_path in (record.rgb_path, record.actions_path):
-            payload_path = resolve_data_path(data_root, relative_path)
+            payload_path = resolve_data_path(audit_data_root, relative_path)
             if not payload_path.exists():
                 missing_payloads.append(str(payload_path))
     if missing_payloads and not allow_missing_data:
@@ -128,6 +138,8 @@ def run_pr2l_manifest_audit(
     return {
         "status": "ok" if not missing_payloads else "missing_allowed",
         "config_name": cfg.config_name,
+        "source_data_root": str(source_data_root),
+        "audit_data_root": str(audit_data_root),
         "episode_manifest": str(episode_manifest),
         "records": len(records),
         "unique_scenes": len(scenes),
@@ -228,28 +240,37 @@ def run_habitat_web_selection_audit(
 
 
 def run_cache_audit(cfg: TopoVLMConfig, *, allow_missing_data: bool = False) -> dict[str, object]:
-    data_root = Path(cfg.data.data_root)
-    graph_manifest = resolve_data_path(data_root, cfg.data.graph_manifest)
+    source_data_root = Path(cfg.data.data_root)
+    audit_data_root = resolve_materialization_data_root(cfg.data.data_root)
+    graph_manifest = resolve_data_path(audit_data_root, cfg.data.graph_manifest)
     if not graph_manifest.exists():
         if allow_missing_data:
             return {
                 "status": "missing_allowed",
+                "config_name": cfg.config_name,
+                "source_data_root": str(source_data_root),
+                "audit_data_root": str(audit_data_root),
                 "graph_manifest": str(graph_manifest),
                 "records": 0,
-                "missing_graphs": [],
+                "missing_graphs": [str(graph_manifest)],
+                "missing_graph_count": 1,
             }
         raise FileNotFoundError(graph_manifest)
     records = load_graph_records(graph_manifest)
     missing_graphs = []
     for record in records:
-        graph_path = resolve_data_path(data_root, record.graph_path)
+        graph_path = resolve_data_path(audit_data_root, record.graph_path)
         if not graph_path.exists():
             missing_graphs.append(str(graph_path))
     if missing_graphs and not allow_missing_data:
         raise FileNotFoundError(f"Missing graph payloads: {missing_graphs[:5]}")
     return {
         "status": "ok" if not missing_graphs else "missing_allowed",
+        "config_name": cfg.config_name,
+        "source_data_root": str(source_data_root),
+        "audit_data_root": str(audit_data_root),
         "graph_manifest": str(graph_manifest),
         "records": len(records),
         "missing_graphs": missing_graphs,
+        "missing_graph_count": len(missing_graphs),
     }

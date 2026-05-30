@@ -66,6 +66,14 @@ while reading source inputs from `data.data_root`. In Slurm jobs, the generated
 wrapper sets `RUN_ROOT` and `OUTPUT_DIR`; materializers then write the same data
 bundle layout under `OUTPUT_DIR/<data_root>/...` for stage-out.
 
+Staged materialization outputs are audited by pointing the existing validators at
+the output data root:
+
+```bash
+TOPOVLM_DATA_OUTPUT_ROOT=<stageout>/data/topovlm/habitat python validate.py --runner pr2l_manifest_audit --exp habitat/pr2l_habitat_bc_balanced_subset_staged
+TOPOVLM_DATA_OUTPUT_ROOT=<stageout>/data/topovlm/habitat python validate.py --runner cache_audit --exp habitat/pr2l_habitat_bc_balanced_subset_staged
+```
+
 For `cache_format: pr2l_token_trajectory`, graph cache payloads contain
 node-level action labels:
 

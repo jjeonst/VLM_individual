@@ -144,6 +144,13 @@ only those selected Habitat-Web replays.
 On Slurm, use the `_staged` balanced config so staged inputs are read from
 `data/topovlm/...` and output materialization bundles are written under
 `OUTPUT_DIR/data/topovlm/habitat/...` for MCP stage-out.
+After a staged `build_episodes` or `build_cache` job finishes, audit the staged
+bundle by setting `TOPOVLM_DATA_OUTPUT_ROOT` to the staged-out data root and
+running the canonical validators, for example:
+
+```bash
+TOPOVLM_DATA_OUTPUT_ROOT=<stageout>/data/topovlm/habitat python validate.py --runner pr2l_manifest_audit --exp habitat/pr2l_habitat_bc_balanced_subset_staged
+```
 
 ## Missing Live Inputs
 
