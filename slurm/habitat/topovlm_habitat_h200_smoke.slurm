@@ -18,7 +18,7 @@ if [ ! -w "/scratch"/"$USER" ]; then
   exit 34
 fi
 
-SOURCE_COMMIT="1e01ccad9e119dd54021d07d6cd2d189d2d83cfb"
+SOURCE_COMMIT="589e2f4a45c4edfcb36a9c24acf571b0e835427d"
 if [[ ! "$SOURCE_COMMIT" =~ ^[0-9a-fA-F]{7,40}$ ]] || ! git -C "/home/heejun/Projects/TopoVLM" cat-file -e "$SOURCE_COMMIT^{commit}"; then
   echo "[blocker] SOURCE_COMMIT is not a valid commit: $SOURCE_COMMIT" >&2
   exit 32
@@ -46,7 +46,7 @@ cat > "$STAGE_MANIFEST" <<'JSON'
   "artifacts": [],
   "cache": {
     "code": {
-      "commit_path": "/scratch/$USER/workcache/TopoVLM/code/1e01ccad9e119dd54021d07d6cd2d189d2d83cfb",
+      "commit_path": "/scratch/$USER/workcache/TopoVLM/code/589e2f4a45c4edfcb36a9c24acf571b0e835427d",
       "path": "/scratch/$USER/workcache/TopoVLM/code",
       "sync_delete": false
     },
@@ -65,30 +65,30 @@ cat > "$STAGE_MANIFEST" <<'JSON'
   },
   "code": {
     "source": "/home/heejun/Projects/TopoVLM",
-    "source_commit": "1e01ccad9e119dd54021d07d6cd2d189d2d83cfb",
+    "source_commit": "589e2f4a45c4edfcb36a9c24acf571b0e835427d",
     "sync": "git_archive_commit_immutable_code",
-    "target": "/scratch/$USER/workcache/TopoVLM/code/1e01ccad9e119dd54021d07d6cd2d189d2d83cfb",
+    "target": "/scratch/$USER/workcache/TopoVLM/code/589e2f4a45c4edfcb36a9c24acf571b0e835427d",
     "workdir": "$WORKDIR"
   },
   "data": [
     {
-      "reason": "HM3D ObjectNav v2 episode shards for TopoVLM Habitat smoke and cache building",
+      "reason": "HM3D ObjectNav v2 episode shards used by habitat/prismatic_bc_smoke_staged.",
       "source": "/data/topovlm/habitat/datasets/objectnav/hm3d/v2/objectnav_hm3d_v2",
-      "target": "habitat/datasets/objectnav/hm3d/v2/objectnav_hm3d_v2"
+      "target": "topovlm/habitat/datasets/objectnav/hm3d/v2/objectnav_hm3d_v2"
     },
     {
-      "reason": "HM3D v0.2 scene assets and scene dataset config for ObjectNav scene resolution",
+      "reason": "HM3D scene meshes and semantic annotations resolved by Habitat ObjectNav scene ids.",
       "source": "/data/topovlm/habitat/scene_datasets/hm3d",
-      "target": "habitat/scene_datasets/hm3d"
+      "target": "topovlm/habitat/scene_datasets/hm3d"
     },
     {
-      "reason": "Frozen Prismatic VLM weights used by the configured encoder",
+      "reason": "Frozen Prismatic VLM weights used by the staged TopoVLM config.",
       "source": "/data/topovlm/vlm_weights/prismatic/prism-dinosiglip+7b",
-      "target": "vlm_weights/prismatic/prism-dinosiglip+7b"
+      "target": "topovlm/vlm_weights/prismatic/prism-dinosiglip+7b"
     }
   ],
   "flow_key": "topovlm_habitat_h200_smoke_${SLURM_JOB_ID}",
-  "generated_at_utc": "2026-05-30T03:43:11+00:00",
+  "generated_at_utc": "2026-05-30T04:46:58+00:00",
   "job_name": "topovlm_habitat_h200_smoke",
   "output": {
     "default_stageout": "/home/heejun/Projects/TopoVLM/artifacts/logs/slurm_outputs/topovlm_habitat_h200_smoke/${SLURM_JOB_ID}",
@@ -230,9 +230,9 @@ rsync -a --human-readable --info=progress2 --stats --delete "$CODE_SOURCE/" "$WO
 write_stage_progress "stage_in" "done" "immutable_code"
 
 write_stage_progress "stage_in" "running" "readonly_inputs"
-stage_readonly_data "/data/topovlm/habitat/datasets/objectnav/hm3d/v2/objectnav_hm3d_v2" "habitat/datasets/objectnav/hm3d/v2/objectnav_hm3d_v2"
-stage_readonly_data "/data/topovlm/habitat/scene_datasets/hm3d" "habitat/scene_datasets/hm3d"
-stage_readonly_data "/data/topovlm/vlm_weights/prismatic/prism-dinosiglip+7b" "vlm_weights/prismatic/prism-dinosiglip+7b"
+stage_readonly_data "/data/topovlm/habitat/datasets/objectnav/hm3d/v2/objectnav_hm3d_v2" "topovlm/habitat/datasets/objectnav/hm3d/v2/objectnav_hm3d_v2"
+stage_readonly_data "/data/topovlm/habitat/scene_datasets/hm3d" "topovlm/habitat/scene_datasets/hm3d"
+stage_readonly_data "/data/topovlm/vlm_weights/prismatic/prism-dinosiglip+7b" "topovlm/vlm_weights/prismatic/prism-dinosiglip+7b"
 write_stage_progress "stage_in" "done" "readonly_inputs"
 
 cd "$WORKDIR"
@@ -250,7 +250,7 @@ export PYTHONPATH="$WORKDIR:${PYTHONPATH:-}"
 export CHECKPOINT_DIR="$RUN_OUTPUT_DIR/checkpoints"
 mkdir -p "$CHECKPOINT_DIR" "$XDG_CACHE_HOME"
 
-CHECKPOINT_SYNC_DEST="/home/heejun/Projects/TopoVLM/artifacts/logs/slurm_outputs/topovlm_habitat_h200_smoke"
+CHECKPOINT_SYNC_DEST="/home/heejun/Projects/TopoVLM/artifacts/logs/slurm_outputs/topovlm_habitat_h200_smoke/"${SLURM_JOB_ID}"/checkpoints"
 export CHECKPOINT_SYNC_DEST
 mkdir -p "$CHECKPOINT_SYNC_DEST"
 checkpoint_sync_loop() {
