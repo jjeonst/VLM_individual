@@ -59,26 +59,33 @@ class HabitatWebReplayDataset:
         self, *, max_episodes: int | None = None
     ) -> Iterator[HabitatWebReplayEpisode]:
         emitted = 0
+        for raw, shard in self.iter_raw_records(max_episodes=max_episodes):
+            replay = raw.get("reference_replay")
+            if not isinstance(replay, list):
+                raise ValueError(f"Missing reference_replay in {shard}")
+            actions = tuple(str(step["action"]) for step in replay)
+            unknown = sorted(set(actions).difference(HABITAT_WEB_ACTION_TO_ID))
+            if unknown:
+                raise ValueError(f"Unsupported Habitat-Web actions in {shard}: {unknown}")
+            yield HabitatWebReplayEpisode(
+                episode_id=str(raw["episode_id"]),
+                scene_id=str(raw["scene_id"]),
+                object_category=str(raw["object_category"]),
+                shard_path=str(shard),
+                replay_length=len(replay),
+                actions=actions,
+                has_embedded_rgb=_replay_has_embedded_rgb(replay),
+            )
+
+    def iter_raw_records(
+        self, *, max_episodes: int | None = None
+    ) -> Iterator[tuple[dict[str, object], Path]]:
+        emitted = 0
         for shard in self.content_files:
             if is_git_lfs_pointer(shard):
                 continue
             for raw in _load_habitat_web_payload(shard):
-                replay = raw.get("reference_replay")
-                if not isinstance(replay, list):
-                    raise ValueError(f"Missing reference_replay in {shard}")
-                actions = tuple(str(step["action"]) for step in replay)
-                unknown = sorted(set(actions).difference(HABITAT_WEB_ACTION_TO_ID))
-                if unknown:
-                    raise ValueError(f"Unsupported Habitat-Web actions in {shard}: {unknown}")
-                yield HabitatWebReplayEpisode(
-                    episode_id=str(raw["episode_id"]),
-                    scene_id=str(raw["scene_id"]),
-                    object_category=str(raw["object_category"]),
-                    shard_path=str(shard),
-                    replay_length=len(replay),
-                    actions=actions,
-                    has_embedded_rgb=_replay_has_embedded_rgb(replay),
-                )
+                yield raw, shard
                 emitted += 1
                 if max_episodes is not None and emitted >= max_episodes:
                     return

@@ -14,6 +14,8 @@ data:
   embeddings_dir: embeddings/prismatic_objectnav_train
   vlm_weights_dir: /data/topovlm/vlm_weights/prismatic
   image_key: rgb
+  image_height: 224
+  image_width: 224
   action_key: action
   goal_key: goal_text
   frame_stride: 1

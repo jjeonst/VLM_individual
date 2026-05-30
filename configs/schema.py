@@ -25,6 +25,8 @@ class DataConfig:
     embeddings_dir: str = "embeddings/prismatic_objectnav_train"
     vlm_weights_dir: str = "/data/topovlm/vlm_weights/prismatic"
     image_key: str = "rgb"
+    image_height: int = 224
+    image_width: int = 224
     action_key: str = "action"
     goal_key: str = "goal_text"
     frame_stride: int = 1

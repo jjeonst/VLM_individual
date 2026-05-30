@@ -7,7 +7,7 @@ import json
 import os
 
 
-MODES = ("train", "build_cache", "preflight")
+MODES = ("train", "build_episodes", "build_cache", "preflight")
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -37,6 +37,10 @@ def main(argv: list[str] | None = None) -> None:
         from data.habitat_cache import build_habitat_graph_cache
 
         result = build_habitat_graph_cache(cfg)
+    elif args.mode == "build_episodes":
+        from data.habitat_web_render import build_habitat_web_episode_manifest
+
+        result = build_habitat_web_episode_manifest(cfg)
     elif args.mode == "train":
         from training.runner import run_training
 

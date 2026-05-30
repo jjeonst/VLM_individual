@@ -61,16 +61,18 @@ Current implementation pieces:
   `TURN_RIGHT=3`, `LOOK_UP=4`, and `LOOK_DOWN=5`.
 - `validate.py --runner habitat_web_audit` checks Habitat-Web Git LFS
   materialization, samples replay actions, and reports missing MP3D scenes.
+- `train.py --mode build_episodes` renders Habitat-Web replay states against
+  MP3D scenes and writes the PR2L-ready episode manifest plus NumPy RGB/action
+  arrays.
 - `validate.py --runner pr2l_manifest_audit` checks PR2L trajectory manifests
   and missing payloads before cache building.
 
 Still missing live input:
 
 - Habitat-Web replays are action/state records and do not embed RGB frames.
-  Without MP3D scene assets and a replay renderer that writes NumPy RGB/action
-  arrays under `/data/topovlm/habitat/episodes/pr2l_habitat_web`, TopoVLM can
-  validate code/config/synthetic smoke paths but cannot claim PR2L reproduction
-  or paper-scale training.
+  Without MP3D scene assets, TopoVLM can validate code/config/synthetic smoke
+  paths but cannot render PR2L-ready episode arrays, claim PR2L reproduction, or
+  run paper-scale training.
 
 ## Canonical TopoVLM Implication
 
