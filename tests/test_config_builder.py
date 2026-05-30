@@ -27,6 +27,19 @@ class ConfigBuilderTest(unittest.TestCase):
         self.assertEqual(cfg.max_epochs, 1)
         self.assertEqual(cfg.data.batch_size, 2)
 
+    def test_staged_habitat_smoke_config_loads(self):
+        cfg = build_config_from_exp("habitat/prismatic_bc_smoke_staged")
+        self.assertEqual(cfg.config_name, "habitat/prismatic_bc_smoke_staged")
+        self.assertEqual(cfg.data.data_root, "data/habitat")
+        self.assertEqual(
+            cfg.data.habitat_config,
+            "configs/habitat/pr2l_objectnav_staged.yaml",
+        )
+        self.assertEqual(
+            cfg.model.vlm.weights_path,
+            "data/vlm_weights/prismatic/prism-dinosiglip+7b",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

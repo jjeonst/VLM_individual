@@ -91,6 +91,7 @@ python train.py --exp habitat/prismatic_bc_smoke --debug
 python validate.py --runner data_preflight --exp habitat/prismatic_bc_smoke
 python validate.py --runner objectnav_audit --exp habitat/prismatic_bc_smoke
 python validate.py --runner cache_audit --exp habitat/prismatic_bc_smoke
+python validate.py --runner data_preflight --exp habitat/prismatic_bc_smoke_staged --allow-missing-data
 ```
 
 The debug train path uses a synthetic graph dataset so entrypoint, model, loss,
@@ -110,7 +111,9 @@ still needs these live inputs before real training or evaluation:
 
 `objectnav_audit` opens the staged ObjectNav HM3D v2 shard files, samples one
 raw episode, and resolves its `scene_id` against
-`/data/topovlm/habitat/scene_datasets/hm3d`.
+`/data/topovlm/habitat/scene_datasets/hm3d`. The `*_staged` config set is for
+Slurm jobs that copy shared `/data/topovlm/...` inputs into the job-local
+`data/` directory before running from scratch.
 
 ## Reference Prototype
 
