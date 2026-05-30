@@ -10,6 +10,14 @@ class ConfigBuilderTest(unittest.TestCase):
         self.assertEqual(cfg.model.vlm.backend, "prismatic")
         self.assertEqual(cfg.model.policy.type, "graph_transformer_bc")
         self.assertEqual(cfg.objectives.names, ["behavior_cloning"])
+        self.assertEqual(
+            cfg.data.objectnav_dataset_dir,
+            "datasets/objectnav/hm3d/v2/objectnav_hm3d_v2",
+        )
+        self.assertEqual(
+            cfg.data.scene_dataset_config,
+            "scene_datasets/hm3d/hm3d_annotated_basis.scene_dataset_config.json",
+        )
 
     def test_debug_overrides_are_operational(self):
         cfg = build_config_from_exp("habitat/prismatic_bc_smoke", debug=True)

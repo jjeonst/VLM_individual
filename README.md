@@ -89,6 +89,7 @@ The first canonical config is:
 ```bash
 python train.py --exp habitat/prismatic_bc_smoke --debug
 python validate.py --runner data_preflight --exp habitat/prismatic_bc_smoke
+python validate.py --runner objectnav_audit --exp habitat/prismatic_bc_smoke
 python validate.py --runner cache_audit --exp habitat/prismatic_bc_smoke
 ```
 
@@ -106,6 +107,10 @@ still needs these live inputs before real training or evaluation:
 - `/data/topovlm/vlm_weights/prismatic/<model_id>` or Hugging Face access for Prismatic weights.
 - PR2L-faithful VLM token cache generation, PCA/projection metadata, and graph cache manifests.
 - A generated Slurm script after data, env, checkpoint, and W&B contracts are stable.
+
+`objectnav_audit` opens the staged ObjectNav HM3D v2 shard files, samples one
+raw episode, and resolves its `scene_id` against
+`/data/topovlm/habitat/scene_datasets/hm3d`.
 
 ## Reference Prototype
 

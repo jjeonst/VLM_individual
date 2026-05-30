@@ -13,7 +13,7 @@ habitat:
 
   dataset:
     split: train
-    data_path: /data/topovlm/habitat/datasets/objectnav/hm3d/v1/{split}/{split}.json.gz
+    data_path: /data/topovlm/habitat/datasets/objectnav/hm3d/v2/objectnav_hm3d_v2/{split}/{split}.json.gz
 
   simulator:
     turn_angle: 30

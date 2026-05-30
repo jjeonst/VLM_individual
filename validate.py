@@ -6,7 +6,7 @@ import argparse
 import json
 
 
-RUNNERS = ("data_preflight", "cache_audit", "offline_policy_eval")
+RUNNERS = ("data_preflight", "objectnav_audit", "cache_audit", "offline_policy_eval")
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -28,6 +28,10 @@ def main(argv: list[str] | None = None) -> None:
         from evaluation.preflight import run_data_preflight
 
         result = run_data_preflight(cfg, allow_missing_data=args.allow_missing_data)
+    elif args.runner == "objectnav_audit":
+        from evaluation.preflight import run_objectnav_audit
+
+        result = run_objectnav_audit(cfg, allow_missing_data=args.allow_missing_data)
     elif args.runner == "cache_audit":
         from evaluation.preflight import run_cache_audit
 

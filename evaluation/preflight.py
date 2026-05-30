@@ -6,6 +6,7 @@ from pathlib import Path
 
 from configs.schema import TopoVLMConfig
 from data.habitat_manifest import load_graph_records, resolve_data_path
+from data.habitat_objectnav import load_objectnav_summary
 
 
 def run_data_preflight(
@@ -14,12 +15,26 @@ def run_data_preflight(
     repo_root = Path.cwd()
     data_root = Path(cfg.data.data_root)
     habitat_config = repo_root / cfg.data.habitat_config
+    objectnav_dataset_dir = resolve_data_path(data_root, cfg.data.objectnav_dataset_dir)
+    objectnav_split_index = objectnav_dataset_dir / cfg.data.split / f"{cfg.data.split}.json.gz"
+    objectnav_content_dir = objectnav_dataset_dir / cfg.data.split / "content"
+    scene_dataset_dir = resolve_data_path(data_root, cfg.data.scene_dataset_dir)
+    scene_dataset_config = resolve_data_path(data_root, cfg.data.scene_dataset_config)
     episode_manifest = resolve_data_path(data_root, cfg.data.episodes_manifest)
     graph_manifest = resolve_data_path(data_root, cfg.data.graph_manifest)
     vlm_weights = Path(cfg.model.vlm.weights_path)
+    content_shards = (
+        sorted(objectnav_content_dir.glob("*.json.gz")) if objectnav_content_dir.exists() else []
+    )
     checks = {
         "data_root": data_root.exists(),
         "habitat_config": habitat_config.exists(),
+        "objectnav_dataset_dir": objectnav_dataset_dir.exists(),
+        "objectnav_split_index": objectnav_split_index.exists(),
+        "objectnav_content_dir": objectnav_content_dir.exists(),
+        "objectnav_content_shards": bool(content_shards),
+        "scene_dataset_dir": scene_dataset_dir.exists(),
+        "scene_dataset_config": scene_dataset_config.exists(),
         "episode_manifest": episode_manifest.exists(),
         "graph_manifest": graph_manifest.exists(),
         "vlm_weights_path": vlm_weights.exists(),
@@ -34,10 +49,37 @@ def run_data_preflight(
         "paths": {
             "data_root": str(data_root),
             "habitat_config": str(habitat_config),
+            "objectnav_dataset_dir": str(objectnav_dataset_dir),
+            "objectnav_split_index": str(objectnav_split_index),
+            "objectnav_content_dir": str(objectnav_content_dir),
+            "scene_dataset_dir": str(scene_dataset_dir),
+            "scene_dataset_config": str(scene_dataset_config),
             "episode_manifest": str(episode_manifest),
             "graph_manifest": str(graph_manifest),
             "vlm_weights_path": str(vlm_weights),
         },
+        "objectnav_content_shards": len(content_shards),
+    }
+
+
+def run_objectnav_audit(
+    cfg: TopoVLMConfig, *, allow_missing_data: bool = False
+) -> dict[str, object]:
+    scene_dataset_config = resolve_data_path(
+        Path(cfg.data.data_root), cfg.data.scene_dataset_config
+    )
+    summary = load_objectnav_summary(cfg.data, sample_episodes=1)
+    missing = []
+    if not scene_dataset_config.exists():
+        missing.append(str(scene_dataset_config))
+    missing.extend(summary["missing_sample_scenes"])
+    if missing and not allow_missing_data:
+        raise FileNotFoundError(f"Missing ObjectNav/HM3D inputs: {missing[:5]}")
+    return {
+        "status": "ok" if not missing else "missing_allowed",
+        "config_name": cfg.config_name,
+        "scene_dataset_config": str(scene_dataset_config),
+        "objectnav": summary,
     }
 
 
