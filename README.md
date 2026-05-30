@@ -141,6 +141,9 @@ python train.py --exp habitat/pr2l_habitat_bc_balanced_subset --mode train
 `build_selection` writes a deterministic source-trajectory manifest under
 `/data/topovlm/habitat/episode_selections/...`; `build_episodes` then renders
 only those selected Habitat-Web replays.
+On Slurm, use the `_staged` balanced config so staged inputs are read from
+`data/topovlm/...` and output materialization bundles are written under
+`OUTPUT_DIR/data/topovlm/habitat/...` for MCP stage-out.
 
 ## Missing Live Inputs
 

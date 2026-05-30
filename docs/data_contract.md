@@ -60,6 +60,11 @@ For scene/object-balanced subset runs, `train.py --mode build_selection` writes
 Habitat-Web `source_trajectory_id`, `scene_id`, `object_category`, source shard,
 and replay length. If `data.episode_selection_manifest` is configured,
 `build_episodes` renders only those selected source trajectories.
+When `TOPOVLM_DATA_OUTPUT_ROOT` is set, output-producing materializers write
+episode arrays, graph caches, embeddings, and their manifests under that root
+while reading source inputs from `data.data_root`. In Slurm jobs, the generated
+wrapper sets `RUN_ROOT` and `OUTPUT_DIR`; materializers then write the same data
+bundle layout under `OUTPUT_DIR/<data_root>/...` for stage-out.
 
 For `cache_format: pr2l_token_trajectory`, graph cache payloads contain
 node-level action labels:

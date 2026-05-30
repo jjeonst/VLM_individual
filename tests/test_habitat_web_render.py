@@ -1,8 +1,10 @@
 import gzip
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 import numpy as np
 
@@ -58,6 +60,8 @@ class HabitatWebRenderTest(unittest.TestCase):
             actions = np.load(root / record["actions_path"])
             self.assertEqual(result["episodes_written"], 1)
             self.assertEqual(result["dropped_leading_stop_count"], 1)
+            self.assertEqual(result["source_data_root"], str(root))
+            self.assertEqual(result["output_data_root"], str(root))
             self.assertEqual(record["episode_id"], "episode_0")
             self.assertEqual(record["source_trajectory_id"], "episode:0")
             self.assertEqual(record["goal_text"], "chair")
@@ -173,6 +177,52 @@ class HabitatWebRenderTest(unittest.TestCase):
             self.assertEqual(result["selected_source_episodes"], 1)
             self.assertEqual(records[0]["source_trajectory_id"], "episode:1")
             self.assertEqual(records[0]["goal_text"], "table")
+
+    def test_build_episode_manifest_can_write_to_output_data_root(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir) / "source"
+            output_root = Path(tmpdir) / "outputs/data/topovlm/habitat"
+            split_dir = root / "sources/habitat_web/train_sample"
+            content_dir = split_dir / "content"
+            content_dir.mkdir(parents=True)
+            scene_dir = root / "scene_datasets/mp3d/scene"
+            scene_dir.mkdir(parents=True)
+            (scene_dir / "scene.glb").write_text("fake", encoding="utf-8")
+            _write_json_gz(split_dir / "train_sample.json.gz", {"episodes": []})
+            _write_json_gz(
+                content_dir / "scene.json.gz",
+                {
+                    "episodes": [
+                        {
+                            "episode_id": "episode:0",
+                            "scene_id": "mp3d/scene/scene.glb",
+                            "object_category": "chair",
+                            "reference_replay": [_step("MOVE_FORWARD", [0.0, 0.0, 1.0])],
+                        }
+                    ]
+                },
+            )
+            cfg = TopoVLMConfig(
+                data=DataConfig(
+                    data_root=str(root),
+                    dataset_name="pr2l_habitat_web",
+                    objectnav_dataset_dir="sources/habitat_web",
+                    scene_dataset_dir="scene_datasets",
+                    split="train_sample",
+                    episodes_manifest="episodes/pr2l_habitat_web/train_sample/manifest.jsonl",
+                    max_episodes=1,
+                )
+            )
+
+            with patch.dict(os.environ, {"TOPOVLM_DATA_OUTPUT_ROOT": str(output_root)}):
+                result = build_habitat_web_episode_manifest(cfg, renderer=_FakeRenderer())
+
+            manifest_path = output_root / "episodes/pr2l_habitat_web/train_sample/manifest.jsonl"
+            record = json.loads(manifest_path.read_text(encoding="utf-8").strip())
+            self.assertEqual(result["source_data_root"], str(root))
+            self.assertEqual(result["output_data_root"], str(output_root))
+            self.assertTrue((output_root / record["rgb_path"]).exists())
+            self.assertFalse((root / "episodes/pr2l_habitat_web/train_sample/manifest.jsonl").exists())
 
 
 class _FakeRenderer:

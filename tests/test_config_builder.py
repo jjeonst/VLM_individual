@@ -84,6 +84,16 @@ class ConfigBuilderTest(unittest.TestCase):
             "episodes/pr2l_habitat_web_balanced_subset/train/manifest.jsonl",
         )
 
+    def test_pr2l_balanced_subset_staged_config_loads(self):
+        cfg = build_config_from_exp("habitat/pr2l_habitat_bc_balanced_subset_staged")
+        self.assertEqual(cfg.config_name, "habitat/pr2l_habitat_bc_balanced_subset_staged")
+        self.assertEqual(cfg.data.data_root, "data/topovlm/habitat")
+        self.assertEqual(cfg.data.dataset_name, "pr2l_habitat_web_balanced_subset")
+        self.assertEqual(
+            cfg.model.vlm.weights_path,
+            "data/topovlm/vlm_weights/prismatic/prism-dinosiglip+7b",
+        )
+
     def test_domain_configs_only_declare_default_overrides(self):
         config_root = Path(__file__).resolve().parents[1] / "configs"
         for domain in ("data", "eval", "model", "objectives", "train"):

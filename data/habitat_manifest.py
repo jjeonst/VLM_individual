@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
@@ -106,6 +107,19 @@ def resolve_data_path(root: Path, path: str | Path) -> Path:
     if target.is_absolute():
         return target
     return root / target
+
+
+def resolve_materialization_data_root(data_root: str) -> Path:
+    explicit_root = os.environ.get("TOPOVLM_DATA_OUTPUT_ROOT")
+    if explicit_root:
+        return Path(explicit_root)
+    run_root = os.environ.get("RUN_ROOT")
+    output_dir = os.environ.get("OUTPUT_DIR")
+    if run_root and output_dir:
+        source_root = Path(data_root)
+        relative_root = Path(*source_root.parts[1:]) if source_root.is_absolute() else source_root
+        return Path(output_dir) / relative_root
+    return Path(data_root)
 
 
 def _load_json_records(path: Path) -> list[dict[str, object]]:

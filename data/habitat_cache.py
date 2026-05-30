@@ -6,7 +6,11 @@ import json
 from pathlib import Path
 
 from configs.schema import TopoVLMConfig
-from data.habitat_manifest import load_episode_records, resolve_data_path
+from data.habitat_manifest import (
+    load_episode_records,
+    resolve_data_path,
+    resolve_materialization_data_root,
+)
 from encoders import build_vlm_encoder
 from topology.graph_builder import build_sequential_similarity_graph
 
@@ -25,6 +29,7 @@ def build_habitat_graph_cache(cfg: TopoVLMConfig) -> dict[str, object]:
     from PIL import Image
 
     data_root = Path(cfg.data.data_root)
+    output_data_root = resolve_materialization_data_root(cfg.data.data_root)
     episode_manifest = resolve_data_path(data_root, cfg.data.episodes_manifest)
     records = load_episode_records(episode_manifest)
     if cfg.data.max_episodes is not None:
@@ -32,13 +37,13 @@ def build_habitat_graph_cache(cfg: TopoVLMConfig) -> dict[str, object]:
     if not records:
         raise ValueError(f"No Habitat episode records in {episode_manifest}")
 
-    graph_dir = resolve_data_path(data_root, cfg.data.graph_cache_dir)
-    embedding_dir = resolve_data_path(data_root, cfg.data.embeddings_dir)
+    graph_dir = resolve_data_path(output_data_root, cfg.data.graph_cache_dir)
+    embedding_dir = resolve_data_path(output_data_root, cfg.data.embeddings_dir)
     graph_dir.mkdir(parents=True, exist_ok=True)
     embedding_dir.mkdir(parents=True, exist_ok=True)
 
     encoder = build_vlm_encoder(cfg.model.vlm)
-    manifest_path = resolve_data_path(data_root, cfg.data.graph_manifest)
+    manifest_path = resolve_data_path(output_data_root, cfg.data.graph_manifest)
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
     written = []
 
@@ -72,9 +77,9 @@ def build_habitat_graph_cache(cfg: TopoVLMConfig) -> dict[str, object]:
 
             embedding_rel = Path(cfg.data.embeddings_dir) / f"{record.episode_id}.npy"
             graph_rel = Path(cfg.data.graph_cache_dir) / f"{record.episode_id}.npz"
-            np.save(resolve_data_path(data_root, embedding_rel), embedding_array)
+            np.save(resolve_data_path(output_data_root, embedding_rel), embedding_array)
             np.savez_compressed(
-                resolve_data_path(data_root, graph_rel),
+                resolve_data_path(output_data_root, graph_rel),
                 nodes=graph.nodes,
                 edges=np.asarray(graph.edges, dtype=np.int64),
                 frame_ranges=np.asarray(graph.frame_ranges, dtype=np.int64),
@@ -98,6 +103,8 @@ def build_habitat_graph_cache(cfg: TopoVLMConfig) -> dict[str, object]:
         "status": "ok",
         "episodes": len(records),
         "manifest": str(manifest_path),
+        "source_data_root": str(data_root),
+        "output_data_root": str(output_data_root),
         "graphs_written": len(written),
     }
 
@@ -114,6 +121,7 @@ def _build_pr2l_token_trajectory_cache(cfg: TopoVLMConfig) -> dict[str, object]:
     from PIL import Image
 
     data_root = Path(cfg.data.data_root)
+    output_data_root = resolve_materialization_data_root(cfg.data.data_root)
     episode_manifest = resolve_data_path(data_root, cfg.data.episodes_manifest)
     records = load_episode_records(episode_manifest)
     if cfg.data.max_episodes is not None:
@@ -121,14 +129,14 @@ def _build_pr2l_token_trajectory_cache(cfg: TopoVLMConfig) -> dict[str, object]:
     if not records:
         raise ValueError(f"No Habitat episode records in {episode_manifest}")
 
-    graph_dir = resolve_data_path(data_root, cfg.data.graph_cache_dir)
-    embedding_dir = resolve_data_path(data_root, cfg.data.embeddings_dir)
+    graph_dir = resolve_data_path(output_data_root, cfg.data.graph_cache_dir)
+    embedding_dir = resolve_data_path(output_data_root, cfg.data.embeddings_dir)
     graph_dir.mkdir(parents=True, exist_ok=True)
     embedding_dir.mkdir(parents=True, exist_ok=True)
 
     encoder = build_vlm_encoder(cfg.model.vlm)
-    projection = _load_or_fit_projection(cfg, encoder, records, data_root)
-    manifest_path = resolve_data_path(data_root, cfg.data.graph_manifest)
+    projection = _load_or_fit_projection(cfg, encoder, records, data_root, output_data_root)
+    manifest_path = resolve_data_path(output_data_root, cfg.data.graph_manifest)
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
     written = []
 
@@ -152,9 +160,9 @@ def _build_pr2l_token_trajectory_cache(cfg: TopoVLMConfig) -> dict[str, object]:
             embedding_rel = Path(cfg.data.embeddings_dir) / f"{record.episode_id}.npy"
             graph_rel = Path(cfg.data.graph_cache_dir) / f"{record.episode_id}.npz"
             metadata_rel = Path(cfg.data.graph_cache_dir) / f"{record.episode_id}.metadata.json"
-            np.save(resolve_data_path(data_root, embedding_rel), frame_tokens)
+            np.save(resolve_data_path(output_data_root, embedding_rel), frame_tokens)
             np.savez_compressed(
-                resolve_data_path(data_root, graph_rel),
+                resolve_data_path(output_data_root, graph_rel),
                 nodes=graph.nodes.astype("float32"),
                 edges=np.asarray(graph.edges, dtype=np.int64),
                 frame_ranges=frame_ranges,
@@ -173,7 +181,7 @@ def _build_pr2l_token_trajectory_cache(cfg: TopoVLMConfig) -> dict[str, object]:
                     "projection_path": cfg.model.vlm.projection_path,
                 }
             )
-            resolve_data_path(data_root, metadata_rel).write_text(
+            resolve_data_path(output_data_root, metadata_rel).write_text(
                 json.dumps(metadata, indent=2, sort_keys=True) + "\n", encoding="utf-8"
             )
             graph_record = {
@@ -199,6 +207,8 @@ def _build_pr2l_token_trajectory_cache(cfg: TopoVLMConfig) -> dict[str, object]:
         "status": "ok",
         "episodes": len(records),
         "manifest": str(manifest_path),
+        "source_data_root": str(data_root),
+        "output_data_root": str(output_data_root),
         "graphs_written": len(written),
         "cache_format": cfg.data.cache_format,
         "representation_id": _representation_id(cfg),
@@ -238,7 +248,7 @@ def _encode_record_pr2l_tokens(cfg, encoder, record, data_root, projection, np, 
     return token_array, actions, metadata
 
 
-def _load_or_fit_projection(cfg, encoder, records, data_root):
+def _load_or_fit_projection(cfg, encoder, records, data_root, output_data_root):
     if cfg.model.vlm.projection == "none":
         return None
     if cfg.model.vlm.projection != "pca":
@@ -250,7 +260,8 @@ def _load_or_fit_projection(cfg, encoder, records, data_root):
     projection_path = resolve_data_path(data_root, cfg.model.vlm.projection_path)
     if projection_path.exists():
         return _load_projection(projection_path, np)
-    return _fit_projection(cfg, encoder, records, data_root, projection_path, np)
+    output_projection_path = resolve_data_path(output_data_root, cfg.model.vlm.projection_path)
+    return _fit_projection(cfg, encoder, records, data_root, output_projection_path, np)
 
 
 def _fit_projection(cfg, encoder, records, data_root, projection_path, np):

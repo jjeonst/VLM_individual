@@ -1,4 +1,5 @@
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -67,6 +68,61 @@ class PR2LTrajectoryTest(unittest.TestCase):
             self.assertEqual(result["graphs_written"], 1)
             self.assertEqual(graph_payload["nodes"].shape[-2:], (4, 8))
             self.assertEqual(graph_payload["node_actions"].tolist(), [0])
+
+    def test_pr2l_cache_builder_can_write_to_output_data_root(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            source_root = Path(tmpdir) / "source"
+            output_root = Path(tmpdir) / "outputs/data/topovlm/habitat"
+            (source_root / "episodes/pr2l_habitat_web/train").mkdir(parents=True)
+            (source_root / "rgb").mkdir()
+            (source_root / "actions").mkdir()
+            np.save(source_root / "rgb/episode_0.npy", np.zeros((2, 2, 2, 3), dtype="uint8"))
+            np.save(source_root / "actions/episode_0.npy", np.asarray([1, 0], dtype="int64"))
+            (source_root / "episodes/pr2l_habitat_web/train/manifest.jsonl").write_text(
+                json.dumps(
+                    {
+                        "episode_id": "episode_0",
+                        "split": "train",
+                        "scene_id": "scene",
+                        "goal_text": "chair",
+                        "rgb_path": "rgb/episode_0.npy",
+                        "actions_path": "actions/episode_0.npy",
+                        "source_dataset": "habitat_web",
+                        "source_trajectory_id": "demo_0",
+                        "object_category": "chair",
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            cfg = TopoVLMConfig(
+                data=DataConfig(
+                    data_root=str(source_root),
+                    cache_format="pr2l_token_trajectory",
+                    episodes_manifest="episodes/pr2l_habitat_web/train/manifest.jsonl",
+                    graph_manifest="graphs/pr2l/manifest.jsonl",
+                    graph_cache_dir="graphs/pr2l",
+                    embeddings_dir="embeddings/pr2l",
+                    max_episodes=1,
+                ),
+                model=ModelConfig(
+                    vlm=VLMConfig(
+                        representation="pr2l_visual_tokens_last_two_layers",
+                        projection="none",
+                        output_dim=8,
+                    ),
+                    policy=PolicyConfig(input_dim=8, prediction_target="nodes"),
+                ),
+            )
+
+            with patch("data.habitat_cache.build_vlm_encoder", return_value=_FakePR2LEncoder()):
+                with patch.dict(os.environ, {"TOPOVLM_DATA_OUTPUT_ROOT": str(output_root)}):
+                    result = build_habitat_graph_cache(cfg)
+
+            self.assertEqual(result["source_data_root"], str(source_root))
+            self.assertEqual(result["output_data_root"], str(output_root))
+            self.assertTrue((output_root / "graphs/pr2l/manifest.jsonl").exists())
+            self.assertFalse((source_root / "graphs/pr2l/manifest.jsonl").exists())
 
     def test_dataset_collates_token_nodes_and_node_actions(self):
         with tempfile.TemporaryDirectory() as tmpdir:

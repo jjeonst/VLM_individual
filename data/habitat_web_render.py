@@ -10,7 +10,7 @@ from typing import Protocol
 import numpy as np
 
 from configs.schema import TopoVLMConfig
-from data.habitat_manifest import resolve_data_path
+from data.habitat_manifest import resolve_data_path, resolve_materialization_data_root
 from data.habitat_objectnav import resolve_objectnav_scene_path
 from data.habitat_web import (
     HABITAT_WEB_ACTION_TO_ID,
@@ -32,10 +32,11 @@ def build_habitat_web_episode_manifest(
     """Materialize Habitat-Web replays as NumPy RGB/action arrays and a manifest."""
 
     data_root = Path(cfg.data.data_root)
+    output_data_root = resolve_materialization_data_root(cfg.data.data_root)
     dataset = HabitatWebReplayDataset(cfg.data)
-    manifest_path = resolve_data_path(data_root, cfg.data.episodes_manifest)
-    rgb_dir = data_root / "rgb" / cfg.data.dataset_name / cfg.data.split
-    actions_dir = data_root / "actions" / cfg.data.dataset_name / cfg.data.split
+    manifest_path = resolve_data_path(output_data_root, cfg.data.episodes_manifest)
+    rgb_dir = output_data_root / "rgb" / cfg.data.dataset_name / cfg.data.split
+    actions_dir = output_data_root / "actions" / cfg.data.dataset_name / cfg.data.split
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
     rgb_dir.mkdir(parents=True, exist_ok=True)
     actions_dir.mkdir(parents=True, exist_ok=True)
@@ -86,8 +87,8 @@ def build_habitat_web_episode_manifest(
                     / cfg.data.split
                     / f"{payload_id}.npy"
                 )
-                np.save(resolve_data_path(data_root, rgb_rel), frames)
-                np.save(resolve_data_path(data_root, actions_rel), actions)
+                np.save(resolve_data_path(output_data_root, rgb_rel), frames)
+                np.save(resolve_data_path(output_data_root, actions_rel), actions)
                 record = {
                     "episode_id": payload_id,
                     "split": cfg.data.split,
@@ -118,6 +119,8 @@ def build_habitat_web_episode_manifest(
     return {
         "status": "ok",
         "manifest": str(manifest_path),
+        "source_data_root": str(data_root),
+        "output_data_root": str(output_data_root),
         "episodes_written": len(written),
         "rgb_dir": str(rgb_dir),
         "actions_dir": str(actions_dir),
