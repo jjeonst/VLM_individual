@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -317,12 +318,87 @@ class PR2LTrajectoryTest(unittest.TestCase):
             self.assertEqual(manifest["wandb"]["contract_role_id"], "habitat_bc")
             self.assertEqual(manifest["selected_checkpoint_file"], "model.pt")
 
+    def test_wandb_training_logs_and_records_run_identity(self):
+        fake_wandb = _FakeWandbModule()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cfg = TopoVLMConfig(
+                config_name="habitat/pr2l_habitat_bc_faithful",
+                run_name="test_pr2l_wandb",
+                output_root=tmpdir,
+                max_epochs=1,
+                wandb=True,
+                wandb_group="pr2l_prismatic_policy",
+                data=DataConfig(
+                    synthetic_debug=True,
+                    max_episodes=2,
+                    batch_size=2,
+                    num_workers=0,
+                ),
+                model=ModelConfig(
+                    policy=PolicyConfig(
+                        input_dim=8,
+                        hidden_dim=16,
+                        transformer_heads=4,
+                        transformer_layers=1,
+                        num_actions=4,
+                        prediction_target="nodes",
+                    )
+                ),
+            )
+            with patch.dict(sys.modules, {"wandb": fake_wandb}):
+                result = run_training(cfg)
+            manifest = json.loads(
+                Path(result["checkpoint_manifest"]).read_text(encoding="utf-8")
+            )
+
+            self.assertEqual(fake_wandb.init_kwargs["entity"], "topovlm")
+            self.assertEqual(fake_wandb.init_kwargs["project"], "TopoVLM")
+            self.assertEqual(fake_wandb.init_kwargs["group"], "pr2l_prismatic_policy")
+            self.assertTrue(
+                fake_wandb.init_kwargs["name"].startswith("pr2l_prismatic_policy_seed42_")
+            )
+            self.assertEqual(
+                fake_wandb.run.logs[0]["payload"]["train_examples"],
+                result["history"][0]["examples"],
+            )
+            self.assertEqual(fake_wandb.run.logs[0]["step"], 1)
+            self.assertTrue(fake_wandb.run.finished)
+            self.assertEqual(manifest["wandb"]["enabled"], True)
+            self.assertEqual(manifest["wandb"]["run_id"], "fake-run-id")
+            self.assertEqual(manifest["wandb"]["run_url"], "https://wandb.local/fake-run-id")
+
+
 class _FakePR2LEncoder:
     def encode_image_goal_tokens(self, image, goal_text):
         return {
             "tokens": np.ones((4, 8), dtype="float32"),
             "generated_text": "synthetic",
         }
+
+
+class _FakeWandbRun:
+    id = "fake-run-id"
+    url = "https://wandb.local/fake-run-id"
+
+    def __init__(self):
+        self.logs = []
+        self.finished = False
+
+    def log(self, payload, step=None):
+        self.logs.append({"payload": dict(payload), "step": step})
+
+    def finish(self):
+        self.finished = True
+
+
+class _FakeWandbModule:
+    def __init__(self):
+        self.run = _FakeWandbRun()
+        self.init_kwargs = None
+
+    def init(self, **kwargs):
+        self.init_kwargs = kwargs
+        return self.run
 
 
 if __name__ == "__main__":

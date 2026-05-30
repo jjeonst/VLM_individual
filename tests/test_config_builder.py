@@ -65,6 +65,7 @@ class ConfigBuilderTest(unittest.TestCase):
         self.assertEqual(cfg.model.policy.prediction_target, "nodes")
         self.assertEqual(cfg.objectives.behavior_cloning.stop_turn_weight, 1.5)
         self.assertEqual(cfg.gradient_accumulation_steps, 8)
+        self.assertTrue(cfg.wandb)
         self.assertEqual(cfg.wandb_entity, "topovlm")
         self.assertEqual(cfg.wandb_project, "TopoVLM")
         self.assertEqual(cfg.wandb_group, "pr2l_prismatic_policy")
@@ -87,6 +88,7 @@ class ConfigBuilderTest(unittest.TestCase):
             cfg.model.vlm.projection_path,
             "embeddings/pr2l_habitat_bc_balanced_subset/projection_pca.npz",
         )
+        self.assertTrue(cfg.wandb)
 
     def test_pr2l_tiny_smoke_config_loads(self):
         cfg = build_config_from_exp("habitat/pr2l_habitat_bc_tiny_smoke")
@@ -94,6 +96,7 @@ class ConfigBuilderTest(unittest.TestCase):
         self.assertEqual(cfg.run_name, "pr2l_habitat_bc_tiny_smoke")
         self.assertEqual(cfg.max_epochs, 1)
         self.assertEqual(cfg.gradient_accumulation_steps, 1)
+        self.assertFalse(cfg.wandb)
         self.assertEqual(cfg.data.dataset_name, "pr2l_habitat_web_tiny_smoke")
         self.assertEqual(cfg.data.max_episodes, 4)
         self.assertEqual(
@@ -118,6 +121,7 @@ class ConfigBuilderTest(unittest.TestCase):
         self.assertEqual(cfg.data.habitat_config, "configs/habitat/pr2l_objectnav_staged.yaml")
         self.assertEqual(cfg.data.dataset_name, "pr2l_habitat_web_tiny_smoke")
         self.assertEqual(cfg.data.max_episodes, 4)
+        self.assertFalse(cfg.wandb)
         self.assertEqual(
             cfg.model.vlm.weights_path,
             "data/topovlm/vlm_weights/prismatic/prism-dinosiglip+7b",

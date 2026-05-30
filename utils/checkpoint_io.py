@@ -21,6 +21,8 @@ def save_checkpoint(
     optimizer: object,
     epoch: int,
     metrics: dict[str, float],
+    wandb_run_id: Optional[str] = None,
+    wandb_run_url: Optional[str] = None,
 ) -> Path:
     import torch
 
@@ -86,6 +88,8 @@ def save_checkpoint(
             "project": cfg.wandb_project,
             "group": cfg.wandb_group,
             "run_name": cfg.wandb_run_name,
+            "run_id": wandb_run_id,
+            "run_url": wandb_run_url,
             "contract_path": cfg.wandb_contract_path,
             "contract_role_id": cfg.wandb_contract_role_id,
         },

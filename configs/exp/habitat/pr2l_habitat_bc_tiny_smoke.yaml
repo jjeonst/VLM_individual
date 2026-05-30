@@ -7,6 +7,7 @@ defaults:
 
 config_name: habitat/pr2l_habitat_bc_tiny_smoke
 run_name: pr2l_habitat_bc_tiny_smoke
+wandb: false
 max_epochs: 1
 gradient_accumulation_steps: 1
 data:

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import dataclasses
+from datetime import datetime, timezone
 from pathlib import Path
 
 from configs.schema import TopoVLMConfig
@@ -36,49 +38,66 @@ def run_training(cfg: TopoVLMConfig) -> dict[str, object]:
     if cfg.gradient_accumulation_steps < 1:
         raise ValueError("gradient_accumulation_steps must be >= 1")
 
+    wandb_run = None
     history = []
     last_checkpoint = None
-    for epoch in range(1, cfg.max_epochs + 1):
-        policy.train()
-        total_loss = 0.0
-        total_examples = 0
-        optimizer.zero_grad(set_to_none=True)
-        for step, batch in enumerate(loader, start=1):
-            nodes = batch["graph_nodes"].to(device)
-            mask = batch["graph_mask"].to(device)
-            logits = policy(nodes, mask)
-            if logits.ndim == 3:
-                target = batch["node_actions"].to(device)
-                action_mask = batch["action_mask"].to(device)
-                sample_weight = _build_node_action_weights(
-                    target, action_mask, cfg.objectives.behavior_cloning
-                )
-                loss = objective(logits, target, sample_weight, action_mask)
-                examples = int(action_mask.sum().item())
-            else:
-                target = batch["target_action"].to(device)
-                loss = objective(logits, target)
-                examples = int(target.numel())
-            (loss / cfg.gradient_accumulation_steps).backward()
-            if step % cfg.gradient_accumulation_steps == 0:
+    try:
+        wandb_run = _start_wandb_run(cfg)
+        for epoch in range(1, cfg.max_epochs + 1):
+            policy.train()
+            total_loss = 0.0
+            total_examples = 0
+            optimizer.zero_grad(set_to_none=True)
+            for step, batch in enumerate(loader, start=1):
+                nodes = batch["graph_nodes"].to(device)
+                mask = batch["graph_mask"].to(device)
+                logits = policy(nodes, mask)
+                if logits.ndim == 3:
+                    target = batch["node_actions"].to(device)
+                    action_mask = batch["action_mask"].to(device)
+                    sample_weight = _build_node_action_weights(
+                        target, action_mask, cfg.objectives.behavior_cloning
+                    )
+                    loss = objective(logits, target, sample_weight, action_mask)
+                    examples = int(action_mask.sum().item())
+                else:
+                    target = batch["target_action"].to(device)
+                    loss = objective(logits, target)
+                    examples = int(target.numel())
+                (loss / cfg.gradient_accumulation_steps).backward()
+                if step % cfg.gradient_accumulation_steps == 0:
+                    optimizer.step()
+                    optimizer.zero_grad(set_to_none=True)
+                total_loss += float(loss.item()) * examples
+                total_examples += examples
+            if len(loader) % cfg.gradient_accumulation_steps != 0:
                 optimizer.step()
                 optimizer.zero_grad(set_to_none=True)
-            total_loss += float(loss.item()) * examples
-            total_examples += examples
-        if len(loader) % cfg.gradient_accumulation_steps != 0:
-            optimizer.step()
-            optimizer.zero_grad(set_to_none=True)
-        mean_loss = total_loss / max(total_examples, 1)
-        history.append({"epoch": epoch, "train_loss": mean_loss, "examples": total_examples})
-        if epoch % cfg.save_every_epochs == 0:
-            last_checkpoint = save_checkpoint(
-                output_root=Path(cfg.output_root),
-                cfg=cfg,
-                model=policy,
-                optimizer=optimizer,
-                epoch=epoch,
-                metrics={"train_loss": mean_loss},
-            )
+            mean_loss = total_loss / max(total_examples, 1)
+            history.append({"epoch": epoch, "train_loss": mean_loss, "examples": total_examples})
+            if wandb_run is not None:
+                wandb_run.log(
+                    {
+                        "epoch": epoch,
+                        "train_loss": mean_loss,
+                        "train_examples": total_examples,
+                    },
+                    step=epoch,
+                )
+            if epoch % cfg.save_every_epochs == 0:
+                last_checkpoint = save_checkpoint(
+                    output_root=Path(cfg.output_root),
+                    cfg=cfg,
+                    model=policy,
+                    optimizer=optimizer,
+                    epoch=epoch,
+                    metrics={"train_loss": mean_loss},
+                    wandb_run_id=_wandb_run_attr(wandb_run, "id"),
+                    wandb_run_url=_wandb_run_attr(wandb_run, "url"),
+                )
+    finally:
+        if wandb_run is not None:
+            wandb_run.finish()
     return {
         "status": "ok",
         "config_name": cfg.config_name,
@@ -100,6 +119,34 @@ def _build_dataset(cfg: TopoVLMConfig):
     if cfg.data.synthetic_debug:
         return SyntheticGraphDataset(cfg.data, cfg.model.policy, cfg.seed), collate_synthetic_batch
     return HabitatGraphDataset(cfg.data), collate_graph_batch
+
+
+def _start_wandb_run(cfg: TopoVLMConfig):
+    if not cfg.wandb:
+        return None
+    import wandb
+
+    if cfg.wandb_run_name is None:
+        cfg.wandb_run_name = _default_wandb_run_name(cfg)
+    return wandb.init(
+        entity=cfg.wandb_entity,
+        project=cfg.wandb_project,
+        group=cfg.wandb_group,
+        name=cfg.wandb_run_name,
+        config=dataclasses.asdict(cfg),
+    )
+
+
+def _default_wandb_run_name(cfg: TopoVLMConfig) -> str:
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+    model_key = cfg.wandb_group or cfg.run_name
+    return f"{model_key}_seed{cfg.seed}_{timestamp}"
+
+
+def _wandb_run_attr(wandb_run, name: str):
+    if wandb_run is None:
+        return None
+    return getattr(wandb_run, name, None)
 
 
 def _build_node_action_weights(target, action_mask, config):
