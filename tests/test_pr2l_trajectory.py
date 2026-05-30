@@ -2,17 +2,72 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 import numpy as np
 import torch
 
-from configs.schema import DataConfig, ModelConfig, PolicyConfig, TopoVLMConfig
+from configs.schema import DataConfig, ModelConfig, PolicyConfig, TopoVLMConfig, VLMConfig
+from data.habitat_cache import build_habitat_graph_cache
 from data.habitat_dataset import HabitatGraphDataset, collate_graph_batch
 from policies import build_policy
 from training.runner import run_training
 
 
 class PR2LTrajectoryTest(unittest.TestCase):
+    def test_pr2l_cache_builder_writes_node_action_graph(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            (root / "episodes/pr2l_habitat_web/train").mkdir(parents=True)
+            (root / "rgb").mkdir()
+            (root / "actions").mkdir()
+            np.save(root / "rgb/episode_0.npy", np.zeros((3, 2, 2, 3), dtype="uint8"))
+            np.save(root / "actions/episode_0.npy", np.asarray([1, 2, 0], dtype="int64"))
+            (root / "episodes/pr2l_habitat_web/train/manifest.jsonl").write_text(
+                json.dumps(
+                    {
+                        "episode_id": "episode_0",
+                        "split": "train",
+                        "scene_id": "scene",
+                        "goal_text": "chair",
+                        "rgb_path": "rgb/episode_0.npy",
+                        "actions_path": "actions/episode_0.npy",
+                        "source_dataset": "habitat_web",
+                        "source_trajectory_id": "demo_0",
+                        "object_category": "chair",
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            cfg = TopoVLMConfig(
+                data=DataConfig(
+                    data_root=str(root),
+                    cache_format="pr2l_token_trajectory",
+                    episodes_manifest="episodes/pr2l_habitat_web/train/manifest.jsonl",
+                    graph_manifest="graphs/pr2l/manifest.jsonl",
+                    graph_cache_dir="graphs/pr2l",
+                    embeddings_dir="embeddings/pr2l",
+                    max_episodes=1,
+                ),
+                model=ModelConfig(
+                    vlm=VLMConfig(
+                        representation="pr2l_visual_tokens_last_two_layers",
+                        projection="none",
+                        output_dim=8,
+                    ),
+                    policy=PolicyConfig(input_dim=8, prediction_target="nodes"),
+                ),
+            )
+
+            with patch("data.habitat_cache.build_vlm_encoder", return_value=_FakePR2LEncoder()):
+                result = build_habitat_graph_cache(cfg)
+
+            graph_payload = np.load(root / "graphs/pr2l/episode_0.npz")
+            self.assertEqual(result["graphs_written"], 1)
+            self.assertEqual(graph_payload["nodes"].shape[-2:], (4, 8))
+            self.assertEqual(graph_payload["node_actions"].tolist(), [0])
+
     def test_dataset_collates_token_nodes_and_node_actions(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
@@ -98,6 +153,13 @@ class PR2LTrajectoryTest(unittest.TestCase):
 
             self.assertEqual(result["status"], "ok")
             self.assertTrue((Path(tmpdir) / "test_pr2l_synthetic/seed_42/model.pt").exists())
+
+class _FakePR2LEncoder:
+    def encode_image_goal_tokens(self, image, goal_text):
+        return {
+            "tokens": np.ones((4, 8), dtype="float32"),
+            "generated_text": "synthetic",
+        }
 
 
 if __name__ == "__main__":
