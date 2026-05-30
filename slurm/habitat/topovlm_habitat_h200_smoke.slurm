@@ -1,6 +1,7 @@
 #!/bin/bash
 
 #SBATCH -p h200
+#SBATCH -w bmlnx1
 #SBATCH --gres=gpu:h200:1
 #SBATCH -J topovlm_habitat_h200_smoke
 #SBATCH --time=7-00:00:00
@@ -18,7 +19,7 @@ if [ ! -w "/scratch"/"$USER" ]; then
   exit 34
 fi
 
-SOURCE_COMMIT="589e2f4a45c4edfcb36a9c24acf571b0e835427d"
+SOURCE_COMMIT="b0cd324067c738c915f1311df3eeb3bc0895b305"
 if [[ ! "$SOURCE_COMMIT" =~ ^[0-9a-fA-F]{7,40}$ ]] || ! git -C "/home/heejun/Projects/TopoVLM" cat-file -e "$SOURCE_COMMIT^{commit}"; then
   echo "[blocker] SOURCE_COMMIT is not a valid commit: $SOURCE_COMMIT" >&2
   exit 32
@@ -46,7 +47,7 @@ cat > "$STAGE_MANIFEST" <<'JSON'
   "artifacts": [],
   "cache": {
     "code": {
-      "commit_path": "/scratch/$USER/workcache/TopoVLM/code/589e2f4a45c4edfcb36a9c24acf571b0e835427d",
+      "commit_path": "/scratch/$USER/workcache/TopoVLM/code/b0cd324067c738c915f1311df3eeb3bc0895b305",
       "path": "/scratch/$USER/workcache/TopoVLM/code",
       "sync_delete": false
     },
@@ -65,30 +66,30 @@ cat > "$STAGE_MANIFEST" <<'JSON'
   },
   "code": {
     "source": "/home/heejun/Projects/TopoVLM",
-    "source_commit": "589e2f4a45c4edfcb36a9c24acf571b0e835427d",
+    "source_commit": "b0cd324067c738c915f1311df3eeb3bc0895b305",
     "sync": "git_archive_commit_immutable_code",
-    "target": "/scratch/$USER/workcache/TopoVLM/code/589e2f4a45c4edfcb36a9c24acf571b0e835427d",
+    "target": "/scratch/$USER/workcache/TopoVLM/code/b0cd324067c738c915f1311df3eeb3bc0895b305",
     "workdir": "$WORKDIR"
   },
   "data": [
     {
-      "reason": "HM3D ObjectNav v2 episode shards used by habitat/prismatic_bc_smoke_staged.",
+      "reason": "Habitat ObjectNav HM3D v2 train split used by habitat_objectnav_staged config.",
       "source": "/data/topovlm/habitat/datasets/objectnav/hm3d/v2/objectnav_hm3d_v2",
       "target": "topovlm/habitat/datasets/objectnav/hm3d/v2/objectnav_hm3d_v2"
     },
     {
-      "reason": "HM3D scene meshes and semantic annotations resolved by Habitat ObjectNav scene ids.",
+      "reason": "HM3D scene assets and scene_dataset_config used by Habitat preflight.",
       "source": "/data/topovlm/habitat/scene_datasets/hm3d",
       "target": "topovlm/habitat/scene_datasets/hm3d"
     },
     {
-      "reason": "Frozen Prismatic VLM weights used by the staged TopoVLM config.",
+      "reason": "Prismatic VLM weights path expected by prismatic_graph_policy_staged config.",
       "source": "/data/topovlm/vlm_weights/prismatic/prism-dinosiglip+7b",
       "target": "topovlm/vlm_weights/prismatic/prism-dinosiglip+7b"
     }
   ],
   "flow_key": "topovlm_habitat_h200_smoke_${SLURM_JOB_ID}",
-  "generated_at_utc": "2026-05-30T04:46:58+00:00",
+  "generated_at_utc": "2026-05-30T09:46:52+00:00",
   "job_name": "topovlm_habitat_h200_smoke",
   "output": {
     "default_stageout": "/home/heejun/Projects/TopoVLM/artifacts/logs/slurm_outputs/topovlm_habitat_h200_smoke/${SLURM_JOB_ID}",
