@@ -1,18 +1,3 @@
 model:
   vlm:
-    backend: prismatic
-    model_id: prism-dinosiglip+7b
-    weights_path: data/vlm_weights/prismatic/prism-dinosiglip+7b
-    frozen: true
-    output_dim: 4096
-  topology:
-    builder: sequential_similarity
-    similarity_threshold: 0.9
-    max_nodes: 128
-  policy:
-    type: graph_transformer_bc
-    input_dim: 4096
-    hidden_dim: 256
-    transformer_heads: 8
-    transformer_layers: 2
-    num_actions: 4
+    weights_path: data/topovlm/vlm_weights/prismatic/prism-dinosiglip+7b

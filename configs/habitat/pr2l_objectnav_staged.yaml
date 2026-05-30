@@ -13,12 +13,12 @@ habitat:
 
   dataset:
     split: train
-    data_path: data/habitat/datasets/objectnav/hm3d/v2/objectnav_hm3d_v2/{split}/{split}.json.gz
+    data_path: data/topovlm/habitat/datasets/objectnav/hm3d/v2/objectnav_hm3d_v2/{split}/{split}.json.gz
 
   simulator:
     turn_angle: 30
     action_space_config: v1
-    scene_dataset: data/habitat/scene_datasets/hm3d/hm3d_annotated_basis.scene_dataset_config.json
+    scene_dataset: data/topovlm/habitat/scene_datasets/hm3d/hm3d_annotated_basis.scene_dataset_config.json
     agents:
       main_agent:
         sim_sensors:

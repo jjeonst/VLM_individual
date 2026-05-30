@@ -113,7 +113,7 @@ still needs these live inputs before real training or evaluation:
 raw episode, and resolves its `scene_id` against
 `/data/topovlm/habitat/scene_datasets/hm3d`. The `*_staged` config set is for
 Slurm jobs that copy shared `/data/topovlm/...` inputs into the job-local
-`data/` directory before running from scratch.
+`data/topovlm/` directory before running from scratch.
 
 ## Reference Prototype
 

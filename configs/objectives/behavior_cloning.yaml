@@ -1,6 +1,1 @@
-objectives:
-  names:
-    - behavior_cloning
-  behavior_cloning:
-    label_smoothing: 0.0
-    class_weights: null
+{}

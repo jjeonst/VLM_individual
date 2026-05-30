@@ -1,4 +1,1 @@
-eval:
-  num_episodes: 16
-  max_steps: 500
-  success_distance: 0.2
+{}

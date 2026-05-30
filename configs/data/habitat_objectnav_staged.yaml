@@ -1,13 +1,4 @@
 data:
   dataset_name: habitat_objectnav_hm3d
-  data_root: data/habitat
+  data_root: data/topovlm/habitat
   habitat_config: configs/habitat/pr2l_objectnav_staged.yaml
-  split: train
-  objectnav_dataset_dir: datasets/objectnav/hm3d/v2/objectnav_hm3d_v2
-  scene_dataset_dir: scene_datasets/hm3d
-  scene_dataset_config: scene_datasets/hm3d/hm3d_annotated_basis.scene_dataset_config.json
-  episodes_manifest: episodes/train/manifest.jsonl
-  graph_manifest: graphs/prismatic_objectnav_train/manifest.jsonl
-  graph_cache_dir: graphs/prismatic_objectnav_train
-  embeddings_dir: embeddings/prismatic_objectnav_train
-  require_existing_cache: true

@@ -1,8 +1,3 @@
 debug: true
-wandb: false
-output_root: checkpoints
-device: cuda
 max_epochs: 2
-learning_rate: 0.0001
-save_every_epochs: 1
 run_name: habitat_prismatic_bc_smoke
