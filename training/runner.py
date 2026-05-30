@@ -37,6 +37,7 @@ def run_training(cfg: TopoVLMConfig) -> dict[str, object]:
         raise ValueError("gradient_accumulation_steps must be >= 1")
 
     history = []
+    last_checkpoint = None
     for epoch in range(1, cfg.max_epochs + 1):
         policy.train()
         total_loss = 0.0
@@ -70,7 +71,7 @@ def run_training(cfg: TopoVLMConfig) -> dict[str, object]:
         mean_loss = total_loss / max(total_examples, 1)
         history.append({"epoch": epoch, "train_loss": mean_loss, "examples": total_examples})
         if epoch % cfg.save_every_epochs == 0:
-            save_checkpoint(
+            last_checkpoint = save_checkpoint(
                 output_root=Path(cfg.output_root),
                 cfg=cfg,
                 model=policy,
@@ -86,6 +87,12 @@ def run_training(cfg: TopoVLMConfig) -> dict[str, object]:
         "epochs": cfg.max_epochs,
         "history": history,
         "synthetic_debug": cfg.data.synthetic_debug,
+        "checkpoint_path": str(last_checkpoint) if last_checkpoint is not None else None,
+        "checkpoint_manifest": (
+            str(last_checkpoint.parent / "checkpoint_manifest.json")
+            if last_checkpoint is not None
+            else None
+        ),
     }
 
 

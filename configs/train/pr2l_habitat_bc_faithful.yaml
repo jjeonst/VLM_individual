@@ -1,3 +1,4 @@
 max_epochs: 40
 gradient_accumulation_steps: 8
 run_name: pr2l_habitat_bc_faithful
+wandb_group: pr2l_prismatic_policy

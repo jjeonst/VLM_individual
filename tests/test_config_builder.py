@@ -65,6 +65,10 @@ class ConfigBuilderTest(unittest.TestCase):
         self.assertEqual(cfg.model.policy.prediction_target, "nodes")
         self.assertEqual(cfg.objectives.behavior_cloning.stop_turn_weight, 1.5)
         self.assertEqual(cfg.gradient_accumulation_steps, 8)
+        self.assertEqual(cfg.wandb_entity, "topovlm")
+        self.assertEqual(cfg.wandb_project, "TopoVLM")
+        self.assertEqual(cfg.wandb_group, "pr2l_prismatic_policy")
+        self.assertEqual(cfg.wandb_contract_role_id, "habitat_bc")
 
     def test_domain_configs_only_declare_default_overrides(self):
         config_root = Path(__file__).resolve().parents[1] / "configs"

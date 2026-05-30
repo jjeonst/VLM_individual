@@ -140,6 +140,12 @@ class TopoVLMConfig:
     seed: int = 42
     debug: bool = False
     wandb: bool = False
+    wandb_entity: str = "topovlm"
+    wandb_project: str = "TopoVLM"
+    wandb_group: Optional[str] = "prismatic_graph_policy"
+    wandb_run_name: Optional[str] = None
+    wandb_contract_path: str = "artifacts/contracts/wandb_identity_contract.json"
+    wandb_contract_role_id: str = "habitat_bc"
     output_root: str = "checkpoints"
     device: str = "cuda"
     max_epochs: int = 10

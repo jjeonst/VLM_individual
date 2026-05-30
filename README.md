@@ -62,7 +62,9 @@ Large shared payloads are external to the repo:
 - Habitat data: `/data/topovlm/habitat`
 - VLM weights/cache: `/data/topovlm/vlm_weights/<vlm_name>`
 - Checkpoints: repo-local ignored `checkpoints/` unless a Slurm wrapper supplies
-  `CHECKPOINT_DIR`
+  `CHECKPOINT_DIR`; retained runs write `checkpoint_manifest.json` with config,
+  data/cache, W&B contract, source commit, selected checkpoint, and finality
+  metadata
 
 Repo-owned durable records, contracts, and small manifests belong under
 `artifacts/`. Runtime code must not import from `artifacts/`.

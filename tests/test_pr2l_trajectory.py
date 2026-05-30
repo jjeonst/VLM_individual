@@ -150,9 +150,17 @@ class PR2LTrajectoryTest(unittest.TestCase):
                 ),
             )
             result = run_training(cfg)
+            manifest_path = Path(result["checkpoint_manifest"])
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 
             self.assertEqual(result["status"], "ok")
             self.assertTrue((Path(tmpdir) / "test_pr2l_synthetic/seed_42/model.pt").exists())
+            self.assertEqual(manifest["status"], "smoke")
+            self.assertEqual(manifest["finality_class"], "smoke")
+            self.assertEqual(manifest["data"]["cache_format"], "single_action_graph")
+            self.assertEqual(manifest["wandb"]["entity"], "topovlm")
+            self.assertEqual(manifest["wandb"]["contract_role_id"], "habitat_bc")
+            self.assertEqual(manifest["selected_checkpoint_file"], "model.pt")
 
 class _FakePR2LEncoder:
     def encode_image_goal_tokens(self, image, goal_text):

@@ -1,6 +1,12 @@
 seed: 42
 debug: false
 wandb: false
+wandb_entity: topovlm
+wandb_project: TopoVLM
+wandb_group: prismatic_graph_policy
+wandb_run_name: null
+wandb_contract_path: artifacts/contracts/wandb_identity_contract.json
+wandb_contract_role_id: habitat_bc
 output_root: checkpoints
 device: cuda
 max_epochs: 10
