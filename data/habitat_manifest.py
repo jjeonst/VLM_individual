@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional
 
 
 @dataclass(frozen=True)
@@ -17,6 +18,9 @@ class HabitatEpisodeRecord:
     goal_text: str
     rgb_path: str
     actions_path: str
+    source_dataset: Optional[str] = None
+    source_trajectory_id: Optional[str] = None
+    object_category: Optional[str] = None
 
     @classmethod
     def from_dict(cls, raw: dict[str, object]) -> "HabitatEpisodeRecord":
@@ -31,6 +35,9 @@ class HabitatEpisodeRecord:
             goal_text=str(raw["goal_text"]),
             rgb_path=str(raw["rgb_path"]),
             actions_path=str(raw["actions_path"]),
+            source_dataset=_optional_str(raw, "source_dataset"),
+            source_trajectory_id=_optional_str(raw, "source_trajectory_id"),
+            object_category=_optional_str(raw, "object_category"),
         )
 
 
@@ -46,6 +53,12 @@ class GraphRecord:
     embedding_path: str
     target_action: int
     num_nodes: int
+    prediction_target: str = "graph"
+    num_tokens: int = 1
+    feature_dim: Optional[int] = None
+    num_actions: Optional[int] = None
+    representation_id: Optional[str] = None
+    metadata_path: Optional[str] = None
 
     @classmethod
     def from_dict(cls, raw: dict[str, object]) -> "GraphRecord":
@@ -71,6 +84,12 @@ class GraphRecord:
             embedding_path=str(raw["embedding_path"]),
             target_action=int(raw["target_action"]),
             num_nodes=int(raw["num_nodes"]),
+            prediction_target=str(raw.get("prediction_target", "graph")),
+            num_tokens=int(raw.get("num_tokens", 1)),
+            feature_dim=_optional_int(raw, "feature_dim"),
+            num_actions=_optional_int(raw, "num_actions"),
+            representation_id=_optional_str(raw, "representation_id"),
+            metadata_path=_optional_str(raw, "metadata_path"),
         )
 
 
@@ -102,3 +121,15 @@ def _load_json_records(path: Path) -> list[dict[str, object]]:
     if not isinstance(loaded, list):
         raise ValueError(f"Manifest must contain a list of records: {path}")
     return loaded
+
+
+def _optional_str(raw: dict[str, object], key: str) -> Optional[str]:
+    if key not in raw or raw[key] is None:
+        return None
+    return str(raw[key])
+
+
+def _optional_int(raw: dict[str, object], key: str) -> Optional[int]:
+    if key not in raw or raw[key] is None:
+        return None
+    return int(raw[key])

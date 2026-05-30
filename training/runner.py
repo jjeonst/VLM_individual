@@ -33,23 +33,40 @@ def run_training(cfg: TopoVLMConfig) -> dict[str, object]:
     optimizer = torch.optim.AdamW(
         policy.parameters(), lr=cfg.learning_rate, weight_decay=cfg.weight_decay
     )
+    if cfg.gradient_accumulation_steps < 1:
+        raise ValueError("gradient_accumulation_steps must be >= 1")
 
     history = []
     for epoch in range(1, cfg.max_epochs + 1):
         policy.train()
         total_loss = 0.0
         total_examples = 0
-        for batch in loader:
+        optimizer.zero_grad(set_to_none=True)
+        for step, batch in enumerate(loader, start=1):
             nodes = batch["graph_nodes"].to(device)
             mask = batch["graph_mask"].to(device)
-            target = batch["target_action"].to(device)
             logits = policy(nodes, mask)
-            loss = objective(logits, target)
-            optimizer.zero_grad(set_to_none=True)
-            loss.backward()
+            if logits.ndim == 3:
+                target = batch["node_actions"].to(device)
+                action_mask = batch["action_mask"].to(device)
+                sample_weight = _build_node_action_weights(
+                    target, action_mask, cfg.objectives.behavior_cloning
+                )
+                loss = objective(logits, target, sample_weight, action_mask)
+                examples = int(action_mask.sum().item())
+            else:
+                target = batch["target_action"].to(device)
+                loss = objective(logits, target)
+                examples = int(target.numel())
+            (loss / cfg.gradient_accumulation_steps).backward()
+            if step % cfg.gradient_accumulation_steps == 0:
+                optimizer.step()
+                optimizer.zero_grad(set_to_none=True)
+            total_loss += float(loss.item()) * examples
+            total_examples += examples
+        if len(loader) % cfg.gradient_accumulation_steps != 0:
             optimizer.step()
-            total_loss += float(loss.item()) * int(target.numel())
-            total_examples += int(target.numel())
+            optimizer.zero_grad(set_to_none=True)
         mean_loss = total_loss / max(total_examples, 1)
         history.append({"epoch": epoch, "train_loss": mean_loss, "examples": total_examples})
         if epoch % cfg.save_every_epochs == 0:
@@ -76,3 +93,20 @@ def _build_dataset(cfg: TopoVLMConfig):
     if cfg.data.synthetic_debug:
         return SyntheticGraphDataset(cfg.data, cfg.model.policy, cfg.seed), collate_synthetic_batch
     return HabitatGraphDataset(cfg.data), collate_graph_batch
+
+
+def _build_node_action_weights(target, action_mask, config):
+    import torch
+
+    weights = torch.ones_like(target, dtype=torch.float32)
+    if config.stop_turn_weight != 1.0:
+        stop_turn = target.new_zeros(target.shape, dtype=action_mask.dtype)
+        for action_id in config.stop_turn_action_ids:
+            stop_turn = stop_turn | (target == int(action_id))
+        weights = torch.where(stop_turn, weights * float(config.stop_turn_weight), weights)
+    if config.inflection_weight != 1.0 and target.shape[1] > 1:
+        inflection = target[:, 1:] != target[:, :-1]
+        weights[:, 1:] = torch.where(
+            inflection, weights[:, 1:] * float(config.inflection_weight), weights[:, 1:]
+        )
+    return weights * action_mask.float()

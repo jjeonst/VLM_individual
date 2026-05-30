@@ -1,0 +1,4 @@
+objectives:
+  behavior_cloning:
+    inflection_weight: 2.0
+    stop_turn_weight: 1.5

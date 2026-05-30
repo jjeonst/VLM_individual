@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from configs.schema import TopoVLMConfig
-from data.habitat_manifest import load_graph_records, resolve_data_path
+from data.habitat_manifest import load_episode_records, load_graph_records, resolve_data_path
 from data.habitat_objectnav import load_objectnav_summary
 
 
@@ -80,6 +80,48 @@ def run_objectnav_audit(
         "config_name": cfg.config_name,
         "scene_dataset_config": str(scene_dataset_config),
         "objectnav": summary,
+    }
+
+
+def run_pr2l_manifest_audit(
+    cfg: TopoVLMConfig, *, allow_missing_data: bool = False
+) -> dict[str, object]:
+    data_root = Path(cfg.data.data_root)
+    episode_manifest = resolve_data_path(data_root, cfg.data.episodes_manifest)
+    if not episode_manifest.exists():
+        if allow_missing_data:
+            return {
+                "status": "missing_allowed",
+                "episode_manifest": str(episode_manifest),
+                "records": 0,
+                "missing_payloads": [str(episode_manifest)],
+            }
+        raise FileNotFoundError(episode_manifest)
+    records = load_episode_records(episode_manifest)
+    if cfg.data.max_episodes is not None:
+        records = records[: cfg.data.max_episodes]
+    missing_payloads = []
+    scenes = set()
+    objects = set()
+    for record in records:
+        scenes.add(record.scene_id)
+        if record.object_category is not None:
+            objects.add(record.object_category)
+        for relative_path in (record.rgb_path, record.actions_path):
+            payload_path = resolve_data_path(data_root, relative_path)
+            if not payload_path.exists():
+                missing_payloads.append(str(payload_path))
+    if missing_payloads and not allow_missing_data:
+        raise FileNotFoundError(f"Missing PR2L trajectory payloads: {missing_payloads[:5]}")
+    return {
+        "status": "ok" if not missing_payloads else "missing_allowed",
+        "config_name": cfg.config_name,
+        "episode_manifest": str(episode_manifest),
+        "records": len(records),
+        "unique_scenes": len(scenes),
+        "unique_object_categories": len(objects),
+        "missing_payloads": missing_payloads[:20],
+        "missing_payload_count": len(missing_payloads),
     }
 
 

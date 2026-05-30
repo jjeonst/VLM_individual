@@ -47,15 +47,24 @@ The current TopoVLM scaffold is intentionally narrower than the PR2L Habitat
 implementation. It can smoke-test config, policy, loss, and checkpoint plumbing,
 but it does not yet implement the PR2L-faithful representation path.
 
-Missing implementation pieces:
+Current implementation pieces:
 
-- Token-level Prismatic hidden-state extraction for the last two layers.
-- Prompt generation variants, including CoT and non-CoT prompt families.
-- PCA/projection fit artifact and deterministic application to all cached tokens.
-- Cache manifest fields for model id, prompt, decoding settings, layer ids,
-  projection id, token pooling, source image identity, and source demonstration.
-- Full-trajectory BC batching and inflection/action upweighting.
-- Habitat-Web/HM3D data ingestion and split-preserving subsampling.
+- `configs/exp/habitat/pr2l_habitat_bc_faithful.yaml` selects the canonical
+  PR2L-faithful behavior-cloning path.
+- `cache_format: pr2l_token_trajectory` extracts Prismatic visual-token hidden
+  states from the last two configured layers, pools visual tokens, fits/applies a
+  PCA projection, and writes node-level action labels.
+- `GraphTransformerPolicy` supports node-level action logits for trajectory BC.
+- The BC objective supports inflection weighting and stop/turn action weighting.
+- `validate.py --runner pr2l_manifest_audit` checks PR2L trajectory manifests
+  and missing payloads before cache building.
+
+Still missing live input:
+
+- Habitat-Web human demonstration trajectories are not present under
+  `/data/topovlm/habitat` yet. Without those trajectories, TopoVLM can validate
+  code/config/synthetic smoke paths but cannot claim PR2L reproduction or
+  paper-scale training.
 
 ## Canonical TopoVLM Implication
 

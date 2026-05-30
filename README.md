@@ -28,7 +28,7 @@ conda install -y pytorch==2.2.0 torchvision==0.17.0 torchaudio==2.2.0 pytorch-cu
 conda install -y "mkl<2025" "intel-openmp<2025" -c defaults
 python -m pip install --upgrade pip
 python -m pip install -e ".[dev,habitat]"
-python -m pip install "transformers==4.38.1" "huggingface-hub<1.0" "prismatic @ git+https://github.com/TRI-ML/prismatic-vlms.git"
+python -m pip install "scikit-learn" "transformers==4.38.1" "huggingface-hub<1.0" "prismatic @ git+https://github.com/TRI-ML/prismatic-vlms.git"
 ```
 
 See `docs/dependencies.md` for the dependency tiers and Habitat-Sim notes.
@@ -83,7 +83,7 @@ content, and hosted interactive demos must stay private/internal by default.
 
 ## First Smoke Config
 
-The first canonical config is:
+The first smoke config is:
 
 ```bash
 python train.py --exp habitat/prismatic_bc_smoke --debug
@@ -98,6 +98,25 @@ checkpoint, and config plumbing can be checked before Habitat/Prismatic payloads
 are installed. Non-debug training reads graph caches declared by the Habitat data
 config.
 
+## PR2L-Faithful BC Path
+
+The canonical paper-faithful reimplementation config is:
+
+```bash
+python validate.py --runner pr2l_manifest_audit --exp habitat/pr2l_habitat_bc_faithful --allow-missing-data
+python train.py --exp habitat/pr2l_habitat_bc_faithful --mode build_cache
+python train.py --exp habitat/pr2l_habitat_bc_faithful --mode train
+```
+
+This is a PR2L-faithful TopoVLM implementation path, not an exact PR2L
+reproduction claim. Exact reproduction still depends on access to the same
+Habitat-Web human demonstration distribution and matching evaluation protocol.
+
+The implementation uses Prismatic as a frozen VLM, asks the PR2L ObjectNav
+prompt, caches last-two-layer visual-token representations, pools visual tokens,
+applies PCA projection, builds topology graph nodes, and trains node-level
+behavior cloning with inflection and stop/turn weighting.
+
 ## Missing Live Inputs
 
 The repo is runnable for synthetic/debug smoke tests. Habitat-scale PR2L work
@@ -105,7 +124,7 @@ still needs these live inputs before real training or evaluation:
 
 - `/data/topovlm/habitat` with Habitat scenes, ObjectNav episodes, and expert demonstrations.
 - `/data/topovlm/vlm_weights/prismatic/<model_id>` or Hugging Face access for Prismatic weights.
-- PR2L-faithful VLM token cache generation, PCA/projection metadata, and graph cache manifests.
+- Habitat-Web trajectory manifests under `episodes/pr2l_habitat_web/<split>/manifest.jsonl`.
 - A generated Slurm script after data, env, checkpoint, and W&B contracts are stable.
 
 `objectnav_audit` opens the staged ObjectNav HM3D v2 shard files, samples one

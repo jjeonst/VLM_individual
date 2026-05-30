@@ -1,0 +1,7 @@
+data:
+  dataset_name: pr2l_habitat_web
+  cache_format: pr2l_token_trajectory
+  episodes_manifest: episodes/pr2l_habitat_web/train/manifest.jsonl
+  graph_manifest: graphs/pr2l_habitat_bc_faithful/train/manifest.jsonl
+  graph_cache_dir: graphs/pr2l_habitat_bc_faithful/train
+  embeddings_dir: embeddings/pr2l_habitat_bc_faithful/train

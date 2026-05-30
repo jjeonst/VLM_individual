@@ -42,15 +42,28 @@ Each line in `episodes/<split>/manifest.jsonl` must contain:
 ```
 
 The graph-cache builder reads `rgb_path` as a NumPy RGB frame array and
-`actions_path` as a NumPy action array. A PR2L-faithful cache builder must also
-record the prompt template, VLM model id, VLM layer selection, PCA/projection
-metadata, and token pooling policy for each cache manifest.
+`actions_path` as a NumPy action array. Optional `source_dataset`,
+`source_trajectory_id`, and `object_category` fields preserve Habitat-Web
+lineage when that source is available.
+
+For `cache_format: pr2l_token_trajectory`, graph cache payloads contain
+node-level action labels:
+
+```text
+nodes: [num_nodes, pooled_visual_tokens, projected_feature_dim]
+node_actions: [num_nodes]
+action_mask: [num_nodes]
+frame_ranges: [num_nodes, 2]
+```
+
+The graph manifest records `prediction_target=nodes`, token count, feature dim,
+representation id, and metadata path. The metadata JSON records the PR2L prompt
+template, generated VLM text when enabled, hidden layer selection, token pooling,
+and projection lineage.
 
 ## Still Missing
 
 - Habitat-Web or replacement expert demonstrations for behavior cloning.
-- A cache manifest format that records PR2L token-level representation lineage,
-  not only one pooled feature per frame.
 - A Slurm stage-in/stage-out contract after the data and checkpoint roots are
   fixed.
 

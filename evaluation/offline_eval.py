@@ -36,9 +36,15 @@ def run_offline_policy_eval(cfg: TopoVLMConfig, checkpoint_dir: str) -> dict[str
         for batch in loader:
             logits = policy(batch["graph_nodes"].to(device), batch["graph_mask"].to(device))
             pred = logits.argmax(dim=-1)
-            target = batch["target_action"].to(device)
-            correct += int((pred == target).sum().item())
-            total += int(target.numel())
+            if logits.ndim == 3:
+                target = batch["node_actions"].to(device)
+                mask = batch["action_mask"].to(device)
+                correct += int(((pred == target) & mask).sum().item())
+                total += int(mask.sum().item())
+            else:
+                target = batch["target_action"].to(device)
+                correct += int((pred == target).sum().item())
+                total += int(target.numel())
     return {
         "status": "ok",
         "checkpoint": str(checkpoint_path),

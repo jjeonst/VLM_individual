@@ -12,6 +12,7 @@ class DataConfig:
 
     dataset_name: str = "habitat_objectnav"
     domain: str = "habitat"
+    cache_format: str = "single_action_graph"
     data_root: str = "/data/topovlm/habitat"
     habitat_config: str = "configs/habitat/pr2l_objectnav.yaml"
     split: str = "train"
@@ -46,6 +47,18 @@ class VLMConfig:
     device: str = "cuda"
     dtype: str = "bfloat16"
     frozen: bool = True
+    representation: str = "last_token"
+    hidden_layer_indices: list[int] = field(default_factory=lambda: [-1])
+    visual_pool_grid: int = 1
+    visual_bank_reduction: str = "mean"
+    projection: str = "none"
+    projection_path: Optional[str] = None
+    projection_dim: Optional[int] = None
+    projection_fit_max_tokens: int = 8192
+    include_generated_text: bool = False
+    generation_seed: int = 0
+    generation_temperature: float = 0.4
+    max_new_tokens: int = 48
     output_dim: int = 4096
     prompt_template: str = "You are navigating an indoor scene. Goal: {goal_text}"
     cache_batch_size: int = 1
@@ -73,6 +86,8 @@ class PolicyConfig:
     transformer_layers: int = 2
     dropout: float = 0.1
     num_actions: int = 4
+    prediction_target: str = "graph"
+    max_positions: int = 2048
 
 
 @dataclass
@@ -90,6 +105,9 @@ class BehaviorCloningConfig:
 
     label_smoothing: float = 0.0
     class_weights: Optional[list[float]] = None
+    inflection_weight: float = 1.0
+    stop_turn_weight: float = 1.0
+    stop_turn_action_ids: list[int] = field(default_factory=lambda: [0, 2, 3])
 
 
 @dataclass
@@ -126,6 +144,7 @@ class TopoVLMConfig:
     learning_rate: float = 1e-4
     weight_decay: float = 0.0
     save_every_epochs: int = 1
+    gradient_accumulation_steps: int = 1
     data: DataConfig = field(default_factory=DataConfig)
     model: ModelConfig = field(default_factory=ModelConfig)
     objectives: ObjectivesConfig = field(default_factory=ObjectivesConfig)

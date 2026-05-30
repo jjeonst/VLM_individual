@@ -16,3 +16,6 @@ class VLMEncoder(ABC):
     @abstractmethod
     def encode_image_goal(self, image: object, goal_text: str):
         raise NotImplementedError
+
+    def encode_image_goal_tokens(self, image: object, goal_text: str) -> dict[str, object]:
+        raise NotImplementedError

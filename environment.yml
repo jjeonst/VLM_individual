@@ -19,6 +19,7 @@ dependencies:
   - intel-openmp<2025
   - pip:
       - -e .[dev,habitat]
+      - scikit-learn
       - transformers==4.38.1
       - huggingface-hub<1.0
       - prismatic @ git+https://github.com/TRI-ML/prismatic-vlms.git

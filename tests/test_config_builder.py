@@ -44,6 +44,18 @@ class ConfigBuilderTest(unittest.TestCase):
             "data/topovlm/vlm_weights/prismatic/prism-dinosiglip+7b",
         )
 
+    def test_pr2l_faithful_config_loads(self):
+        cfg = build_config_from_exp("habitat/pr2l_habitat_bc_faithful")
+        self.assertEqual(cfg.config_name, "habitat/pr2l_habitat_bc_faithful")
+        self.assertEqual(cfg.data.cache_format, "pr2l_token_trajectory")
+        self.assertEqual(cfg.model.vlm.representation, "pr2l_visual_tokens_last_two_layers")
+        self.assertEqual(cfg.model.vlm.hidden_layer_indices, [-2, -1])
+        self.assertEqual(cfg.model.vlm.visual_pool_grid, 4)
+        self.assertEqual(cfg.model.vlm.projection, "pca")
+        self.assertEqual(cfg.model.policy.prediction_target, "nodes")
+        self.assertEqual(cfg.objectives.behavior_cloning.stop_turn_weight, 1.5)
+        self.assertEqual(cfg.gradient_accumulation_steps, 8)
+
     def test_domain_configs_only_declare_default_overrides(self):
         config_root = Path(__file__).resolve().parents[1] / "configs"
         for domain in ("data", "eval", "model", "objectives", "train"):
@@ -72,7 +84,9 @@ def _load_yaml(path: Path) -> dict:
     return loaded
 
 
-def _duplicate_default_leaf_paths(default: dict, override: dict, prefix: tuple[str, ...] = ()) -> list[str]:
+def _duplicate_default_leaf_paths(
+    default: dict, override: dict, prefix: tuple[str, ...] = ()
+) -> list[str]:
     duplicate_paths = []
     for key, value in override.items():
         if key not in default:
@@ -80,7 +94,9 @@ def _duplicate_default_leaf_paths(default: dict, override: dict, prefix: tuple[s
         default_value = default[key]
         current_path = prefix + (str(key),)
         if isinstance(value, dict) and isinstance(default_value, dict):
-            duplicate_paths.extend(_duplicate_default_leaf_paths(default_value, value, current_path))
+            duplicate_paths.extend(
+                _duplicate_default_leaf_paths(default_value, value, current_path)
+            )
         elif value == default_value:
             duplicate_paths.append(".".join(current_path))
     return duplicate_paths

@@ -7,6 +7,19 @@ model:
     device: cuda
     dtype: bfloat16
     frozen: true
+    representation: last_token
+    hidden_layer_indices:
+      - -1
+    visual_pool_grid: 1
+    visual_bank_reduction: mean
+    projection: none
+    projection_path: null
+    projection_dim: null
+    projection_fit_max_tokens: 8192
+    include_generated_text: false
+    generation_seed: 0
+    generation_temperature: 0.4
+    max_new_tokens: 48
     output_dim: 4096
     prompt_template: "You are navigating an indoor scene. Goal: {goal_text}"
     cache_batch_size: 1
@@ -24,3 +37,5 @@ model:
     transformer_layers: 2
     dropout: 0.1
     num_actions: 4
+    prediction_target: graph
+    max_positions: 2048
