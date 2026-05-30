@@ -18,7 +18,7 @@ if [ ! -w "/scratch"/"$USER" ]; then
   exit 34
 fi
 
-SOURCE_COMMIT="ff055a59ae698c28fae85079aaad46e083111f3b"
+SOURCE_COMMIT="389b4ec2e849a9297c2ed6ea995cb8654035e059"
 if [[ ! "$SOURCE_COMMIT" =~ ^[0-9a-fA-F]{7,40}$ ]] || ! git -C "/home/heejun/Projects/TopoVLM" cat-file -e "$SOURCE_COMMIT^{commit}"; then
   echo "[blocker] SOURCE_COMMIT is not a valid commit: $SOURCE_COMMIT" >&2
   exit 32
@@ -46,7 +46,7 @@ cat > "$STAGE_MANIFEST" <<'JSON'
   "artifacts": [],
   "cache": {
     "code": {
-      "commit_path": "/scratch/$USER/workcache/TopoVLM/code/ff055a59ae698c28fae85079aaad46e083111f3b",
+      "commit_path": "/scratch/$USER/workcache/TopoVLM/code/389b4ec2e849a9297c2ed6ea995cb8654035e059",
       "path": "/scratch/$USER/workcache/TopoVLM/code",
       "sync_delete": false
     },
@@ -65,9 +65,9 @@ cat > "$STAGE_MANIFEST" <<'JSON'
   },
   "code": {
     "source": "/home/heejun/Projects/TopoVLM",
-    "source_commit": "ff055a59ae698c28fae85079aaad46e083111f3b",
+    "source_commit": "389b4ec2e849a9297c2ed6ea995cb8654035e059",
     "sync": "git_archive_commit_immutable_code",
-    "target": "/scratch/$USER/workcache/TopoVLM/code/ff055a59ae698c28fae85079aaad46e083111f3b",
+    "target": "/scratch/$USER/workcache/TopoVLM/code/389b4ec2e849a9297c2ed6ea995cb8654035e059",
     "workdir": "$WORKDIR"
   },
   "data": [
@@ -88,7 +88,7 @@ cat > "$STAGE_MANIFEST" <<'JSON'
     }
   ],
   "flow_key": "topovlm_pr2l_balanced_build_episodes_${SLURM_JOB_ID}",
-  "generated_at_utc": "2026-05-30T19:26:03+00:00",
+  "generated_at_utc": "2026-05-30T19:42:01+00:00",
   "job_name": "topovlm_pr2l_balanced_build_episodes",
   "output": {
     "default_stageout": "/home/heejun/Projects/TopoVLM/artifacts/logs/slurm_outputs/topovlm_pr2l_balanced_build_episodes/${SLURM_JOB_ID}",
