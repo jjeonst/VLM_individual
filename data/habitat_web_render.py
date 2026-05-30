@@ -87,6 +87,9 @@ def build_habitat_web_episode_manifest(
                 handle.write(json.dumps(record, sort_keys=True) + "\n")
                 written.append(record)
         tmp_manifest_path.replace(manifest_path)
+    except Exception:
+        tmp_manifest_path.unlink(missing_ok=True)
+        raise
     finally:
         close = getattr(renderer, "close", None)
         if callable(close):
