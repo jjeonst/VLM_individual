@@ -13,6 +13,7 @@ class ConfigBuilderTest(unittest.TestCase):
         self.assertEqual(cfg.model.vlm.backend, "prismatic")
         self.assertEqual(cfg.model.policy.type, "graph_transformer_bc")
         self.assertEqual(cfg.objectives.names, ["behavior_cloning"])
+        self.assertEqual(cfg.data.dataset_name, "habitat_objectnav_hm3d")
         self.assertEqual(
             cfg.data.objectnav_dataset_dir,
             "datasets/objectnav/hm3d/v2/objectnav_hm3d_v2",
@@ -55,6 +56,11 @@ class ConfigBuilderTest(unittest.TestCase):
                     duplicate_paths,
                     [],
                     f"{path} repeats default values: {duplicate_paths}",
+                )
+                self.assertNotEqual(
+                    _load_yaml(path),
+                    {},
+                    f"{path} is an empty placeholder config",
                 )
 
 

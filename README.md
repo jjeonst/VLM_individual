@@ -14,21 +14,20 @@ not a `src/` or `topovlm/` package wrapper.
 ## Setup
 
 Canonical development happens on `bmlslurm` in the `topovlm` conda environment.
-The first environment is Python 3.10, matching the PR2L example and Prismatic's
-tested stack. Python 3.12 is a future compatibility target, but it is not the
-first canonical env because Habitat-Lab/Habitat-Sim and Prismatic publish
-different tested-version guidance. On `bmlslurm`, `aihabitat` stable
-`habitat-sim 0.3.3` currently resolves to Python 3.9 builds, so live
-Habitat-Sim belongs behind a separate env/container gate.
+The canonical environment is Python 3.9 because `aihabitat` stable
+`habitat-sim 0.3.3` resolves to Python 3.9 builds on `bmlslurm`. Python 3.10
+matched PR2L's public notebook setup, but Habitat-Sim is required for the
+Habitat-first runtime path.
 
 ```bash
 source ~/miniconda3/etc/profile.d/conda.sh
-conda create -n topovlm python=3.10 pip cmake=3.27 -c conda-forge -y
+conda create -n topovlm python=3.9 pip cmake=3.27 -c conda-forge -y
 conda activate topovlm
+conda install -y habitat-sim=0.3.3 withbullet -c conda-forge -c aihabitat
 conda install -y pytorch==2.2.0 torchvision==0.17.0 torchaudio==2.2.0 pytorch-cuda=11.8 -c pytorch -c nvidia
 conda install -y "mkl<2025" "intel-openmp<2025" -c defaults
 python -m pip install --upgrade pip
-python -m pip install -e ".[dev]"
+python -m pip install -e ".[dev,habitat]"
 python -m pip install "transformers==4.38.1" "huggingface-hub<1.0" "prismatic @ git+https://github.com/TRI-ML/prismatic-vlms.git"
 ```
 

@@ -1,8 +1,8 @@
 # TopoVLM Data Contract
 
 Large payloads are shared through `/data/topovlm`, not committed to this repo.
-The current server does not yet expose that project directory, so all Habitat
-paths below are required setup rather than observed live inputs.
+The current `bmlslurm` surface uses `/data/topovlm` as the shared Habitat and
+VLM payload root.
 
 ## Root Layout
 
@@ -22,8 +22,8 @@ paths below are required setup rather than observed live inputs.
       prism-dinosiglip+7b/
 ```
 
-`configs/data/habitat_objectnav.yaml` is the canonical config entry for these
-paths. Runtime code resolves relative episode, graph, and embedding paths under
+`configs/data/default.yaml` is the canonical config entry for these paths.
+Runtime code resolves relative episode, graph, and embedding paths under
 `data_root`.
 
 ## Episode Manifest
@@ -48,10 +48,7 @@ metadata, and token pooling policy for each cache manifest.
 
 ## Still Missing
 
-- `/data/topovlm` write permission and initial directory creation.
-- Habitat scene assets and ObjectNav episode configs.
-- Habitat-Web or replacement expert demonstrations for BC.
-- Prismatic weights or Hugging Face access for `prism-dinosiglip+7b`.
+- Habitat-Web or replacement expert demonstrations for behavior cloning.
 - A cache manifest format that records PR2L token-level representation lineage,
   not only one pooled feature per frame.
 - A Slurm stage-in/stage-out contract after the data and checkpoint roots are

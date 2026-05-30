@@ -2,21 +2,16 @@
 
 ## Decision
 
-The first canonical environment is `topovlm` with Python 3.10.
+The canonical environment is `topovlm` with Python 3.9.
 
 Rationale:
 
-- PR2L's public notebook setup uses Python 3.10 with PyTorch 2.2.0 and CUDA 11.8.
-- Prismatic VLMs were built with Python 3.10 and require PyTorch 2.1+.
-- Habitat-Lab/Habitat-Sim documentation has version drift: Habitat-Lab stable
-  documents Python 3.9, while Habitat-Sim main documents newer Python examples.
-  On `bmlslurm`, `aihabitat` stable `habitat-sim 0.3.3` currently resolves to
-  `py3.9` builds.
+- Habitat-Sim is required for the Habitat-first runtime path.
+- On `bmlslurm`, `aihabitat` stable `habitat-sim 0.3.3` resolves to `py3.9` builds.
+- PyTorch 2.2.0, CUDA 11.8, Prismatic, and the TopoVLM package can run under Python 3.9.
 
-Python 3.12 is a candidate once Prismatic import, `flash-attn` if needed, and
-Habitat-Sim import are verified together on `bmlslurm`. It is not the first
-canonical env because the goal is PR2L-compatible reproduction before version
-modernization.
+Python 3.10 and 3.12 are future compatibility targets only after Habitat-Sim,
+Prismatic import, and any `flash-attn` requirement are verified together on `bmlslurm`.
 
 ## Create From Commands
 
@@ -24,12 +19,13 @@ Use these commands when creating the env manually:
 
 ```bash
 source ~/miniconda3/etc/profile.d/conda.sh
-conda create -n topovlm python=3.10 pip cmake=3.27 -c conda-forge -y
+conda create -n topovlm python=3.9 pip cmake=3.27 -c conda-forge -y
 conda activate topovlm
+conda install -y habitat-sim=0.3.3 withbullet -c conda-forge -c aihabitat
 conda install -y pytorch==2.2.0 torchvision==0.17.0 torchaudio==2.2.0 pytorch-cuda=11.8 -c pytorch -c nvidia
 conda install -y "mkl<2025" "intel-openmp<2025" -c defaults
 python -m pip install --upgrade pip
-python -m pip install -e ".[dev]"
+python -m pip install -e ".[dev,habitat]"
 python -m pip install "transformers==4.38.1" "huggingface-hub<1.0" "prismatic @ git+https://github.com/TRI-ML/prismatic-vlms.git"
 ```
 
@@ -43,7 +39,7 @@ the explicit commands above when debugging solver or Git dependency failures.
 Required for config parsing, synthetic training smoke tests, validation preflight,
 and W&B dry-run plumbing:
 
-- Python 3.10
+- Python 3.9
 - PyTorch 2.2.0 / torchvision 0.17.0 / torchaudio 2.2.0 / CUDA 11.8 runtime
 - `mkl<2025` and `intel-openmp<2025`; PyTorch 2.2.0 import fails on this host
   with `mkl 2025` because of the missing `iJIT_NotifyEvent` symbol
@@ -75,13 +71,10 @@ Required only when generating/evaluating live Habitat episodes rather than
 training from prebuilt graph caches:
 
 - Habitat-Sim with headless/Bullet support on cluster nodes
-- Habitat-Lab stable package or source install
+- Habitat-Lab stable package or source install through `.[habitat]`
 - HM3D/Habitat-Matterport scene assets and ObjectNav episode configs
 
-Do not assume Habitat-Sim is solved by the `topovlm` core env. Verify
-`import habitat_sim` and the exact scene dataset path before planning Slurm jobs.
-If stable `habitat-sim` is required, start from a separate Python 3.9 env or a
-reviewed container rather than forcing it into `topovlm`.
+Verify `import habitat_sim` and the exact scene dataset path before planning Slurm jobs.
 
 ## Verification
 

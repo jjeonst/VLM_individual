@@ -1,5 +1,5 @@
 data:
-  dataset_name: habitat_objectnav
+  dataset_name: habitat_objectnav_hm3d
   domain: habitat
   data_root: /data/topovlm/habitat
   habitat_config: configs/habitat/pr2l_objectnav.yaml

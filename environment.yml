@@ -3,11 +3,14 @@ channels:
   - pytorch
   - nvidia
   - conda-forge
+  - aihabitat
   - defaults
 dependencies:
-  - python=3.10
+  - python=3.9
   - pip
   - cmake=3.27
+  - habitat-sim=0.3.3
+  - withbullet
   - pytorch=2.2.0
   - torchvision=0.17.0
   - torchaudio=2.2.0
@@ -15,7 +18,7 @@ dependencies:
   - mkl<2025
   - intel-openmp<2025
   - pip:
-      - -e .[dev]
+      - -e .[dev,habitat]
       - transformers==4.38.1
       - huggingface-hub<1.0
       - prismatic @ git+https://github.com/TRI-ML/prismatic-vlms.git

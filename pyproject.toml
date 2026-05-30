@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "topovlm"
 version = "0.1.0"
-requires-python = ">=3.10"
+requires-python = ">=3.9,<3.10"
 dependencies = [
   "numpy",
   "Pillow",
@@ -37,7 +37,7 @@ packages = [
 ]
 
 [tool.ruff]
-target-version = "py310"
+target-version = "py39"
 line-length = 100
 exclude = ["individual_researcher_initial"]
 
