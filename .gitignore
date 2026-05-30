@@ -10,8 +10,7 @@ __pycache__/
 .venv/
 venv/
 
-checkpoints/
-!checkpoints/
+checkpoints/**
 !checkpoints/README.md
 wandb/
 logs/
