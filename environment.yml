@@ -11,10 +11,10 @@ dependencies:
   - cmake=3.27
   - habitat-sim=0.3.3
   - withbullet
-  - pytorch=2.2.0
-  - torchvision=0.17.0
-  - torchaudio=2.2.0
-  - pytorch-cuda=11.8
+  - pytorch::pytorch=2.2.0
+  - pytorch::torchvision=0.17.0
+  - pytorch::torchaudio=2.2.0
+  - pytorch::pytorch-cuda=11.8
   - mkl<2025
   - intel-openmp<2025
   - pip:
