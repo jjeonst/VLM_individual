@@ -3,7 +3,7 @@
 defaults:
   - /habitat: habitat_config_base
   - /habitat/task: objectnav
-  - /habitat/simulator/agents@habitat.simulator.agents.main_agent: rgb_agent
+  - /habitat/simulator/sensor_setups@habitat.simulator.agents.main_agent: rgb_agent
   - /habitat/dataset/objectnav: hm3d
   - _self_
 
@@ -17,7 +17,6 @@ habitat:
 
   simulator:
     turn_angle: 30
-    action_space_config: v1
     scene_dataset: data/topovlm/habitat/scene_datasets/hm3d/hm3d_annotated_basis.scene_dataset_config.json
     agents:
       main_agent:
