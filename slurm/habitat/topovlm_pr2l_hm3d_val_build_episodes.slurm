@@ -1,7 +1,7 @@
 #!/bin/bash
 
-#SBATCH -p h200mig
-#SBATCH --gres=gpu:3g.71gb:1
+#SBATCH -p h200
+#SBATCH --gres=gpu:h200:1
 #SBATCH -J topovlm_pr2l_hm3d_val_build_episodes
 #SBATCH --time=7-00:00:00
 #SBATCH -o /home/heejun/Projects/TopoVLM/artifacts/logs/slurm-%x-%j.out
@@ -18,7 +18,7 @@ if [ ! -w "/scratch"/"$USER" ]; then
   exit 34
 fi
 
-SOURCE_COMMIT="7a71e3c492f13ffb14444a6e12042fe1dc2d9b62"
+SOURCE_COMMIT="da746ed211730efb5cc49c98fb13e8d451782f55"
 if [[ ! "$SOURCE_COMMIT" =~ ^[0-9a-fA-F]{7,40}$ ]] || ! git -C "/home/heejun/Projects/TopoVLM" cat-file -e "$SOURCE_COMMIT^{commit}"; then
   echo "[blocker] SOURCE_COMMIT is not a valid commit: $SOURCE_COMMIT" >&2
   exit 32
@@ -46,7 +46,7 @@ cat > "$STAGE_MANIFEST" <<'JSON'
   "artifacts": [],
   "cache": {
     "code": {
-      "commit_path": "/scratch/$USER/workcache/TopoVLM/code/7a71e3c492f13ffb14444a6e12042fe1dc2d9b62",
+      "commit_path": "/scratch/$USER/workcache/TopoVLM/code/da746ed211730efb5cc49c98fb13e8d451782f55",
       "path": "/scratch/$USER/workcache/TopoVLM/code",
       "sync_delete": false
     },
@@ -65,9 +65,9 @@ cat > "$STAGE_MANIFEST" <<'JSON'
   },
   "code": {
     "source": "/home/heejun/Projects/TopoVLM",
-    "source_commit": "7a71e3c492f13ffb14444a6e12042fe1dc2d9b62",
+    "source_commit": "da746ed211730efb5cc49c98fb13e8d451782f55",
     "sync": "git_archive_commit_immutable_code",
-    "target": "/scratch/$USER/workcache/TopoVLM/code/7a71e3c492f13ffb14444a6e12042fe1dc2d9b62",
+    "target": "/scratch/$USER/workcache/TopoVLM/code/da746ed211730efb5cc49c98fb13e8d451782f55",
     "workdir": "$WORKDIR"
   },
   "data": [
@@ -83,7 +83,7 @@ cat > "$STAGE_MANIFEST" <<'JSON'
     }
   ],
   "flow_key": "topovlm_pr2l_hm3d_val_build_episodes_${SLURM_JOB_ID}",
-  "generated_at_utc": "2026-05-31T09:28:23+00:00",
+  "generated_at_utc": "2026-05-31T09:56:14+00:00",
   "job_name": "topovlm_pr2l_hm3d_val_build_episodes",
   "output": {
     "default_stageout": "/home/heejun/Projects/TopoVLM/artifacts/logs/slurm_outputs/topovlm_pr2l_hm3d_val_build_episodes/${SLURM_JOB_ID}",
