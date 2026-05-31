@@ -105,20 +105,26 @@ python train.py --exp habitat/pr2l_hm3d_bc --mode build_cache
 python train.py --exp habitat/pr2l_hm3d_bc --mode train
 ```
 
-`build_episodes` opens the HM3D ObjectNav Habitat config, uses Habitat's
+`build_episodes` opens the HM3D ObjectNav Habitat config, uses Habitat
 `ShortestPathFollower` to generate expert action trajectories, writes RGB/action
-NumPy payloads, and records `hm3d_objectnav_shortest_path` provenance in
-`episodes/pr2l_hm3d_objectnav/<split>/manifest.jsonl`. This is the active
-TopoVLM development path; it is not an exact PR2L reproduction because
-PR2L/Habitat-Web used MP3D replay metadata.
+NumPy payloads directly under `/data/topovlm/habitat`, and records
+`hm3d_objectnav_shortest_path` provenance in
+`episodes/pr2l_hm3d_objectnav/<split>/manifest.jsonl`. The current canonical
+HM3D materialization cap is `data.max_episodes=512`; the raw train source has
+millions of ObjectNav episodes, so full-source materialization must be a
+separate sharded/selection decision. This is the active TopoVLM development
+path; it is not an exact PR2L reproduction because PR2L/Habitat-Web used MP3D
+replay metadata.
 
 Smoke and subset runs should be driven by `--debug`, tests, or explicit
-runtime/job manifests, not by extra experiment YAML files. Slurm scripts stage
-shared `/data/topovlm/...` inputs into job-local `data/...`; runtime path
-resolution maps canonical `/data/...` config paths to that staged mirror while
-stage-out materializers write bundles under `OUTPUT_DIR/data/topovlm/habitat`.
-After a staged `build_episodes` or `build_cache` job finishes, audit the bundle
-by setting `TOPOVLM_DATA_OUTPUT_ROOT` to the staged-out data root:
+runtime/job manifests, not by extra experiment YAML files. Slurm is reserved for
+GPU-heavy `build_cache` and `train` jobs. For staged cache jobs, generated
+wrappers stage shared `/data/topovlm/...` inputs into job-local `data/...`;
+runtime path resolution maps canonical `/data/...` config paths to that staged
+mirror while stage-out materializers write bundles under
+`OUTPUT_DIR/data/topovlm/habitat`. After a staged `build_cache` job finishes,
+audit the bundle by setting `TOPOVLM_DATA_OUTPUT_ROOT` to the staged-out data
+root:
 
 ```bash
 TOPOVLM_DATA_OUTPUT_ROOT=<stageout>/data/topovlm/habitat python validate.py --runner pr2l_manifest_audit --exp habitat/pr2l_hm3d_bc

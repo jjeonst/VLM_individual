@@ -76,14 +76,34 @@ def build_hm3d_objectnav_episode_manifest(
             max_resets = total_episodes
             if selection_ids is None and cfg.data.max_episodes is not None:
                 max_resets = min(max_resets, int(cfg.data.max_episodes))
-            for _ in range(max_resets):
+            skipped = []
+            for attempted in range(1, max_resets + 1):
                 observations = env.reset()
                 episode = env.current_episode
                 source_trajectory_id = objectnav_source_trajectory_id(episode)
                 if selection_ids is not None and source_trajectory_id not in selection_ids:
                     continue
                 seen_selection_ids.add(source_trajectory_id)
-                frames, actions = _rollout_shortest_path_episode(cfg, env, follower, observations)
+                try:
+                    frames, actions = _rollout_shortest_path_episode(
+                        cfg, env, follower, observations
+                    )
+                except Exception as exc:
+                    skipped.append(source_trajectory_id)
+                    print(
+                        json.dumps(
+                            {
+                                "event": "hm3d_build_episodes_skip",
+                                "attempted": attempted,
+                                "source_trajectory_id": source_trajectory_id,
+                                "error_type": type(exc).__name__,
+                                "error": str(exc),
+                            },
+                            sort_keys=True,
+                        ),
+                        flush=True,
+                    )
+                    continue
                 payload_id = _safe_payload_id(source_trajectory_id)
                 rgb_rel = (
                     Path("rgb") / cfg.data.dataset_name / cfg.data.split / f"{payload_id}.npy"
@@ -108,7 +128,22 @@ def build_hm3d_objectnav_episode_manifest(
                     "object_category": str(getattr(episode, "object_category")),
                 }
                 handle.write(json.dumps(record, sort_keys=True) + "\n")
+                handle.flush()
                 written.append(record)
+                if len(written) == 1 or len(written) % 25 == 0:
+                    print(
+                        json.dumps(
+                            {
+                                "event": "hm3d_build_episodes_progress",
+                                "attempted": attempted,
+                                "written": len(written),
+                                "skipped": len(skipped),
+                                "manifest_tmp": str(tmp_manifest_path),
+                            },
+                            sort_keys=True,
+                        ),
+                        flush=True,
+                    )
             if selection_ids is not None and seen_selection_ids != selection_ids:
                 missing_ids = sorted(selection_ids.difference(seen_selection_ids))
                 raise ValueError(
@@ -128,6 +163,7 @@ def build_hm3d_objectnav_episode_manifest(
         "source_data_root": str(data_root),
         "output_data_root": str(output_data_root),
         "episodes_written": len(written),
+        "episodes_skipped": len(skipped),
         "rgb_dir": str(rgb_dir),
         "actions_dir": str(actions_dir),
         "selection_manifest": cfg.data.episode_selection_manifest,

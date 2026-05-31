@@ -50,8 +50,11 @@ lineage. The current HM3D path records `source_dataset` as
 
 For `trajectory_source: objectnav_shortest_path`, `train.py --mode
 build_episodes` opens the configured HM3D ObjectNav Habitat environment, uses
-Habitat's `ShortestPathFollower`, and writes NumPy RGB/action arrays. Action ids
-are: `STOP=0`, `MOVE_FORWARD=1`, `TURN_LEFT=2`, and `TURN_RIGHT=3`.
+Habitat `ShortestPathFollower`, and writes NumPy RGB/action arrays directly
+under `/data/topovlm/habitat`. The active canonical HM3D config caps this
+materialization at `data.max_episodes=512`; rendering the full raw train source
+requires an explicit sharded/selection plan. Action ids are: `STOP=0`,
+`MOVE_FORWARD=1`, `TURN_LEFT=2`, and `TURN_RIGHT=3`.
 
 The deferred Habitat-Web source data is kept under
 `/data/topovlm/habitat/sources/habitat_web_hf_metadata`. Those source shards
