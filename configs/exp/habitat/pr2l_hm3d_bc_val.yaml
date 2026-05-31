@@ -1,0 +1,9 @@
+defaults:
+  - train: pr2l_hm3d_bc
+  - data: pr2l_hm3d_objectnav_val
+  - model: pr2l_prismatic_hm3d
+  - objectives: pr2l_bc_hm3d
+  - eval: default
+
+config_name: habitat/pr2l_hm3d_bc_val
+run_name: pr2l_hm3d_bc_val

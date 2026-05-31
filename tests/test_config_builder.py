@@ -49,6 +49,23 @@ class ConfigBuilderTest(unittest.TestCase):
         self.assertEqual(cfg.wandb_group, "pr2l_prismatic_policy")
         self.assertEqual(cfg.wandb_contract_role_id, "habitat_bc")
 
+    def test_pr2l_hm3d_val_config_loads(self):
+        cfg = build_config_from_exp("habitat/pr2l_hm3d_bc_val")
+        self.assertEqual(cfg.config_name, "habitat/pr2l_hm3d_bc_val")
+        self.assertEqual(cfg.run_name, "pr2l_hm3d_bc_val")
+        self.assertEqual(cfg.data.dataset_name, "pr2l_hm3d_objectnav")
+        self.assertEqual(cfg.data.split, "val")
+        self.assertEqual(
+            cfg.data.episodes_manifest,
+            "episodes/pr2l_hm3d_objectnav/val/manifest.jsonl",
+        )
+        self.assertEqual(
+            cfg.data.graph_manifest,
+            "graphs/pr2l_hm3d_bc/val/manifest.jsonl",
+        )
+        self.assertEqual(cfg.data.graph_cache_dir, "graphs/pr2l_hm3d_bc/val")
+        self.assertEqual(cfg.data.embeddings_dir, "embeddings/pr2l_hm3d_bc/val")
+
     def test_debug_overrides_are_operational(self):
         cfg = build_config_from_exp("habitat/pr2l_hm3d_bc", debug=True)
         self.assertTrue(cfg.debug)
@@ -67,6 +84,7 @@ class ConfigBuilderTest(unittest.TestCase):
                 "pr2l_habitat_bc_faithful.yaml",
                 "pr2l_habitat_bc_tiny_smoke.yaml",
                 "pr2l_hm3d_bc.yaml",
+                "pr2l_hm3d_bc_val.yaml",
             ],
         )
 

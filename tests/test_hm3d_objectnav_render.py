@@ -1,12 +1,17 @@
 import json
+import sys
 import tempfile
+import types
 import unittest
 from pathlib import Path
 
 import numpy as np
 
 from configs.schema import TopoVLMConfig
-from data.hm3d_objectnav_render import build_hm3d_objectnav_episode_manifest
+from data.hm3d_objectnav_render import (
+    _configure_habitat_dataset,
+    build_hm3d_objectnav_episode_manifest,
+)
 
 
 class HM3DObjectNavRenderTest(unittest.TestCase):
@@ -81,6 +86,40 @@ class HM3DObjectNavRenderTest(unittest.TestCase):
             self.assertEqual(result["episodes_written"], 1)
             self.assertEqual(records[0]["source_trajectory_id"], "scene_b/scene.glb:1")
 
+    def test_habitat_dataset_split_follows_data_config(self):
+        cfg = TopoVLMConfig()
+        cfg.data.split = "val"
+        cfg.data.data_root = "/data/topovlm/habitat"
+        habitat_config = types.SimpleNamespace(
+            habitat=types.SimpleNamespace(
+                dataset=types.SimpleNamespace(
+                    split="train",
+                    data_path=(
+                        "/data/topovlm/habitat/datasets/objectnav/hm3d/v2/"
+                        "objectnav_hm3d_v2/{split}/{split}.json.gz"
+                    ),
+                    scenes_dir="/data/topovlm/habitat/scene_datasets",
+                ),
+                simulator=types.SimpleNamespace(
+                    scene_dataset=(
+                        "/data/topovlm/habitat/scene_datasets/hm3d_v0.2/"
+                        "hm3d_annotated_basis.scene_dataset_config.json"
+                    )
+                ),
+            )
+        )
+        fake_omegaconf = types.SimpleNamespace(OmegaConf=_FakeOmegaConf)
+        original_omegaconf = sys.modules.get("omegaconf")
+        sys.modules["omegaconf"] = fake_omegaconf
+        try:
+            _configure_habitat_dataset(habitat_config, cfg, Path(cfg.data.data_root))
+        finally:
+            if original_omegaconf is None:
+                del sys.modules["omegaconf"]
+            else:
+                sys.modules["omegaconf"] = original_omegaconf
+        self.assertEqual(habitat_config.habitat.dataset.split, "val")
+
 
 class _FakeEnv:
     def __init__(self, episodes):
@@ -136,6 +175,12 @@ class _FakeEpisode:
 class _FakeGoal:
     position = [1.0, 0.0, 0.0]
     view_points = []
+
+
+class _FakeOmegaConf:
+    @staticmethod
+    def set_readonly(config, readonly):
+        pass
 
 
 if __name__ == "__main__":

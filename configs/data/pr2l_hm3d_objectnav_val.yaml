@@ -1,0 +1,10 @@
+data:
+  dataset_name: pr2l_hm3d_objectnav
+  cache_format: pr2l_token_trajectory
+  split: val
+  episodes_manifest: episodes/pr2l_hm3d_objectnav/val/manifest.jsonl
+  graph_manifest: graphs/pr2l_hm3d_bc/val/manifest.jsonl
+  graph_cache_dir: graphs/pr2l_hm3d_bc/val
+  embeddings_dir: embeddings/pr2l_hm3d_bc/val
+  max_episodes: 512
+  frame_stride: 4
