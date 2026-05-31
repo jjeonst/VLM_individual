@@ -7,3 +7,6 @@ defaults:
 
 config_name: habitat/pr2l_hm3d_bc_val
 run_name: pr2l_hm3d_bc_val
+
+eval:
+  episode_timeout_seconds: 30
