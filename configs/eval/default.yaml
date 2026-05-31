@@ -1,6 +1,7 @@
 eval:
   num_episodes: 16
   max_steps: 500
+  episode_timeout_seconds: 120
   success_distance: 0.2
   output_dir: artifacts/eval
   write_predictions: false

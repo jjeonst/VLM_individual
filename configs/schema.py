@@ -129,6 +129,7 @@ class EvalConfig:
 
     num_episodes: int = 16
     max_steps: int = 500
+    episode_timeout_seconds: int = 120
     success_distance: float = 0.2
     output_dir: str = "artifacts/eval"
     write_predictions: bool = False

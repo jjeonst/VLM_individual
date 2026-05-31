@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+from contextlib import contextmanager
 import json
 import re
+import signal
+from collections.abc import Iterator
 from pathlib import Path
 from typing import Protocol
 
@@ -85,9 +88,10 @@ def build_hm3d_objectnav_episode_manifest(
                     continue
                 seen_selection_ids.add(source_trajectory_id)
                 try:
-                    frames, actions = _rollout_shortest_path_episode(
-                        cfg, env, follower, observations
-                    )
+                    with _episode_rollout_timeout(cfg, env):
+                        frames, actions = _rollout_shortest_path_episode(
+                            cfg, env, follower, observations
+                        )
                 except Exception as exc:
                     skipped.append(source_trajectory_id)
                     print(
@@ -192,6 +196,34 @@ def _rollout_shortest_path_episode(
         f"Shortest-path rollout exceeded max_steps={cfg.eval.max_steps} "
         f"for episode {getattr(env.current_episode, 'episode_id')}"
     )
+
+
+@contextmanager
+def _episode_rollout_timeout(
+    cfg: TopoVLMConfig, env: ObjectNavExpertEnv
+) -> Iterator[None]:
+    timeout_seconds = cfg.eval.episode_timeout_seconds
+    if timeout_seconds <= 0:
+        yield
+        return
+
+    def _raise_timeout(signum: int, frame: object) -> None:
+        raise TimeoutError(
+            f"Episode rollout exceeded episode_timeout_seconds={timeout_seconds} "
+            f"for episode {getattr(env.current_episode, 'episode_id')}"
+        )
+
+    previous_handler = signal.getsignal(signal.SIGALRM)
+    previous_timer = signal.setitimer(signal.ITIMER_REAL, 0.0)
+    signal.signal(signal.SIGALRM, _raise_timeout)
+    signal.setitimer(signal.ITIMER_REAL, float(timeout_seconds))
+    try:
+        yield
+    finally:
+        signal.setitimer(signal.ITIMER_REAL, 0.0)
+        signal.signal(signal.SIGALRM, previous_handler)
+        if previous_timer != (0.0, 0.0):
+            signal.setitimer(signal.ITIMER_REAL, *previous_timer)
 
 
 def _open_habitat_env(cfg: TopoVLMConfig) -> ObjectNavExpertEnv:

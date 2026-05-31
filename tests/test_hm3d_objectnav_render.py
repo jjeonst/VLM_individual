@@ -1,6 +1,9 @@
+import contextlib
+import io
 import json
 import sys
 import tempfile
+import time
 import types
 import unittest
 from pathlib import Path
@@ -41,6 +44,36 @@ class HM3DObjectNavRenderTest(unittest.TestCase):
             self.assertEqual(records[0]["goal_text"], "chair")
             self.assertEqual(rgb.shape, (3, 2, 2, 3))
             self.assertEqual(actions.tolist(), [1, 2, 0])
+
+    def test_episode_timeout_skips_episode_and_logs_error(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cfg = TopoVLMConfig()
+            cfg.data.data_root = tmpdir
+            cfg.data.dataset_name = "pr2l_hm3d_objectnav_tiny_smoke"
+            cfg.data.episodes_manifest = (
+                "episodes/pr2l_hm3d_objectnav_tiny_smoke/train/manifest.jsonl"
+            )
+            cfg.eval.episode_timeout_seconds = 1
+            env = _FakeEnv([_FakeEpisode("0", "scene/scene.glb", "chair")])
+            follower = _SlowFollower()
+            stdout = io.StringIO()
+
+            with contextlib.redirect_stdout(stdout):
+                result = build_hm3d_objectnav_episode_manifest(cfg, env=env, follower=follower)
+
+            manifest = Path(result["manifest"])
+            events = [
+                json.loads(line)
+                for line in stdout.getvalue().splitlines()
+                if line.startswith("{")
+            ]
+
+            self.assertEqual(result["episodes_written"], 0)
+            self.assertEqual(result["episodes_skipped"], 1)
+            self.assertEqual(manifest.read_text(encoding="utf-8"), "")
+            self.assertEqual(events[0]["event"], "hm3d_build_episodes_skip")
+            self.assertEqual(events[0]["error_type"], "TimeoutError")
+            self.assertIn("episode_timeout_seconds=1", events[0]["error"])
 
     def test_filters_selection_manifest(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -154,6 +187,12 @@ class _FakeFollower:
 
     def get_next_action(self, goal_position):
         return self.actions.pop(0)
+
+
+class _SlowFollower:
+    def get_next_action(self, goal_position):
+        time.sleep(2)
+        return 1
 
 
 class _FakeSim:
