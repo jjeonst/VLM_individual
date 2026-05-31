@@ -6,3 +6,4 @@ data:
   graph_cache_dir: graphs/pr2l_hm3d_bc/train
   embeddings_dir: embeddings/pr2l_hm3d_bc/train
   max_episodes: 512
+  frame_stride: 4
