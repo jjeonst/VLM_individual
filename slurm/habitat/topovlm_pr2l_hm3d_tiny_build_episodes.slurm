@@ -18,7 +18,7 @@ if [ ! -w "/scratch"/"$USER" ]; then
   exit 34
 fi
 
-SOURCE_COMMIT="8b1d291792258550b5106927197667d1e57e2900"
+SOURCE_COMMIT="15de11f7f3ddf849b11286a48dce8e75b5c0cb38"
 if [[ ! "$SOURCE_COMMIT" =~ ^[0-9a-fA-F]{7,40}$ ]] || ! git -C "/home/heejun/Projects/TopoVLM" cat-file -e "$SOURCE_COMMIT^{commit}"; then
   echo "[blocker] SOURCE_COMMIT is not a valid commit: $SOURCE_COMMIT" >&2
   exit 32
@@ -46,7 +46,7 @@ cat > "$STAGE_MANIFEST" <<'JSON'
   "artifacts": [],
   "cache": {
     "code": {
-      "commit_path": "/scratch/$USER/workcache/TopoVLM/code/8b1d291792258550b5106927197667d1e57e2900",
+      "commit_path": "/scratch/$USER/workcache/TopoVLM/code/15de11f7f3ddf849b11286a48dce8e75b5c0cb38",
       "path": "/scratch/$USER/workcache/TopoVLM/code",
       "sync_delete": false
     },
@@ -65,9 +65,9 @@ cat > "$STAGE_MANIFEST" <<'JSON'
   },
   "code": {
     "source": "/home/heejun/Projects/TopoVLM",
-    "source_commit": "8b1d291792258550b5106927197667d1e57e2900",
+    "source_commit": "15de11f7f3ddf849b11286a48dce8e75b5c0cb38",
     "sync": "git_archive_commit_immutable_code",
-    "target": "/scratch/$USER/workcache/TopoVLM/code/8b1d291792258550b5106927197667d1e57e2900",
+    "target": "/scratch/$USER/workcache/TopoVLM/code/15de11f7f3ddf849b11286a48dce8e75b5c0cb38",
     "workdir": "$WORKDIR"
   },
   "data": [
@@ -77,13 +77,13 @@ cat > "$STAGE_MANIFEST" <<'JSON'
       "target": "topovlm/habitat/datasets/objectnav/hm3d/v2/objectnav_hm3d_v2"
     },
     {
-      "reason": "HM3D scene assets and scene_dataset_config for shortest-path rendering",
+      "reason": "HM3D scene assets in Habitat-expected hm3d_v0.2 layout for shortest-path rendering",
       "source": "/data/topovlm/habitat/scene_datasets/hm3d",
-      "target": "topovlm/habitat/scene_datasets/hm3d"
+      "target": "scene_datasets/hm3d_v0.2"
     }
   ],
   "flow_key": "topovlm_pr2l_hm3d_tiny_build_episodes_${SLURM_JOB_ID}",
-  "generated_at_utc": "2026-05-31T01:43:47+00:00",
+  "generated_at_utc": "2026-05-31T01:51:33+00:00",
   "job_name": "topovlm_pr2l_hm3d_tiny_build_episodes",
   "output": {
     "default_stageout": "/home/heejun/Projects/TopoVLM/artifacts/logs/slurm_outputs/topovlm_pr2l_hm3d_tiny_build_episodes/${SLURM_JOB_ID}",
@@ -226,7 +226,7 @@ write_stage_progress "stage_in" "done" "immutable_code"
 
 write_stage_progress "stage_in" "running" "readonly_inputs"
 stage_readonly_data "/data/topovlm/habitat/datasets/objectnav/hm3d/v2/objectnav_hm3d_v2" "topovlm/habitat/datasets/objectnav/hm3d/v2/objectnav_hm3d_v2"
-stage_readonly_data "/data/topovlm/habitat/scene_datasets/hm3d" "topovlm/habitat/scene_datasets/hm3d"
+stage_readonly_data "/data/topovlm/habitat/scene_datasets/hm3d" "scene_datasets/hm3d_v0.2"
 write_stage_progress "stage_in" "done" "readonly_inputs"
 
 cd "$WORKDIR"
