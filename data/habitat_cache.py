@@ -130,6 +130,17 @@ def _build_pr2l_token_trajectory_cache(cfg: TopoVLMConfig) -> dict[str, object]:
         records = records[: cfg.data.max_episodes]
     if not records:
         raise ValueError(f"No Habitat episode records in {episode_manifest}")
+    print(
+        json.dumps(
+            {
+                "event": "pr2l_build_cache_start",
+                "episodes": len(records),
+                "episode_manifest": str(episode_manifest),
+            },
+            sort_keys=True,
+        ),
+        flush=True,
+    )
 
     graph_dir = resolve_data_path(output_data_root, cfg.data.graph_cache_dir)
     embedding_dir = resolve_data_path(output_data_root, cfg.data.embeddings_dir)
@@ -137,7 +148,21 @@ def _build_pr2l_token_trajectory_cache(cfg: TopoVLMConfig) -> dict[str, object]:
     embedding_dir.mkdir(parents=True, exist_ok=True)
 
     encoder = build_vlm_encoder(cfg.model.vlm)
+    print(
+        json.dumps({"event": "pr2l_build_cache_encoder_ready"}, sort_keys=True),
+        flush=True,
+    )
     projection = _load_or_fit_projection(cfg, encoder, records, data_root, output_data_root)
+    print(
+        json.dumps(
+            {
+                "event": "pr2l_build_cache_projection_ready",
+                "projection_path": cfg.model.vlm.projection_path,
+            },
+            sort_keys=True,
+        ),
+        flush=True,
+    )
     manifest_path = resolve_data_path(output_data_root, cfg.data.graph_manifest)
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
     written = []
@@ -203,6 +228,20 @@ def _build_pr2l_token_trajectory_cache(cfg: TopoVLMConfig) -> dict[str, object]:
                 "metadata_path": str(metadata_rel),
             }
             manifest.write(json.dumps(graph_record, sort_keys=True) + "\n")
+            manifest.flush()
+            if len(written) == 0 or (len(written) + 1) % 10 == 0:
+                print(
+                    json.dumps(
+                        {
+                            "event": "pr2l_build_cache_progress",
+                            "written": len(written) + 1,
+                            "episodes": len(records),
+                            "manifest": str(manifest_path),
+                        },
+                        sort_keys=True,
+                    ),
+                    flush=True,
+                )
             written.append(graph_record)
 
     return {
