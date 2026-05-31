@@ -108,6 +108,7 @@ class HabitatWebRenderTest(unittest.TestCase):
             manifest = root / "episodes/pr2l_habitat_web/train_sample/manifest.jsonl"
             self.assertFalse(manifest.exists())
             self.assertFalse(manifest.with_suffix(".jsonl.tmp").exists())
+            self.assertEqual(list(root.rglob("*.npy")), [])
 
     def test_build_episode_manifest_uses_selection_manifest(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -178,6 +179,153 @@ class HabitatWebRenderTest(unittest.TestCase):
             self.assertEqual(records[0]["source_trajectory_id"], "episode:1")
             self.assertEqual(records[0]["goal_text"], "table")
 
+    def test_selected_missing_scene_preflight_does_not_render_or_create_outputs(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            split_dir = root / "sources/habitat_web/train_sample"
+            content_dir = split_dir / "content"
+            content_dir.mkdir(parents=True)
+            scene_path = root / "scene_datasets/mp3d/existing/existing.glb"
+            scene_path.parent.mkdir(parents=True)
+            scene_path.write_text("fake", encoding="utf-8")
+            selection_dir = root / "episode_selections"
+            selection_dir.mkdir()
+            selection_records = [
+                {
+                    "source_trajectory_id": "episode:0",
+                    "scene_id": "mp3d/existing/existing.glb",
+                    "object_category": "chair",
+                    "shard_path": "source",
+                    "replay_length": 1,
+                },
+                {
+                    "source_trajectory_id": "episode:1",
+                    "scene_id": "mp3d/missing/missing.glb",
+                    "object_category": "table",
+                    "shard_path": "source",
+                    "replay_length": 1,
+                },
+            ]
+            (selection_dir / "subset.jsonl").write_text(
+                "".join(
+                    json.dumps(record, sort_keys=True) + "\n"
+                    for record in selection_records
+                ),
+                encoding="utf-8",
+            )
+            _write_json_gz(split_dir / "train_sample.json.gz", {"episodes": []})
+            _write_json_gz(
+                content_dir / "scene.json.gz",
+                {
+                    "episodes": [
+                        {
+                            "episode_id": "episode:0",
+                            "scene_id": "mp3d/existing/existing.glb",
+                            "object_category": "chair",
+                            "reference_replay": [
+                                _step("MOVE_FORWARD", [0.0, 0.0, 1.0])
+                            ],
+                        },
+                        {
+                            "episode_id": "episode:1",
+                            "scene_id": "mp3d/missing/missing.glb",
+                            "object_category": "table",
+                            "reference_replay": [
+                                _step("MOVE_FORWARD", [0.0, 0.0, 2.0])
+                            ],
+                        },
+                    ]
+                },
+            )
+            cfg = TopoVLMConfig(
+                data=DataConfig(
+                    data_root=str(root),
+                    dataset_name="pr2l_habitat_web_subset",
+                    objectnav_dataset_dir="sources/habitat_web",
+                    scene_dataset_dir="scene_datasets",
+                    split="train_sample",
+                    episodes_manifest="episodes/pr2l_habitat_web_subset/train_sample/manifest.jsonl",
+                    episode_selection_manifest="episode_selections/subset.jsonl",
+                )
+            )
+            renderer = _FakeRenderer()
+
+            with self.assertRaises(FileNotFoundError):
+                build_habitat_web_episode_manifest(cfg, renderer=renderer)
+
+            manifest = root / "episodes/pr2l_habitat_web_subset/train_sample/manifest.jsonl"
+            self.assertEqual(renderer.calls, [])
+            self.assertFalse(manifest.exists())
+            self.assertFalse(manifest.with_suffix(".jsonl.tmp").exists())
+            self.assertFalse((root / "rgb").exists())
+            self.assertFalse((root / "actions").exists())
+            self.assertEqual(list(root.rglob("*.npy")), [])
+
+    def test_missing_selected_source_preflight_does_not_render_or_create_outputs(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            split_dir = root / "sources/habitat_web/train_sample"
+            content_dir = split_dir / "content"
+            content_dir.mkdir(parents=True)
+            scene_path = root / "scene_datasets/mp3d/scene/scene.glb"
+            scene_path.parent.mkdir(parents=True)
+            scene_path.write_text("fake", encoding="utf-8")
+            selection_dir = root / "episode_selections"
+            selection_dir.mkdir()
+            (selection_dir / "subset.jsonl").write_text(
+                json.dumps(
+                    {
+                        "source_trajectory_id": "episode:missing",
+                        "scene_id": "mp3d/scene/scene.glb",
+                        "object_category": "chair",
+                        "shard_path": "source",
+                        "replay_length": 1,
+                    },
+                    sort_keys=True,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            _write_json_gz(split_dir / "train_sample.json.gz", {"episodes": []})
+            _write_json_gz(
+                content_dir / "scene.json.gz",
+                {
+                    "episodes": [
+                        {
+                            "episode_id": "episode:0",
+                            "scene_id": "mp3d/scene/scene.glb",
+                            "object_category": "chair",
+                            "reference_replay": [
+                                _step("MOVE_FORWARD", [0.0, 0.0, 1.0])
+                            ],
+                        }
+                    ]
+                },
+            )
+            cfg = TopoVLMConfig(
+                data=DataConfig(
+                    data_root=str(root),
+                    dataset_name="pr2l_habitat_web_subset",
+                    objectnav_dataset_dir="sources/habitat_web",
+                    scene_dataset_dir="scene_datasets",
+                    split="train_sample",
+                    episodes_manifest="episodes/pr2l_habitat_web_subset/train_sample/manifest.jsonl",
+                    episode_selection_manifest="episode_selections/subset.jsonl",
+                )
+            )
+            renderer = _FakeRenderer()
+
+            with self.assertRaisesRegex(ValueError, "absent from source"):
+                build_habitat_web_episode_manifest(cfg, renderer=renderer)
+
+            manifest = root / "episodes/pr2l_habitat_web_subset/train_sample/manifest.jsonl"
+            self.assertEqual(renderer.calls, [])
+            self.assertFalse(manifest.exists())
+            self.assertFalse(manifest.with_suffix(".jsonl.tmp").exists())
+            self.assertFalse((root / "rgb").exists())
+            self.assertFalse((root / "actions").exists())
+            self.assertEqual(list(root.rglob("*.npy")), [])
+
     def test_build_episode_manifest_can_write_to_output_data_root(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir) / "source"
@@ -226,7 +374,11 @@ class HabitatWebRenderTest(unittest.TestCase):
 
 
 class _FakeRenderer:
+    def __init__(self):
+        self.calls = []
+
     def render_episode(self, scene_path, replay):
+        self.calls.append((scene_path, replay))
         return np.zeros((len(replay), 2, 2, 3), dtype="uint8")
 
 

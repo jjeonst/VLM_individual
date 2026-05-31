@@ -9,13 +9,14 @@ from typing import Protocol
 
 import numpy as np
 
-from configs.schema import TopoVLMConfig
+from configs.schema import DataConfig, TopoVLMConfig
 from data.habitat_manifest import resolve_data_path, resolve_materialization_data_root
 from data.habitat_objectnav import resolve_objectnav_scene_path
 from data.habitat_web import (
     HABITAT_WEB_ACTION_TO_ID,
     HabitatWebReplayDataset,
-    load_habitat_web_selection_ids,
+    HabitatWebSelectionRecord,
+    load_habitat_web_selection_records,
 )
 
 
@@ -37,17 +38,24 @@ def build_habitat_web_episode_manifest(
     manifest_path = resolve_data_path(output_data_root, cfg.data.episodes_manifest)
     rgb_dir = output_data_root / "rgb" / cfg.data.dataset_name / cfg.data.split
     actions_dir = output_data_root / "actions" / cfg.data.dataset_name / cfg.data.split
+    selection_records = (
+        load_habitat_web_selection_records(cfg.data)
+        if cfg.data.episode_selection_manifest is not None
+        else None
+    )
+    selection_ids = (
+        {record.source_trajectory_id for record in selection_records}
+        if selection_records is not None
+        else None
+    )
+    if selection_records is not None:
+        _preflight_selected_habitat_web_records(cfg.data, dataset, selection_records)
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
     rgb_dir.mkdir(parents=True, exist_ok=True)
     actions_dir.mkdir(parents=True, exist_ok=True)
     tmp_manifest_path = manifest_path.with_suffix(manifest_path.suffix + ".tmp")
     if renderer is None:
         renderer = HabitatSimReplayRenderer(cfg)
-    selection_ids = (
-        load_habitat_web_selection_ids(cfg.data)
-        if cfg.data.episode_selection_manifest is not None
-        else None
-    )
     seen_selection_ids = set()
 
     written = []
@@ -128,6 +136,34 @@ def build_habitat_web_episode_manifest(
         "selection_manifest": cfg.data.episode_selection_manifest,
         "selected_source_episodes": len(selection_ids) if selection_ids is not None else None,
     }
+
+
+def _preflight_selected_habitat_web_records(
+    data_cfg: DataConfig,
+    dataset: HabitatWebReplayDataset,
+    selection_records: list[HabitatWebSelectionRecord],
+) -> None:
+    missing_scene_paths = []
+    for record in selection_records:
+        scene_path = resolve_objectnav_scene_path(data_cfg, record.scene_id)
+        if not scene_path.exists():
+            missing_scene_paths.append(scene_path)
+    if missing_scene_paths:
+        raise FileNotFoundError(missing_scene_paths[0])
+
+    selected_ids = {record.source_trajectory_id for record in selection_records}
+    seen_ids = set()
+    for raw, _shard in dataset.iter_raw_records():
+        source_trajectory_id = str(raw["episode_id"])
+        if source_trajectory_id in selected_ids:
+            seen_ids.add(source_trajectory_id)
+            if seen_ids == selected_ids:
+                break
+    if seen_ids != selected_ids:
+        missing_ids = sorted(selected_ids.difference(seen_ids))
+        raise ValueError(
+            f"Selection manifest contains Habitat-Web ids absent from source: {missing_ids[:5]}"
+        )
 
 
 class HabitatSimReplayRenderer:
