@@ -314,6 +314,11 @@ def _load_or_fit_projection(cfg, encoder, records, data_root, output_data_root):
     projection_path = resolve_data_path(data_root, cfg.model.vlm.projection_path)
     if projection_path.exists():
         return _load_projection(projection_path, np)
+    split = getattr(cfg.data, "split", "train")
+    if split != "train":
+        raise FileNotFoundError(
+            f"Missing PCA projection for split={split}: {projection_path}"
+        )
     output_projection_path = resolve_data_path(output_data_root, cfg.model.vlm.projection_path)
     return _fit_projection(cfg, encoder, records, data_root, output_projection_path, np)
 

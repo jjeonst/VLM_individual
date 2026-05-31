@@ -10,7 +10,7 @@ import numpy as np
 import torch
 
 from configs.schema import DataConfig, ModelConfig, PolicyConfig, TopoVLMConfig, VLMConfig
-from data.habitat_cache import build_habitat_graph_cache
+from data.habitat_cache import _load_or_fit_projection, build_habitat_graph_cache
 from data.habitat_dataset import HabitatGraphDataset, collate_graph_batch
 from evaluation.preflight import run_cache_audit, run_pr2l_manifest_audit
 from policies import build_policy
@@ -127,6 +127,59 @@ class PR2LTrajectoryTest(unittest.TestCase):
             self.assertEqual(result["output_data_root"], str(output_root))
             self.assertTrue((output_root / "graphs/pr2l/manifest.jsonl").exists())
             self.assertFalse((source_root / "graphs/pr2l/manifest.jsonl").exists())
+
+    def test_pr2l_missing_non_train_projection_fails_before_fit(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            cfg = TopoVLMConfig(
+                data=DataConfig(data_root=str(root), split="val"),
+                model=ModelConfig(
+                    vlm=VLMConfig(
+                        projection="pca",
+                        projection_path="embeddings/pr2l_hm3d_bc/projection_pca.npz",
+                        projection_dim=4,
+                    )
+                ),
+            )
+
+            with patch("data.habitat_cache._fit_projection") as fit_projection:
+                with self.assertRaisesRegex(
+                    FileNotFoundError,
+                    "split=val.*embeddings/pr2l_hm3d_bc/projection_pca.npz",
+                ):
+                    _load_or_fit_projection(cfg, None, [], root, root)
+
+            fit_projection.assert_not_called()
+
+    def test_pr2l_missing_train_projection_still_fits(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir) / "source"
+            output_root = Path(tmpdir) / "output"
+            root.mkdir()
+            output_root.mkdir()
+            cfg = TopoVLMConfig(
+                data=DataConfig(data_root=str(root), split="train"),
+                model=ModelConfig(
+                    vlm=VLMConfig(
+                        projection="pca",
+                        projection_path="embeddings/pr2l_hm3d_bc/projection_pca.npz",
+                        projection_dim=4,
+                    )
+                ),
+            )
+            projection = {"mean": np.zeros(8), "components": np.zeros((4, 8))}
+
+            with patch(
+                "data.habitat_cache._fit_projection", return_value=projection
+            ) as fit_projection:
+                result = _load_or_fit_projection(cfg, None, [], root, output_root)
+
+            self.assertIs(result, projection)
+            fit_projection.assert_called_once()
+            self.assertEqual(
+                fit_projection.call_args.args[4],
+                output_root / "embeddings/pr2l_hm3d_bc/projection_pca.npz",
+            )
 
     def test_pr2l_cache_builder_fails_before_encoder_load_without_hf_token(self):
         with tempfile.TemporaryDirectory() as tmpdir:
