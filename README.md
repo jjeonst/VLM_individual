@@ -1,7 +1,8 @@
 # TopoVLM
 
 TopoVLM is the canonical Habitat-first implementation surface for frozen-VLM
-topological navigation experiments. The current target is a PR2L-style baseline:
+topological navigation experiments. The current development target is a
+PR2L-style baseline on HM3D ObjectNav:
 
 1. collect or receive Habitat ObjectNav expert episodes,
 2. cache prompt-conditioned frozen VLM hidden states,
@@ -83,7 +84,9 @@ trained checkpoint or full derived cache bundle. TopoVLM code may be open, but
 HM3D-derived weights, caches, manifests containing substantial scene-derived
 content, and hosted interactive demos must stay private/internal by default.
 
-The PR2L-faithful Habitat-Web path uses Matterport3D v1 scene ids such as
+The current canonical development path uses HM3D ObjectNav and generates
+shortest-path expert trajectories from Habitat. The PR2L-faithful Habitat-Web
+path uses Matterport3D v1 scene ids such as
 `mp3d/17DRP5sb8fy/17DRP5sb8fy.glb`, not HM3D scene ids. MP3D v1 has a separate
 Matterport3D terms/access route from HM3D. Do not treat HM3D account access as
 MP3D v1 approval; acquire or confirm MP3D v1 access before downloading or using
@@ -106,9 +109,46 @@ checkpoint, and config plumbing can be checked before Habitat/Prismatic payloads
 are installed. Non-debug training reads graph caches declared by the Habitat data
 config.
 
+## HM3D PR2L-Style BC Path
+
+The canonical HM3D implementation config is:
+
+```bash
+python validate.py --runner objectnav_audit --exp habitat/pr2l_hm3d_bc --allow-missing-data
+python validate.py --runner pr2l_manifest_audit --exp habitat/pr2l_hm3d_bc --allow-missing-data
+python validate.py --runner vlm_auth_audit --exp habitat/pr2l_hm3d_bc --allow-missing-data
+python train.py --exp habitat/pr2l_hm3d_bc --mode build_episodes
+python train.py --exp habitat/pr2l_hm3d_bc --mode build_cache
+python train.py --exp habitat/pr2l_hm3d_bc --mode train
+```
+
+`build_episodes` opens the HM3D ObjectNav Habitat config, uses Habitat's
+`ShortestPathFollower` to generate expert action trajectories, writes RGB/action
+NumPy payloads, and records `hm3d_objectnav_shortest_path` provenance in
+`episodes/pr2l_hm3d_objectnav/<split>/manifest.jsonl`. This is the active
+TopoVLM development path; it is not a PR2L paper-faithful reproduction because
+PR2L/Habitat-Web used MP3D replay metadata.
+
+The tiny smoke and balanced subset configs are:
+
+```bash
+python train.py --exp habitat/pr2l_hm3d_bc_tiny_smoke --mode build_episodes
+python train.py --exp habitat/pr2l_hm3d_bc_tiny_smoke --mode build_cache
+python train.py --exp habitat/pr2l_hm3d_bc_tiny_smoke --mode train
+
+python train.py --exp habitat/pr2l_hm3d_bc_balanced_subset --mode build_selection
+python validate.py --runner objectnav_selection_audit --exp habitat/pr2l_hm3d_bc_balanced_subset --allow-missing-data
+python train.py --exp habitat/pr2l_hm3d_bc_balanced_subset --mode build_episodes
+python train.py --exp habitat/pr2l_hm3d_bc_balanced_subset --mode build_cache
+python train.py --exp habitat/pr2l_hm3d_bc_balanced_subset --mode train
+```
+
+Use the `_staged` variants for Slurm jobs that copy shared `/data/topovlm/...`
+inputs into job-local `data/topovlm/...` before writing stage-out bundles.
+
 ## PR2L-Faithful BC Path
 
-The canonical paper-faithful reimplementation config is:
+The deferred paper-faithful reimplementation config is:
 
 ```bash
 python validate.py --runner habitat_web_audit --exp habitat/pr2l_habitat_bc_faithful --allow-missing-data
@@ -155,12 +195,16 @@ TOPOVLM_DATA_OUTPUT_ROOT=<stageout>/data/topovlm/habitat python validate.py --ru
 
 ## Missing Live Inputs
 
-The repo is runnable for synthetic/debug smoke tests. Habitat-scale PR2L work
+The repo is runnable for synthetic/debug smoke tests. The current HM3D path
 still needs these live inputs before real training or evaluation:
 
-- `/data/topovlm/habitat` with Habitat scenes, ObjectNav episodes, and expert demonstrations.
+- `/data/topovlm/habitat` with HM3D scenes and ObjectNav episodes.
 - `/data/topovlm/vlm_weights/prismatic/<model_id>` or Hugging Face access for Prismatic weights.
-- Habitat-Web trajectory manifests under `episodes/pr2l_habitat_web/<split>/manifest.jsonl`.
+- Generated shortest-path trajectory manifests under `episodes/pr2l_hm3d_objectnav/<split>/manifest.jsonl`.
+
+The deferred PR2L-faithful Habitat-Web path additionally needs:
+
+- Habitat-Web trajectory metadata under `sources/habitat_web_hf_metadata/objectnav/objectnav_mp3d_thda_70k`.
 - MP3D scene assets under `/data/topovlm/habitat/scene_datasets/mp3d`.
 
 `objectnav_audit` opens the staged ObjectNav HM3D v2 shard files, samples one

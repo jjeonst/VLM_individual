@@ -1,5 +1,6 @@
 data:
   dataset_name: pr2l_habitat_web
+  trajectory_source: habitat_web_replay
   cache_format: pr2l_token_trajectory
   objectnav_dataset_dir: sources/habitat_web_hf_metadata/objectnav/objectnav_mp3d_thda_70k
   scene_dataset_dir: scene_datasets

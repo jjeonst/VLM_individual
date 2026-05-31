@@ -1,0 +1,24 @@
+defaults:
+  - train: pr2l_hm3d_bc
+  - data: pr2l_hm3d_objectnav
+  - model: pr2l_prismatic_hm3d
+  - objectives: pr2l_bc_hm3d
+  - eval: default
+
+config_name: habitat/pr2l_hm3d_bc_tiny_smoke
+run_name: pr2l_hm3d_bc_tiny_smoke
+wandb: false
+max_epochs: 1
+gradient_accumulation_steps: 1
+data:
+  dataset_name: pr2l_hm3d_objectnav_tiny_smoke
+  max_episodes: 4
+  episodes_manifest: episodes/pr2l_hm3d_objectnav_tiny_smoke/train/manifest.jsonl
+  graph_manifest: graphs/pr2l_hm3d_bc_tiny_smoke/train/manifest.jsonl
+  graph_cache_dir: graphs/pr2l_hm3d_bc_tiny_smoke/train
+  embeddings_dir: embeddings/pr2l_hm3d_bc_tiny_smoke/train
+  batch_size: 2
+  num_workers: 0
+model:
+  vlm:
+    projection_path: embeddings/pr2l_hm3d_bc_tiny_smoke/projection_pca.npz

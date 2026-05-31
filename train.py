@@ -34,17 +34,31 @@ def main(argv: list[str] | None = None) -> None:
 
         result = run_data_preflight(cfg, allow_missing_data=args.allow_missing_data)
     elif args.mode == "build_selection":
-        from data.habitat_web import build_habitat_web_balanced_selection_manifest
+        if cfg.data.trajectory_source == "habitat_web_replay":
+            from data.habitat_web import build_habitat_web_balanced_selection_manifest
 
-        result = build_habitat_web_balanced_selection_manifest(cfg.data)
+            result = build_habitat_web_balanced_selection_manifest(cfg.data)
+        elif cfg.data.trajectory_source == "objectnav_shortest_path":
+            from data.habitat_objectnav import build_objectnav_balanced_selection_manifest
+
+            result = build_objectnav_balanced_selection_manifest(cfg.data)
+        else:
+            raise ValueError(f"Unsupported trajectory source: {cfg.data.trajectory_source}")
     elif args.mode == "build_cache":
         from data.habitat_cache import build_habitat_graph_cache
 
         result = build_habitat_graph_cache(cfg)
     elif args.mode == "build_episodes":
-        from data.habitat_web_render import build_habitat_web_episode_manifest
+        if cfg.data.trajectory_source == "habitat_web_replay":
+            from data.habitat_web_render import build_habitat_web_episode_manifest
 
-        result = build_habitat_web_episode_manifest(cfg)
+            result = build_habitat_web_episode_manifest(cfg)
+        elif cfg.data.trajectory_source == "objectnav_shortest_path":
+            from data.hm3d_objectnav_render import build_hm3d_objectnav_episode_manifest
+
+            result = build_hm3d_objectnav_episode_manifest(cfg)
+        else:
+            raise ValueError(f"Unsupported trajectory source: {cfg.data.trajectory_source}")
     elif args.mode == "train":
         from training.runner import run_training
 

@@ -44,22 +44,27 @@ Each line in `episodes/<split>/manifest.jsonl` must contain:
 
 The graph-cache builder reads `rgb_path` as a NumPy RGB frame array and
 `actions_path` as a NumPy action array. Optional `source_dataset`,
-`source_trajectory_id`, and `object_category` fields preserve Habitat-Web
-lineage when that source is available.
+`source_trajectory_id`, and `object_category` fields preserve the episode source
+lineage. The current HM3D path records `source_dataset` as
+`hm3d_objectnav_shortest_path`.
 
-Habitat-Web source data is kept under
-`/data/topovlm/habitat/sources/habitat_web_hf_metadata`. The source shards store
-`reference_replay` action/state records, not embedded RGB frames. A PR2L-ready
-episode manifest is produced by `train.py --mode build_episodes`, which renders
-those replay states against MP3D scenes and writes NumPy RGB/action arrays.
-Action ids are: `STOP=0`, `MOVE_FORWARD=1`, `TURN_LEFT=2`, `TURN_RIGHT=3`,
-`LOOK_UP=4`, and `LOOK_DOWN=5`.
+For `trajectory_source: objectnav_shortest_path`, `train.py --mode
+build_episodes` opens the configured HM3D ObjectNav Habitat environment, uses
+Habitat's `ShortestPathFollower`, and writes NumPy RGB/action arrays. Action ids
+are: `STOP=0`, `MOVE_FORWARD=1`, `TURN_LEFT=2`, and `TURN_RIGHT=3`.
+
+The deferred Habitat-Web source data is kept under
+`/data/topovlm/habitat/sources/habitat_web_hf_metadata`. Those source shards
+store `reference_replay` action/state records, not embedded RGB frames. With
+`trajectory_source: habitat_web_replay`, `build_episodes` renders those replay
+states against MP3D scenes. Habitat-Web action ids additionally include
+`LOOK_UP=4` and `LOOK_DOWN=5`.
 
 For scene/object-balanced subset runs, `train.py --mode build_selection` writes
-`episode_selections/.../*.jsonl` under `data_root`. Each line names a
-Habitat-Web `source_trajectory_id`, `scene_id`, `object_category`, source shard,
-and replay length. If `data.episode_selection_manifest` is configured,
-`build_episodes` renders only those selected source trajectories.
+`episode_selections/.../*.jsonl` under `data_root`. For HM3D, each line names an
+ObjectNav `source_trajectory_id`, `episode_id`, `scene_id`, `object_category`,
+and source shard. If `data.episode_selection_manifest` is configured,
+`build_episodes` renders only those selected source episodes.
 When `TOPOVLM_DATA_OUTPUT_ROOT` is set, output-producing materializers write
 episode arrays, graph caches, embeddings, and their manifests under that root
 while reading source inputs from `data.data_root`. In Slurm jobs, the generated
@@ -70,8 +75,8 @@ Staged materialization outputs are audited by pointing the existing validators a
 the output data root:
 
 ```bash
-TOPOVLM_DATA_OUTPUT_ROOT=<stageout>/data/topovlm/habitat python validate.py --runner pr2l_manifest_audit --exp habitat/pr2l_habitat_bc_balanced_subset_staged
-TOPOVLM_DATA_OUTPUT_ROOT=<stageout>/data/topovlm/habitat python validate.py --runner cache_audit --exp habitat/pr2l_habitat_bc_balanced_subset_staged
+TOPOVLM_DATA_OUTPUT_ROOT=<stageout>/data/topovlm/habitat python validate.py --runner pr2l_manifest_audit --exp habitat/pr2l_hm3d_bc_balanced_subset_staged
+TOPOVLM_DATA_OUTPUT_ROOT=<stageout>/data/topovlm/habitat python validate.py --runner cache_audit --exp habitat/pr2l_hm3d_bc_balanced_subset_staged
 ```
 
 For `cache_format: pr2l_token_trajectory`, graph cache payloads contain
@@ -91,7 +96,11 @@ and projection lineage.
 
 ## Still Missing
 
-- MP3D scene assets under `/data/topovlm/habitat/scene_datasets/mp3d`.
+- HM3D scene assets and ObjectNav episode shards under `/data/topovlm/habitat`.
+- Prismatic VLM weights or Hugging Face access for the gated Llama 2 metadata.
+
+The deferred PR2L-faithful path also needs MP3D scene assets under
+`/data/topovlm/habitat/scene_datasets/mp3d`.
 
 ## PR2L Reference Targets
 

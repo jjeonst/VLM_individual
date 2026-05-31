@@ -14,6 +14,7 @@ class ConfigBuilderTest(unittest.TestCase):
         self.assertEqual(cfg.model.policy.type, "graph_transformer_bc")
         self.assertEqual(cfg.objectives.names, ["behavior_cloning"])
         self.assertEqual(cfg.data.dataset_name, "habitat_objectnav_hm3d")
+        self.assertEqual(cfg.data.trajectory_source, "objectnav_shortest_path")
         self.assertEqual(
             cfg.data.objectnav_dataset_dir,
             "datasets/objectnav/hm3d/v2/objectnav_hm3d_v2",
@@ -70,6 +71,58 @@ class ConfigBuilderTest(unittest.TestCase):
         self.assertEqual(cfg.wandb_project, "TopoVLM")
         self.assertEqual(cfg.wandb_group, "pr2l_prismatic_policy")
         self.assertEqual(cfg.wandb_contract_role_id, "habitat_bc")
+
+    def test_pr2l_hm3d_config_loads(self):
+        cfg = build_config_from_exp("habitat/pr2l_hm3d_bc")
+        self.assertEqual(cfg.config_name, "habitat/pr2l_hm3d_bc")
+        self.assertEqual(cfg.run_name, "pr2l_hm3d_bc")
+        self.assertEqual(cfg.data.dataset_name, "pr2l_hm3d_objectnav")
+        self.assertEqual(cfg.data.trajectory_source, "objectnav_shortest_path")
+        self.assertEqual(cfg.data.cache_format, "pr2l_token_trajectory")
+        self.assertEqual(
+            cfg.data.episodes_manifest,
+            "episodes/pr2l_hm3d_objectnav/train/manifest.jsonl",
+        )
+        self.assertEqual(cfg.model.vlm.representation, "pr2l_visual_tokens_last_two_layers")
+        self.assertEqual(cfg.model.vlm.hidden_layer_indices, [-2, -1])
+        self.assertEqual(cfg.model.vlm.visual_pool_grid, 4)
+        self.assertEqual(cfg.model.vlm.projection, "pca")
+        self.assertEqual(cfg.model.policy.num_actions, 4)
+        self.assertEqual(cfg.model.policy.prediction_target, "nodes")
+        self.assertEqual(cfg.objectives.behavior_cloning.stop_turn_action_ids, [0, 2, 3])
+        self.assertTrue(cfg.wandb)
+
+    def test_pr2l_hm3d_tiny_staged_config_loads(self):
+        cfg = build_config_from_exp("habitat/pr2l_hm3d_bc_tiny_smoke_staged")
+        self.assertEqual(cfg.config_name, "habitat/pr2l_hm3d_bc_tiny_smoke_staged")
+        self.assertEqual(cfg.run_name, "pr2l_hm3d_bc_tiny_smoke")
+        self.assertEqual(cfg.data.data_root, "data/topovlm/habitat")
+        self.assertEqual(cfg.data.dataset_name, "pr2l_hm3d_objectnav_tiny_smoke")
+        self.assertEqual(cfg.data.max_episodes, 4)
+        self.assertFalse(cfg.wandb)
+        self.assertEqual(
+            cfg.model.vlm.weights_path,
+            "data/topovlm/vlm_weights/prismatic/prism-dinosiglip+7b",
+        )
+        self.assertEqual(
+            cfg.model.vlm.projection_path,
+            "embeddings/pr2l_hm3d_bc_tiny_smoke/projection_pca.npz",
+        )
+
+    def test_pr2l_hm3d_balanced_staged_config_loads(self):
+        cfg = build_config_from_exp("habitat/pr2l_hm3d_bc_balanced_subset_staged")
+        self.assertEqual(cfg.config_name, "habitat/pr2l_hm3d_bc_balanced_subset_staged")
+        self.assertEqual(cfg.data.data_root, "data/topovlm/habitat")
+        self.assertEqual(cfg.data.dataset_name, "pr2l_hm3d_objectnav_balanced_subset")
+        self.assertEqual(
+            cfg.data.episode_selection_manifest,
+            "episode_selections/pr2l_hm3d_objectnav/train_scene_object_balanced.jsonl",
+        )
+        self.assertEqual(cfg.data.balanced_subset_size, 560)
+        self.assertEqual(
+            cfg.model.vlm.projection_path,
+            "embeddings/pr2l_hm3d_bc_balanced_subset/projection_pca.npz",
+        )
 
     def test_pr2l_balanced_subset_config_loads(self):
         cfg = build_config_from_exp("habitat/pr2l_habitat_bc_balanced_subset")

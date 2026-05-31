@@ -12,6 +12,7 @@ class DataConfig:
 
     dataset_name: str = "habitat_objectnav"
     domain: str = "habitat"
+    trajectory_source: str = "objectnav_shortest_path"
     cache_format: str = "single_action_graph"
     data_root: str = "/data/topovlm/habitat"
     habitat_config: str = "configs/habitat/pr2l_objectnav.yaml"

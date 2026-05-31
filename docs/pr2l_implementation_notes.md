@@ -43,41 +43,43 @@ From the paper's Habitat appendix:
 
 ## Current Scaffold Scope
 
-The current TopoVLM scaffold implements the PR2L-faithful representation and
-behavior-cloning path, but only the synthetic/debug scale has been executed so
-far. Live Habitat-Web training still needs rendered RGB/action trajectory arrays
-derived from the Habitat-Web replays and MP3D scenes.
+The current TopoVLM scaffold implements the PR2L-style representation and
+behavior-cloning path on HM3D ObjectNav first. This is no longer labeled as a
+paper-faithful PR2L reproduction because the paper path used Habitat-Web
+demonstrations over MP3D scenes.
 
 Current implementation pieces:
 
-- `configs/exp/habitat/pr2l_habitat_bc_faithful.yaml` selects the canonical
-  PR2L-faithful behavior-cloning path.
+- `configs/exp/habitat/pr2l_hm3d_bc.yaml` selects the canonical HM3D PR2L-style
+  behavior-cloning path.
 - `cache_format: pr2l_token_trajectory` extracts Prismatic visual-token hidden
   states from the last two configured layers, pools visual tokens, fits/applies a
   PCA projection, and writes node-level action labels.
 - `GraphTransformerPolicy` supports node-level action logits for trajectory BC.
 - The BC objective supports inflection weighting and stop/turn action weighting.
-- Habitat-Web action ids are `STOP=0`, `MOVE_FORWARD=1`, `TURN_LEFT=2`,
-  `TURN_RIGHT=3`, `LOOK_UP=4`, and `LOOK_DOWN=5`.
-- `validate.py --runner habitat_web_audit` checks Habitat-Web Git LFS
-  materialization, samples replay actions, and reports missing MP3D scenes.
+- HM3D ObjectNav shortest-path action ids are `STOP=0`, `MOVE_FORWARD=1`,
+  `TURN_LEFT=2`, and `TURN_RIGHT=3`.
+- `validate.py --runner objectnav_audit` checks HM3D ObjectNav shards and scene
+  path resolution.
 - `train.py --mode build_selection` materializes a deterministic
-  scene/object-balanced Habitat-Web source-trajectory manifest for the subset
+  scene/object-balanced ObjectNav source-trajectory manifest for the subset
   stage.
-- `validate.py --runner habitat_web_selection_audit` checks that subset
-  manifest and reports its scene/object balance plus missing MP3D scenes.
-- `train.py --mode build_episodes` renders Habitat-Web replay states against
-  MP3D scenes and writes the PR2L-ready episode manifest plus NumPy RGB/action
-  arrays.
+- `validate.py --runner objectnav_selection_audit` checks that subset manifest
+  and reports its scene/object balance plus missing HM3D scenes.
+- `train.py --mode build_episodes` generates HM3D ObjectNav shortest-path
+  expert trajectories and writes the PR2L-ready episode manifest plus NumPy
+  RGB/action arrays.
 - `validate.py --runner pr2l_manifest_audit` checks PR2L trajectory manifests
   and missing payloads before cache building.
 
 Still missing live input:
 
-- Habitat-Web replays are action/state records and do not embed RGB frames.
-  Without MP3D scene assets, TopoVLM can validate code/config/synthetic smoke
-  paths but cannot render PR2L-ready episode arrays, claim PR2L reproduction, or
-  run paper-scale training.
+- HM3D scenes/ObjectNav shards must be materialized under `/data/topovlm/habitat`
+  before live trajectory generation.
+- Prismatic still needs local weights plus Hugging Face access for the gated
+  Llama 2 metadata path.
+- Habitat-Web plus MP3D remain deferred requirements for paper-faithful PR2L
+  reproduction claims.
 
 ## Canonical TopoVLM Implication
 

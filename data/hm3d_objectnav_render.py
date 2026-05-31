@@ -1,0 +1,226 @@
+"""Render HM3D ObjectNav shortest-path expert episodes into RGB/action payloads."""
+
+from __future__ import annotations
+
+import json
+import re
+from pathlib import Path
+from typing import Protocol
+
+import numpy as np
+
+from configs.schema import TopoVLMConfig
+from data.habitat_manifest import resolve_data_path, resolve_materialization_data_root
+from data.habitat_objectnav import load_objectnav_selection_ids, objectnav_source_trajectory_id
+
+
+class ObjectNavExpertEnv(Protocol):
+    """Expose the Habitat Env methods needed to materialize ObjectNav expert episodes."""
+
+    episodes: list[object]
+    current_episode: object
+    sim: object
+
+    def reset(self) -> dict[str, object]:
+        ...
+
+    def step(self, action: int) -> dict[str, object]:
+        ...
+
+    def close(self) -> None:
+        ...
+
+
+class ShortestPathFollowerLike(Protocol):
+    """Expose the shortest-path follower action interface."""
+
+    def get_next_action(self, goal_position: np.ndarray) -> object:
+        ...
+
+
+def build_hm3d_objectnav_episode_manifest(
+    cfg: TopoVLMConfig,
+    *,
+    env: ObjectNavExpertEnv | None = None,
+    follower: ShortestPathFollowerLike | None = None,
+) -> dict[str, object]:
+    data_root = Path(cfg.data.data_root)
+    output_data_root = resolve_materialization_data_root(cfg.data.data_root)
+    manifest_path = resolve_data_path(output_data_root, cfg.data.episodes_manifest)
+    rgb_dir = output_data_root / "rgb" / cfg.data.dataset_name / cfg.data.split
+    actions_dir = output_data_root / "actions" / cfg.data.dataset_name / cfg.data.split
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    rgb_dir.mkdir(parents=True, exist_ok=True)
+    actions_dir.mkdir(parents=True, exist_ok=True)
+    tmp_manifest_path = manifest_path.with_suffix(manifest_path.suffix + ".tmp")
+
+    selection_ids = (
+        load_objectnav_selection_ids(cfg.data)
+        if cfg.data.episode_selection_manifest is not None
+        else None
+    )
+    owns_env = env is None
+    if env is None:
+        env = _open_habitat_env(cfg)
+    if follower is None:
+        follower = _build_shortest_path_follower(env, cfg)
+    seen_selection_ids = set()
+    written = []
+    try:
+        with tmp_manifest_path.open("w", encoding="utf-8") as handle:
+            total_episodes = len(env.episodes)
+            max_resets = total_episodes
+            if selection_ids is None and cfg.data.max_episodes is not None:
+                max_resets = min(max_resets, int(cfg.data.max_episodes))
+            for _ in range(max_resets):
+                observations = env.reset()
+                episode = env.current_episode
+                source_trajectory_id = objectnav_source_trajectory_id(episode)
+                if selection_ids is not None and source_trajectory_id not in selection_ids:
+                    continue
+                seen_selection_ids.add(source_trajectory_id)
+                frames, actions = _rollout_shortest_path_episode(cfg, env, follower, observations)
+                payload_id = _safe_payload_id(source_trajectory_id)
+                rgb_rel = (
+                    Path("rgb") / cfg.data.dataset_name / cfg.data.split / f"{payload_id}.npy"
+                )
+                actions_rel = (
+                    Path("actions")
+                    / cfg.data.dataset_name
+                    / cfg.data.split
+                    / f"{payload_id}.npy"
+                )
+                np.save(resolve_data_path(output_data_root, rgb_rel), frames)
+                np.save(resolve_data_path(output_data_root, actions_rel), actions)
+                record = {
+                    "episode_id": payload_id,
+                    "split": cfg.data.split,
+                    "scene_id": str(getattr(episode, "scene_id")),
+                    "goal_text": str(getattr(episode, "object_category")),
+                    "rgb_path": str(rgb_rel),
+                    "actions_path": str(actions_rel),
+                    "source_dataset": "hm3d_objectnav_shortest_path",
+                    "source_trajectory_id": source_trajectory_id,
+                    "object_category": str(getattr(episode, "object_category")),
+                }
+                handle.write(json.dumps(record, sort_keys=True) + "\n")
+                written.append(record)
+            if selection_ids is not None and seen_selection_ids != selection_ids:
+                missing_ids = sorted(selection_ids.difference(seen_selection_ids))
+                raise ValueError(
+                    f"Selection manifest contains ObjectNav ids absent from source: {missing_ids[:5]}"
+                )
+        tmp_manifest_path.replace(manifest_path)
+    except Exception:
+        tmp_manifest_path.unlink(missing_ok=True)
+        raise
+    finally:
+        if owns_env:
+            env.close()
+
+    return {
+        "status": "ok",
+        "manifest": str(manifest_path),
+        "source_data_root": str(data_root),
+        "output_data_root": str(output_data_root),
+        "episodes_written": len(written),
+        "rgb_dir": str(rgb_dir),
+        "actions_dir": str(actions_dir),
+        "selection_manifest": cfg.data.episode_selection_manifest,
+        "selected_source_episodes": len(selection_ids) if selection_ids is not None else None,
+    }
+
+
+def _rollout_shortest_path_episode(
+    cfg: TopoVLMConfig,
+    env: ObjectNavExpertEnv,
+    follower: ShortestPathFollowerLike,
+    observations: dict[str, object],
+) -> tuple[np.ndarray, np.ndarray]:
+    frames = []
+    actions = []
+    current_observations = observations
+    for _ in range(cfg.eval.max_steps):
+        frames.append(_rgb_frame(cfg, current_observations))
+        goal_position = _select_goal_position(env)
+        action = _action_id(follower.get_next_action(goal_position))
+        actions.append(action)
+        if action == 0:
+            return np.stack(frames, axis=0).astype("uint8"), np.asarray(actions, dtype=np.int64)
+        current_observations = env.step(action)
+    raise ValueError(
+        f"Shortest-path rollout exceeded max_steps={cfg.eval.max_steps} "
+        f"for episode {getattr(env.current_episode, 'episode_id')}"
+    )
+
+
+def _open_habitat_env(cfg: TopoVLMConfig) -> ObjectNavExpertEnv:
+    import habitat
+
+    habitat_config = habitat.get_config(cfg.data.habitat_config)
+    return habitat.Env(config=habitat_config)
+
+
+def _build_shortest_path_follower(
+    env: ObjectNavExpertEnv, cfg: TopoVLMConfig
+) -> ShortestPathFollowerLike:
+    from habitat.tasks.nav.shortest_path_follower import ShortestPathFollower
+
+    return ShortestPathFollower(
+        env.sim,
+        goal_radius=cfg.eval.success_distance,
+        return_one_hot=False,
+        stop_on_error=True,
+    )
+
+
+def _select_goal_position(env: ObjectNavExpertEnv) -> np.ndarray:
+    episode = env.current_episode
+    candidates = _goal_position_candidates(episode)
+    agent_position = np.asarray(env.sim.get_agent_state().position, dtype=np.float32)
+    best_position = None
+    best_distance = None
+    for candidate in candidates:
+        distance = env.sim.geodesic_distance(agent_position, candidate, episode=episode)
+        if not np.isfinite(distance):
+            distance = float(np.linalg.norm(candidate - agent_position))
+        if best_distance is None or distance < best_distance:
+            best_distance = distance
+            best_position = candidate
+    if best_position is None:
+        raise ValueError(f"Episode has no ObjectNav goal positions: {getattr(episode, 'episode_id')}")
+    return best_position
+
+
+def _goal_position_candidates(episode: object) -> list[np.ndarray]:
+    candidates = []
+    for goal in getattr(episode, "goals", []):
+        for view_point in getattr(goal, "view_points", []) or []:
+            agent_state = getattr(view_point, "agent_state", None)
+            position = getattr(agent_state, "position", None)
+            if position is not None:
+                candidates.append(np.asarray(position, dtype=np.float32))
+        position = getattr(goal, "position", None)
+        if position is not None:
+            candidates.append(np.asarray(position, dtype=np.float32))
+    return candidates
+
+
+def _rgb_frame(cfg: TopoVLMConfig, observations: dict[str, object]) -> np.ndarray:
+    if cfg.data.image_key not in observations:
+        raise KeyError(f"Missing observation image key: {cfg.data.image_key}")
+    return np.asarray(observations[cfg.data.image_key])[..., :3].copy()
+
+
+def _action_id(action: object) -> int:
+    if action is None:
+        return 0
+    if isinstance(action, np.ndarray):
+        if action.ndim == 0:
+            return int(action.item())
+        return int(np.argmax(action))
+    return int(action)
+
+
+def _safe_payload_id(episode_id: str) -> str:
+    return re.sub(r"[^A-Za-z0-9_.-]+", "_", episode_id).strip("_")

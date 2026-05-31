@@ -1,0 +1,7 @@
+data:
+  dataset_name: pr2l_hm3d_objectnav
+  cache_format: pr2l_token_trajectory
+  episodes_manifest: episodes/pr2l_hm3d_objectnav/train/manifest.jsonl
+  graph_manifest: graphs/pr2l_hm3d_bc/train/manifest.jsonl
+  graph_cache_dir: graphs/pr2l_hm3d_bc/train
+  embeddings_dir: embeddings/pr2l_hm3d_bc/train

@@ -12,6 +12,7 @@ from data.habitat_manifest import (
     resolve_materialization_data_root,
 )
 from data.habitat_objectnav import load_objectnav_summary
+from data.habitat_objectnav import load_objectnav_selection_summary
 from data.habitat_web import (
     load_habitat_web_selection_summary,
     load_habitat_web_inventory,
@@ -97,6 +98,35 @@ def run_objectnav_audit(
         "config_name": cfg.config_name,
         "scene_dataset_config": str(scene_dataset_config),
         "objectnav": summary,
+    }
+
+
+def run_objectnav_selection_audit(
+    cfg: TopoVLMConfig, *, allow_missing_data: bool = False
+) -> dict[str, object]:
+    if cfg.data.episode_selection_manifest is None:
+        raise ValueError("DataConfig.episode_selection_manifest is required")
+    selection_manifest = resolve_data_path(
+        Path(cfg.data.data_root), cfg.data.episode_selection_manifest
+    )
+    missing = []
+    if not selection_manifest.exists():
+        missing.append(str(selection_manifest))
+        summary = {
+            "selection_manifest": str(selection_manifest),
+            "selected_episodes": 0,
+        }
+    else:
+        summary = load_objectnav_selection_summary(cfg.data)
+        missing.extend(summary["missing_scene_paths"])
+    if missing and not allow_missing_data:
+        raise FileNotFoundError(f"Missing ObjectNav selection inputs: {missing[:5]}")
+    return {
+        "status": "ok" if not missing else "missing_allowed",
+        "config_name": cfg.config_name,
+        "objectnav_selection": summary,
+        "missing_inputs": missing[:20],
+        "missing_input_count": len(missing),
     }
 
 

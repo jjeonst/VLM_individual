@@ -1,0 +1,5 @@
+max_epochs: 40
+gradient_accumulation_steps: 8
+run_name: pr2l_hm3d_bc
+wandb: true
+wandb_group: pr2l_prismatic_policy

@@ -1,6 +1,7 @@
 data:
   dataset_name: habitat_objectnav_hm3d
   domain: habitat
+  trajectory_source: objectnav_shortest_path
   cache_format: single_action_graph
   data_root: /data/topovlm/habitat
   habitat_config: configs/habitat/pr2l_objectnav.yaml
