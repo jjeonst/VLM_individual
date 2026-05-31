@@ -222,7 +222,66 @@ class PR2LTrajectoryTest(unittest.TestCase):
             self.assertEqual(episode_result["missing_payload_count"], 0)
             self.assertEqual(cache_result["audit_data_root"], str(output_root))
             self.assertEqual(cache_result["records"], 1)
+            self.assertEqual(cache_result["expected_records"], 1)
+            self.assertEqual(cache_result["incomplete_record_count"], 0)
             self.assertEqual(cache_result["missing_graph_count"], 0)
+
+    def test_cache_audit_detects_incomplete_graph_manifest(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            (root / "episodes/pr2l_habitat_web/train").mkdir(parents=True)
+            (root / "graphs/pr2l").mkdir(parents=True)
+            for episode_id in ("episode_0", "episode_1"):
+                np.save(root / f"rgb_{episode_id}.npy", np.zeros((1, 2, 2, 3), dtype="uint8"))
+                np.save(root / f"actions_{episode_id}.npy", np.asarray([0], dtype="int64"))
+            (root / "episodes/pr2l_habitat_web/train/manifest.jsonl").write_text(
+                "".join(
+                    json.dumps(
+                        {
+                            "episode_id": episode_id,
+                            "split": "train",
+                            "scene_id": "scene",
+                            "goal_text": "chair",
+                            "rgb_path": f"rgb_{episode_id}.npy",
+                            "actions_path": f"actions_{episode_id}.npy",
+                        }
+                    )
+                    + "\n"
+                    for episode_id in ("episode_0", "episode_1")
+                ),
+                encoding="utf-8",
+            )
+            np.savez_compressed(root / "graphs/pr2l/episode_0.npz", nodes=np.zeros((1, 1, 2)))
+            (root / "graphs/pr2l/manifest.jsonl").write_text(
+                json.dumps(
+                    {
+                        "episode_id": "episode_0",
+                        "split": "train",
+                        "scene_id": "scene",
+                        "goal_text": "chair",
+                        "graph_path": "graphs/pr2l/episode_0.npz",
+                        "embedding_path": "embeddings/pr2l/episode_0.npy",
+                        "target_action": 0,
+                        "num_nodes": 1,
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            cfg = TopoVLMConfig(
+                data=DataConfig(
+                    data_root=str(root),
+                    episodes_manifest="episodes/pr2l_habitat_web/train/manifest.jsonl",
+                    graph_manifest="graphs/pr2l/manifest.jsonl",
+                )
+            )
+
+            result = run_cache_audit(cfg, allow_missing_data=True)
+
+            self.assertEqual(result["status"], "missing_allowed")
+            self.assertEqual(result["records"], 1)
+            self.assertEqual(result["expected_records"], 2)
+            self.assertEqual(result["incomplete_record_count"], 1)
 
     def test_dataset_collates_token_nodes_and_node_actions(self):
         with tempfile.TemporaryDirectory() as tmpdir:

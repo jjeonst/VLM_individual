@@ -309,20 +309,39 @@ def run_cache_audit(cfg: TopoVLMConfig, *, allow_missing_data: bool = False) -> 
             }
         raise FileNotFoundError(graph_manifest)
     records = load_graph_records(graph_manifest)
+    expected_records = _expected_cache_records(cfg, audit_data_root)
     missing_graphs = []
     for record in records:
         graph_path = resolve_data_path(audit_data_root, record.graph_path)
         if not graph_path.exists():
             missing_graphs.append(str(graph_path))
-    if missing_graphs and not allow_missing_data:
+    incomplete_count = max(expected_records - len(records), 0) if expected_records is not None else 0
+    if (missing_graphs or incomplete_count) and not allow_missing_data:
+        if incomplete_count:
+            raise FileNotFoundError(
+                f"Graph manifest has {len(records)} records but expected {expected_records}"
+            )
         raise FileNotFoundError(f"Missing graph payloads: {missing_graphs[:5]}")
+    missing_count = len(missing_graphs) + incomplete_count
     return {
-        "status": "ok" if not missing_graphs else "missing_allowed",
+        "status": "ok" if missing_count == 0 else "missing_allowed",
         "config_name": cfg.config_name,
         "source_data_root": str(source_data_root),
         "audit_data_root": str(audit_data_root),
         "graph_manifest": str(graph_manifest),
         "records": len(records),
+        "expected_records": expected_records,
+        "incomplete_record_count": incomplete_count,
         "missing_graphs": missing_graphs,
         "missing_graph_count": len(missing_graphs),
     }
+
+
+def _expected_cache_records(cfg: TopoVLMConfig, audit_data_root: Path) -> int | None:
+    episode_manifest = resolve_data_path(audit_data_root, cfg.data.episodes_manifest)
+    if not episode_manifest.exists():
+        return None
+    records = load_episode_records(episode_manifest)
+    if cfg.data.max_episodes is not None:
+        records = records[: cfg.data.max_episodes]
+    return len(records)
