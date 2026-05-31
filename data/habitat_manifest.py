@@ -105,8 +105,21 @@ def load_graph_records(path: Path) -> list[GraphRecord]:
 def resolve_data_path(root: Path, path: str | Path) -> Path:
     target = Path(path)
     if target.is_absolute():
+        mirror = _runtime_absolute_data_mirror(target)
+        if mirror is not None and mirror.exists():
+            return mirror
         return target
-    return root / target
+    return resolve_runtime_data_root(root) / target
+
+
+def resolve_runtime_data_root(data_root: str | Path) -> Path:
+    root = Path(data_root)
+    if not root.is_absolute():
+        return root
+    mirror = _runtime_absolute_data_mirror(root)
+    if mirror is not None and mirror.exists():
+        return mirror
+    return root
 
 
 def resolve_materialization_data_root(data_root: str) -> Path:
@@ -120,6 +133,14 @@ def resolve_materialization_data_root(data_root: str) -> Path:
         relative_root = Path(*source_root.parts[1:]) if source_root.is_absolute() else source_root
         return Path(output_dir) / relative_root
     return Path(data_root)
+
+
+def _runtime_absolute_data_mirror(path: Path) -> Path | None:
+    if not (os.environ.get("RUN_ROOT") and os.environ.get("OUTPUT_DIR")):
+        return None
+    if not path.is_absolute() or len(path.parts) < 2:
+        return None
+    return Path.cwd() / Path(*path.parts[1:])
 
 
 def _load_json_records(path: Path) -> list[dict[str, object]]:

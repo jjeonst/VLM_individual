@@ -138,8 +138,8 @@ class EvalConfig:
 class TopoVLMConfig:
     """Top-level canonical TopoVLM training configuration."""
 
-    config_name: str = "habitat/prismatic_bc_smoke"
-    run_name: str = "habitat_prismatic_bc_smoke"
+    config_name: str = "habitat/pr2l_hm3d_bc"
+    run_name: str = "pr2l_hm3d_bc"
     seed: int = 42
     debug: bool = False
     wandb: bool = False

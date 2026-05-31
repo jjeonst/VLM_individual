@@ -306,10 +306,22 @@ def _known_llm_hf_repo(llm_backbone_id: str | None) -> str | None:
 
 
 def _resolve_load_id(model_id: str, weights_path: str) -> str:
+    runtime_path = _runtime_data_mirror_path(weights_path)
+    if runtime_path is not None and runtime_path.exists():
+        return str(runtime_path)
     path = Path(weights_path)
     if path.exists():
         return str(path)
     return model_id
+
+
+def _runtime_data_mirror_path(path_value: str) -> Path | None:
+    if not (os.environ.get("RUN_ROOT") and os.environ.get("OUTPUT_DIR")):
+        return None
+    path = Path(path_value)
+    if not path.is_absolute() or len(path.parts) < 2:
+        return None
+    return Path.cwd() / Path(*path.parts[1:])
 
 
 def _pool_visual_tokens(tokens, *, pool_grid: int, bank_reduction: str, torch):

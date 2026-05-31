@@ -1,9 +1,0 @@
-defaults:
-  - train: habitat_smoke
-  - data: habitat_objectnav_staged
-  - model: prismatic_graph_policy_staged
-  - objectives: default
-  - eval: default
-
-config_name: habitat/prismatic_bc_smoke_staged
-run_name: habitat_prismatic_bc_smoke_staged

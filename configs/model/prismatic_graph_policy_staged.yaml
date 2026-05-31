@@ -1,3 +1,0 @@
-model:
-  vlm:
-    weights_path: data/topovlm/vlm_weights/prismatic/prism-dinosiglip+7b

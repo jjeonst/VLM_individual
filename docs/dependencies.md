@@ -107,8 +107,8 @@ print("prismatic", getattr(prismatic, "__version__", "import_ok"))
 PY
 
 python -m pip check
-python train.py --exp habitat/prismatic_bc_smoke --mode preflight --allow-missing-data
-python validate.py --runner cache_audit --exp habitat/prismatic_bc_smoke --allow-missing-data
+python train.py --exp habitat/pr2l_hm3d_bc --mode preflight --allow-missing-data
+python validate.py --runner cache_audit --exp habitat/pr2l_hm3d_bc --allow-missing-data
 ```
 
 Full PR2L validation additionally needs real `/data/topovlm/habitat` payloads

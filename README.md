@@ -92,26 +92,9 @@ Matterport3D terms/access route from HM3D. Do not treat HM3D account access as
 MP3D v1 approval; acquire or confirm MP3D v1 access before downloading or using
 the MP3D habitat archive for this path.
 
-## First Smoke Config
+## Canonical HM3D PR2L-Style BC Path
 
-The first smoke config is:
-
-```bash
-python train.py --exp habitat/prismatic_bc_smoke --debug
-python validate.py --runner data_preflight --exp habitat/prismatic_bc_smoke
-python validate.py --runner objectnav_audit --exp habitat/prismatic_bc_smoke
-python validate.py --runner cache_audit --exp habitat/prismatic_bc_smoke
-python validate.py --runner data_preflight --exp habitat/prismatic_bc_smoke_staged --allow-missing-data
-```
-
-The debug train path uses a synthetic graph dataset so entrypoint, model, loss,
-checkpoint, and config plumbing can be checked before Habitat/Prismatic payloads
-are installed. Non-debug training reads graph caches declared by the Habitat data
-config.
-
-## HM3D PR2L-Style BC Path
-
-The canonical HM3D implementation config is:
+The repo keeps one active Habitat experiment config:
 
 ```bash
 python validate.py --runner objectnav_audit --exp habitat/pr2l_hm3d_bc --allow-missing-data
@@ -126,103 +109,33 @@ python train.py --exp habitat/pr2l_hm3d_bc --mode train
 `ShortestPathFollower` to generate expert action trajectories, writes RGB/action
 NumPy payloads, and records `hm3d_objectnav_shortest_path` provenance in
 `episodes/pr2l_hm3d_objectnav/<split>/manifest.jsonl`. This is the active
-TopoVLM development path; it is not a PR2L paper-faithful reproduction because
+TopoVLM development path; it is not an exact PR2L reproduction because
 PR2L/Habitat-Web used MP3D replay metadata.
 
-The tiny smoke and balanced subset configs are:
+Smoke and subset runs should be driven by `--debug`, tests, or explicit
+runtime/job manifests, not by extra experiment YAML files. Slurm scripts stage
+shared `/data/topovlm/...` inputs into job-local `data/...`; runtime path
+resolution maps canonical `/data/...` config paths to that staged mirror while
+stage-out materializers write bundles under `OUTPUT_DIR/data/topovlm/habitat`.
+After a staged `build_episodes` or `build_cache` job finishes, audit the bundle
+by setting `TOPOVLM_DATA_OUTPUT_ROOT` to the staged-out data root:
 
 ```bash
-python train.py --exp habitat/pr2l_hm3d_bc_tiny_smoke --mode build_episodes
-python train.py --exp habitat/pr2l_hm3d_bc_tiny_smoke --mode build_cache
-python train.py --exp habitat/pr2l_hm3d_bc_tiny_smoke --mode train
-
-python train.py --exp habitat/pr2l_hm3d_bc_balanced_subset --mode build_selection
-python validate.py --runner objectnav_selection_audit --exp habitat/pr2l_hm3d_bc_balanced_subset --allow-missing-data
-python train.py --exp habitat/pr2l_hm3d_bc_balanced_subset --mode build_episodes
-python train.py --exp habitat/pr2l_hm3d_bc_balanced_subset --mode build_cache
-python train.py --exp habitat/pr2l_hm3d_bc_balanced_subset --mode train
-```
-
-Use the `_staged` variants for Slurm jobs that copy shared `/data/topovlm/...`
-inputs into job-local `data/topovlm/...` before writing stage-out bundles.
-
-## PR2L-Faithful BC Path
-
-The deferred paper-faithful reimplementation config is:
-
-```bash
-python validate.py --runner habitat_web_audit --exp habitat/pr2l_habitat_bc_faithful --allow-missing-data
-python validate.py --runner habitat_web_scene_audit --exp habitat/pr2l_habitat_bc_faithful --allow-missing-data
-python validate.py --runner pr2l_manifest_audit --exp habitat/pr2l_habitat_bc_faithful --allow-missing-data
-python validate.py --runner vlm_auth_audit --exp habitat/pr2l_habitat_bc_faithful --allow-missing-data
-python train.py --exp habitat/pr2l_habitat_bc_faithful --mode build_episodes
-python train.py --exp habitat/pr2l_habitat_bc_faithful --mode build_cache
-python train.py --exp habitat/pr2l_habitat_bc_faithful --mode train
-```
-
-This is a PR2L-faithful TopoVLM implementation path, not an exact PR2L
-reproduction claim. Exact reproduction still depends on access to the same
-Habitat-Web human demonstration distribution and matching evaluation protocol.
-
-The implementation uses Prismatic as a frozen VLM, asks the PR2L ObjectNav
-prompt, caches last-two-layer visual-token representations, pools visual tokens,
-applies PCA projection, builds topology graph nodes, and trains node-level
-behavior cloning with inflection and stop/turn weighting.
-
-The scene/object-balanced stage-3 config is:
-
-```bash
-python train.py --exp habitat/pr2l_habitat_bc_balanced_subset --mode build_selection
-python validate.py --runner habitat_web_selection_audit --exp habitat/pr2l_habitat_bc_balanced_subset --allow-missing-data
-python train.py --exp habitat/pr2l_habitat_bc_balanced_subset --mode build_episodes
-python train.py --exp habitat/pr2l_habitat_bc_balanced_subset --mode build_cache
-python train.py --exp habitat/pr2l_habitat_bc_balanced_subset --mode train
-```
-
-`build_selection` writes a deterministic source-trajectory manifest under
-`/data/topovlm/habitat/episode_selections/...`; `build_episodes` then renders
-only those selected Habitat-Web replays.
-On Slurm, use the `_staged` balanced config so staged inputs are read from
-`data/topovlm/...` and output materialization bundles are written under
-`OUTPUT_DIR/data/topovlm/habitat/...` for MCP stage-out.
-After a staged `build_episodes` or `build_cache` job finishes, audit the staged
-bundle by setting `TOPOVLM_DATA_OUTPUT_ROOT` to the staged-out data root and
-running the canonical validators, for example:
-
-```bash
-TOPOVLM_DATA_OUTPUT_ROOT=<stageout>/data/topovlm/habitat python validate.py --runner pr2l_manifest_audit --exp habitat/pr2l_habitat_bc_balanced_subset_staged
+TOPOVLM_DATA_OUTPUT_ROOT=<stageout>/data/topovlm/habitat python validate.py --runner pr2l_manifest_audit --exp habitat/pr2l_hm3d_bc
+TOPOVLM_DATA_OUTPUT_ROOT=<stageout>/data/topovlm/habitat python validate.py --runner cache_audit --exp habitat/pr2l_hm3d_bc
 ```
 
 ## Missing Live Inputs
 
-The repo is runnable for synthetic/debug smoke tests. The current HM3D path
-still needs these live inputs before real training or evaluation:
+The current HM3D path needs these live inputs before real training or evaluation:
 
 - `/data/topovlm/habitat` with HM3D scenes and ObjectNav episodes.
 - `/data/topovlm/vlm_weights/prismatic/<model_id>` or Hugging Face access for Prismatic weights.
 - Generated shortest-path trajectory manifests under `episodes/pr2l_hm3d_objectnav/<split>/manifest.jsonl`.
 
-The deferred PR2L-faithful Habitat-Web path additionally needs:
-
-- Habitat-Web trajectory metadata under `sources/habitat_web_hf_metadata/objectnav/objectnav_mp3d_thda_70k`.
-- MP3D scene assets under `/data/topovlm/habitat/scene_datasets/mp3d`.
-
-`objectnav_audit` opens the staged ObjectNav HM3D v2 shard files, samples one
-raw episode, and resolves its `scene_id` against
-`/data/topovlm/habitat/scene_datasets/hm3d`. The `*_staged` config set is for
-Slurm jobs that copy shared `/data/topovlm/...` inputs into the job-local
-`data/topovlm/` directory before running from scratch.
-
-`habitat_web_audit` opens the Habitat-Web Hugging Face source clone declared by
-`configs/data/pr2l_habitat_web.yaml`, verifies that Git LFS payloads are
-materialized, samples `reference_replay` actions, and reports missing MP3D
-scenes. Habitat-Web stores action/state replays, not embedded RGB frames, so
-`train.py --mode build_episodes` renders those replays against MP3D scenes
-before `episodes/.../manifest.jsonl` can point to NumPy RGB/action arrays.
-`habitat_web_scene_audit` scans the materialized Habitat-Web train split and
-writes the current scene/object/action inventory to
-`artifacts/evidence/habitat_web_scene_inventory_audit.json`; this diagnostic
-artifact currently lists 56 required MP3D scene GLBs and 28 object categories.
+`objectnav_audit` opens the ObjectNav HM3D v2 shard files, samples one raw
+episode, and resolves its `scene_id` against the canonical HM3D scene layout
+under `/data/topovlm/habitat/scene_datasets/hm3d_v0.2`.
 
 ## Reference Prototype
 

@@ -10,7 +10,11 @@ from typing import Protocol
 import numpy as np
 
 from configs.schema import TopoVLMConfig
-from data.habitat_manifest import resolve_data_path, resolve_materialization_data_root
+from data.habitat_manifest import (
+    resolve_data_path,
+    resolve_materialization_data_root,
+    resolve_runtime_data_root,
+)
 from data.habitat_objectnav import load_objectnav_selection_ids, objectnav_source_trajectory_id
 
 
@@ -158,7 +162,22 @@ def _open_habitat_env(cfg: TopoVLMConfig) -> ObjectNavExpertEnv:
     import habitat
 
     habitat_config = habitat.get_config(cfg.data.habitat_config)
+    runtime_data_root = resolve_runtime_data_root(cfg.data.data_root)
+    if runtime_data_root != Path(cfg.data.data_root):
+        _rewrite_habitat_data_paths(habitat_config, cfg, runtime_data_root)
     return habitat.Env(config=habitat_config)
+
+
+def _rewrite_habitat_data_paths(habitat_config: object, cfg: TopoVLMConfig, data_root: Path) -> None:
+    from omegaconf import OmegaConf
+
+    OmegaConf.set_readonly(habitat_config, False)
+    habitat_config.habitat.dataset.data_path = str(
+        data_root / cfg.data.objectnav_dataset_dir / "{split}" / "{split}.json.gz"
+    )
+    habitat_config.habitat.dataset.scenes_dir = str(data_root / "scene_datasets")
+    habitat_config.habitat.simulator.scene_dataset = str(data_root / cfg.data.scene_dataset_config)
+    OmegaConf.set_readonly(habitat_config, True)
 
 
 def _build_shortest_path_follower(

@@ -7,8 +7,8 @@ data:
   habitat_config: configs/habitat/pr2l_objectnav.yaml
   split: train
   objectnav_dataset_dir: datasets/objectnav/hm3d/v2/objectnav_hm3d_v2
-  scene_dataset_dir: scene_datasets/hm3d
-  scene_dataset_config: scene_datasets/hm3d/hm3d_annotated_basis.scene_dataset_config.json
+  scene_dataset_dir: scene_datasets
+  scene_dataset_config: scene_datasets/hm3d_v0.2/hm3d_annotated_basis.scene_dataset_config.json
   episodes_manifest: episodes/train/manifest.jsonl
   graph_manifest: graphs/prismatic_objectnav_train/manifest.jsonl
   graph_cache_dir: graphs/prismatic_objectnav_train

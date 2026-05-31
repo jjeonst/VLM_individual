@@ -1,3 +1,0 @@
-data:
-  data_root: data/topovlm/habitat
-  habitat_config: configs/habitat/pr2l_objectnav_staged.yaml

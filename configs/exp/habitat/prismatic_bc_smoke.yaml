@@ -1,9 +1,0 @@
-defaults:
-  - train: habitat_smoke
-  - data: default
-  - model: default
-  - objectives: default
-  - eval: default
-
-config_name: habitat/prismatic_bc_smoke
-run_name: habitat_prismatic_bc_smoke

@@ -48,17 +48,17 @@
           "seed": 42,
           "sweep_name": null,
           "wandb_entity": "topovlm",
-          "wandb_group": "prismatic_graph_policy",
+          "wandb_group": "pr2l_prismatic_policy",
           "wandb_project": "TopoVLM",
-          "wandb_run_name": "prismatic_graph_policy_seed42_20260530-000000"
+          "wandb_run_name": "pr2l_prismatic_policy_seed42_20260530-000000"
         },
         {
           "seed": 7,
           "sweep_name": null,
           "wandb_entity": "topovlm",
-          "wandb_group": "prismatic_graph_policy",
+          "wandb_group": "pr2l_prismatic_policy",
           "wandb_project": "TopoVLM",
-          "wandb_run_name": "prismatic_graph_policy_seed7_20260530-000000"
+          "wandb_run_name": "pr2l_prismatic_policy_seed7_20260530-000000"
         }
       ],
       "finality_scope": "diagnostic_to_final_training_rows_after_artifact_audit",
@@ -104,9 +104,9 @@
   "schema_version": 1,
   "source_paths": [
     "README.md",
-    "configs/exp/habitat",
-    "configs/model/prismatic_graph_policy.yaml",
-    "configs/train/habitat_smoke.yaml",
+    "configs/exp/habitat/pr2l_hm3d_bc.yaml",
+    "configs/model/pr2l_prismatic_hm3d.yaml",
+    "configs/train/pr2l_hm3d_bc.yaml",
     "sweep_wandb.py"
   ],
   "status": "active"

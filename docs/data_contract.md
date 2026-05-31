@@ -75,8 +75,8 @@ Staged materialization outputs are audited by pointing the existing validators a
 the output data root:
 
 ```bash
-TOPOVLM_DATA_OUTPUT_ROOT=<stageout>/data/topovlm/habitat python validate.py --runner pr2l_manifest_audit --exp habitat/pr2l_hm3d_bc_balanced_subset_staged
-TOPOVLM_DATA_OUTPUT_ROOT=<stageout>/data/topovlm/habitat python validate.py --runner cache_audit --exp habitat/pr2l_hm3d_bc_balanced_subset_staged
+TOPOVLM_DATA_OUTPUT_ROOT=<stageout>/data/topovlm/habitat python validate.py --runner pr2l_manifest_audit --exp habitat/pr2l_hm3d_bc
+TOPOVLM_DATA_OUTPUT_ROOT=<stageout>/data/topovlm/habitat python validate.py --runner cache_audit --exp habitat/pr2l_hm3d_bc
 ```
 
 For `cache_format: pr2l_token_trajectory`, graph cache payloads contain

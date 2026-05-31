@@ -284,7 +284,7 @@ class PR2LTrajectoryTest(unittest.TestCase):
     def test_synthetic_pr2l_training_smoke_writes_checkpoint(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             cfg = TopoVLMConfig(
-                config_name="habitat/pr2l_habitat_bc_faithful",
+                config_name="habitat/pr2l_hm3d_bc",
                 run_name="test_pr2l_synthetic",
                 output_root=tmpdir,
                 max_epochs=1,
@@ -322,7 +322,7 @@ class PR2LTrajectoryTest(unittest.TestCase):
         fake_wandb = _FakeWandbModule()
         with tempfile.TemporaryDirectory() as tmpdir:
             cfg = TopoVLMConfig(
-                config_name="habitat/pr2l_habitat_bc_faithful",
+                config_name="habitat/pr2l_hm3d_bc",
                 run_name="test_pr2l_wandb",
                 output_root=tmpdir,
                 max_epochs=1,
