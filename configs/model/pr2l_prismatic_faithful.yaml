@@ -1,0 +1,17 @@
+model:
+  vlm:
+    representation: pr2l_visual_tokens_last_two_layers
+    hidden_layer_indices:
+      - -2
+      - -1
+    visual_pool_grid: 4
+    projection: pca
+    projection_path: embeddings/pr2l_habitat_bc_faithful/projection_pca.npz
+    projection_dim: 1024
+    include_generated_text: true
+    output_dim: 2048
+    prompt_template: "Would a {goal_text} be found here? Why or why not?"
+  policy:
+    input_dim: 2048
+    num_actions: 6
+    prediction_target: nodes

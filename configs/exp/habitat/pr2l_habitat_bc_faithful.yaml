@@ -1,0 +1,12 @@
+defaults:
+  - train: pr2l_habitat_bc_faithful
+  - data: pr2l_habitat_web
+  - model: pr2l_prismatic_faithful
+  - objectives: pr2l_bc_faithful
+  - eval: default
+
+config_name: habitat/pr2l_habitat_bc_faithful
+run_name: pr2l_habitat_bc_faithful
+data:
+  episode_selection_manifest: episode_selections/pr2l_habitat_web/train_scene_object_balanced_7550.jsonl
+  balanced_subset_size: 7550
