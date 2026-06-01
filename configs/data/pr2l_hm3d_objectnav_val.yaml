@@ -6,5 +6,6 @@ data:
   graph_manifest: graphs/pr2l_hm3d_bc/val/manifest.jsonl
   graph_cache_dir: graphs/pr2l_hm3d_bc/val
   embeddings_dir: embeddings/pr2l_hm3d_bc/val
-  max_episodes: 512
+  episode_selection_manifest: episode_selections/pr2l_hm3d_objectnav/val_scene_object_balanced_7550.jsonl
+  balanced_subset_size: 7550
   frame_stride: 4

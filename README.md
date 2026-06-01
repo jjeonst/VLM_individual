@@ -109,12 +109,11 @@ python train.py --exp habitat/pr2l_hm3d_bc --mode train
 `ShortestPathFollower` to generate expert action trajectories, writes RGB/action
 NumPy payloads directly under `/data/topovlm/habitat`, and records
 `hm3d_objectnav_shortest_path` provenance in
-`episodes/pr2l_hm3d_objectnav/<split>/manifest.jsonl`. The current canonical
-HM3D materialization cap is `data.max_episodes=512`; the raw train source has
-millions of ObjectNav episodes, so full-source materialization must be a
-separate sharded/selection decision. This is the active TopoVLM development
-path; it is not an exact PR2L reproduction because PR2L/Habitat-Web used MP3D
-replay metadata.
+`episodes/pr2l_hm3d_objectnav/<split>/manifest.jsonl`. The canonical HM3D
+path uses scene/object-balanced selection manifests with `balanced_subset_size:
+7550`, matching the current PR2L-style selection scale instead of using a tiny
+prefix slice. This is the active TopoVLM development path; MP3D/Habitat-Web
+remains a separate external-data branch.
 
 Smoke and subset runs should be driven by `--debug`, tests, or explicit
 runtime/job manifests, not by extra experiment YAML files. Slurm is reserved for

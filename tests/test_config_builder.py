@@ -32,6 +32,12 @@ class ConfigBuilderTest(unittest.TestCase):
             cfg.data.graph_manifest,
             "graphs/pr2l_hm3d_bc/train/manifest.jsonl",
         )
+        self.assertIsNone(cfg.data.max_episodes)
+        self.assertEqual(
+            cfg.data.episode_selection_manifest,
+            "episode_selections/pr2l_hm3d_objectnav/train_scene_object_balanced_7550.jsonl",
+        )
+        self.assertEqual(cfg.data.balanced_subset_size, 7550)
         self.assertEqual(cfg.model.vlm.representation, "pr2l_visual_tokens_last_two_layers")
         self.assertEqual(cfg.model.vlm.hidden_layer_indices, [-2, -1])
         self.assertEqual(cfg.model.vlm.visual_pool_grid, 4)
@@ -65,6 +71,12 @@ class ConfigBuilderTest(unittest.TestCase):
         )
         self.assertEqual(cfg.data.graph_cache_dir, "graphs/pr2l_hm3d_bc/val")
         self.assertEqual(cfg.data.embeddings_dir, "embeddings/pr2l_hm3d_bc/val")
+        self.assertIsNone(cfg.data.max_episodes)
+        self.assertEqual(
+            cfg.data.episode_selection_manifest,
+            "episode_selections/pr2l_hm3d_objectnav/val_scene_object_balanced_7550.jsonl",
+        )
+        self.assertEqual(cfg.data.balanced_subset_size, 7550)
 
     def test_debug_overrides_are_operational(self):
         cfg = build_config_from_exp("habitat/pr2l_hm3d_bc", debug=True)
