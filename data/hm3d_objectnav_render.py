@@ -69,6 +69,8 @@ def build_hm3d_objectnav_episode_manifest(
     owns_env = env is None
     if env is None:
         env = _open_habitat_env(cfg)
+    if selection_ids is not None:
+        _filter_env_episodes_to_selection(env, selection_ids)
     if follower is None:
         follower = _build_shortest_path_follower(env, cfg)
     seen_selection_ids = set()
@@ -173,6 +175,24 @@ def build_hm3d_objectnav_episode_manifest(
         "selection_manifest": cfg.data.episode_selection_manifest,
         "selected_source_episodes": len(selection_ids) if selection_ids is not None else None,
     }
+
+
+def _filter_env_episodes_to_selection(
+    env: ObjectNavExpertEnv, selection_ids: set[str]
+) -> None:
+    selected_episodes = [
+        episode
+        for episode in env.episodes
+        if objectnav_source_trajectory_id(episode) in selection_ids
+    ]
+    selected_ids = {objectnav_source_trajectory_id(episode) for episode in selected_episodes}
+    missing_ids = selection_ids.difference(selected_ids)
+    if missing_ids:
+        raise ValueError(
+            "Selection manifest contains ObjectNav ids absent from Habitat env: "
+            f"{sorted(missing_ids)[:5]}"
+        )
+    env.episodes = selected_episodes
 
 
 def _rollout_shortest_path_episode(

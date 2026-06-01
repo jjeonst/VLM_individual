@@ -13,6 +13,7 @@ import numpy as np
 from configs.schema import TopoVLMConfig
 from data.hm3d_objectnav_render import (
     _configure_habitat_dataset,
+    _filter_env_episodes_to_selection,
     build_hm3d_objectnav_episode_manifest,
 )
 
@@ -118,6 +119,29 @@ class HM3DObjectNavRenderTest(unittest.TestCase):
 
             self.assertEqual(result["episodes_written"], 1)
             self.assertEqual(records[0]["source_trajectory_id"], "scene_b/scene.glb:1")
+            self.assertEqual(env.reset_count, 1)
+
+    def test_filters_env_episode_list_before_resetting(self):
+        env = _FakeEnv(
+            [
+                _FakeEpisode("0", "scene_a/scene.glb", "chair"),
+                _FakeEpisode("1", "scene_b/scene.glb", "table"),
+                _FakeEpisode("2", "scene_c/scene.glb", "sofa"),
+            ]
+        )
+
+        _filter_env_episodes_to_selection(
+            env,
+            {
+                "scene_b/scene.glb:1",
+                "scene_c/scene.glb:2",
+            },
+        )
+
+        self.assertEqual(
+            [episode.episode_id for episode in env.episodes],
+            ["1", "2"],
+        )
 
     def test_habitat_dataset_split_follows_data_config(self):
         cfg = TopoVLMConfig()
@@ -161,8 +185,10 @@ class _FakeEnv:
         self.sim = _FakeSim()
         self._next_index = 0
         self._frame_id = 0
+        self.reset_count = 0
 
     def reset(self):
+        self.reset_count += 1
         self.current_episode = self.episodes[self._next_index]
         self._next_index += 1
         self._frame_id = 0

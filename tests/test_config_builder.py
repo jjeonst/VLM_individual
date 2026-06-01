@@ -94,7 +94,6 @@ class ConfigBuilderTest(unittest.TestCase):
             sorted(path.name for path in config_root.glob("*.yaml")),
             [
                 "pr2l_habitat_bc.yaml",
-                "pr2l_habitat_bc_tiny_smoke.yaml",
                 "pr2l_hm3d_bc.yaml",
                 "pr2l_hm3d_bc_val.yaml",
             ],
@@ -169,36 +168,6 @@ class ConfigBuilderTest(unittest.TestCase):
         self.assertEqual(cfg.wandb_project, "TopoVLM")
         self.assertEqual(cfg.wandb_group, "pr2l_prismatic_policy")
         self.assertEqual(cfg.wandb_contract_role_id, "habitat_bc")
-
-    def test_pr2l_habitat_web_tiny_smoke_config_loads(self):
-        cfg = build_config_from_exp("habitat/pr2l_habitat_bc_tiny_smoke")
-        self.assertEqual(cfg.config_name, "habitat/pr2l_habitat_bc_tiny_smoke")
-        self.assertEqual(cfg.run_name, "pr2l_habitat_bc_tiny_smoke")
-        self.assertEqual(cfg.data.dataset_name, "pr2l_habitat_web_tiny_smoke")
-        self.assertEqual(cfg.data.trajectory_source, "habitat_web_replay")
-        self.assertEqual(cfg.data.max_episodes, 4)
-        self.assertEqual(cfg.data.batch_size, 2)
-        self.assertEqual(cfg.data.num_workers, 0)
-        self.assertEqual(
-            cfg.data.episodes_manifest,
-            "episodes/pr2l_habitat_web_tiny_smoke/train/manifest.jsonl",
-        )
-        self.assertEqual(
-            cfg.data.graph_manifest,
-            "graphs/pr2l_habitat_bc_tiny_smoke/train/manifest.jsonl",
-        )
-        self.assertEqual(
-            cfg.model.vlm.projection_path,
-            "embeddings/pr2l_habitat_bc_tiny_smoke/projection_pca.npz",
-        )
-        self.assertIsNone(cfg.data.episode_selection_manifest)
-        self.assertIsNone(cfg.data.balanced_subset_size)
-        self.assertEqual(cfg.model.vlm.output_dim, 2048)
-        self.assertEqual(cfg.model.policy.input_dim, 2048)
-        self.assertEqual(cfg.model.policy.num_actions, 6)
-        self.assertEqual(cfg.max_epochs, 1)
-        self.assertEqual(cfg.gradient_accumulation_steps, 1)
-        self.assertFalse(cfg.wandb)
 
     def test_domain_configs_only_declare_default_overrides(self):
         config_root = Path(__file__).resolve().parents[1] / "configs"
