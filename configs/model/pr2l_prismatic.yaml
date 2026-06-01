@@ -6,7 +6,7 @@ model:
       - -1
     visual_pool_grid: 4
     projection: pca
-    projection_path: embeddings/pr2l_habitat_bc_faithful/projection_pca.npz
+    projection_path: embeddings/pr2l_habitat_bc/projection_pca.npz
     projection_dim: 1024
     include_generated_text: true
     output_dim: 2048

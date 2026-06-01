@@ -85,7 +85,7 @@ HM3D-derived weights, caches, manifests containing substantial scene-derived
 content, and hosted interactive demos must stay private/internal by default.
 
 The current canonical development path uses HM3D ObjectNav and generates
-shortest-path expert trajectories from Habitat. The PR2L-faithful Habitat-Web
+shortest-path expert trajectories from Habitat. The deferred PR2L Habitat-Web
 path uses Matterport3D v1 scene ids such as
 `mp3d/17DRP5sb8fy/17DRP5sb8fy.glb`, not HM3D scene ids. MP3D v1 has a separate
 Matterport3D terms/access route from HM3D. Do not treat HM3D account access as
@@ -109,11 +109,13 @@ python train.py --exp habitat/pr2l_hm3d_bc --mode train
 `ShortestPathFollower` to generate expert action trajectories, writes RGB/action
 NumPy payloads directly under `/data/topovlm/habitat`, and records
 `hm3d_objectnav_shortest_path` provenance in
-`episodes/pr2l_hm3d_objectnav/<split>/manifest.jsonl`. The canonical HM3D
-path uses scene/object-balanced selection manifests with `balanced_subset_size:
-7550`, matching the current PR2L-style selection scale instead of using a tiny
-prefix slice. This is the active TopoVLM development path; MP3D/Habitat-Web
-remains a separate external-data branch.
+`episodes/pr2l_hm3d_objectnav/<split>/manifest.jsonl`. The existing canonical
+HM3D experiment YAMLs, `configs/exp/habitat/pr2l_hm3d_bc.yaml` and
+`configs/exp/habitat/pr2l_hm3d_bc_val.yaml`, carry the scene/object-balanced
+selection manifests with `balanced_subset_size: 7550`, matching the current
+PR2L-style selection scale instead of using a tiny prefix slice. This is the
+active TopoVLM development path; MP3D/Habitat-Web remains a separate
+external-data branch.
 
 Smoke and subset runs should be driven by `--debug`, tests, or explicit
 runtime/job manifests, not by extra experiment YAML files. Slurm is reserved for

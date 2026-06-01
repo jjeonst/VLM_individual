@@ -93,17 +93,39 @@ class ConfigBuilderTest(unittest.TestCase):
         self.assertEqual(
             sorted(path.name for path in config_root.glob("*.yaml")),
             [
-                "pr2l_habitat_bc_faithful.yaml",
+                "pr2l_habitat_bc.yaml",
                 "pr2l_habitat_bc_tiny_smoke.yaml",
                 "pr2l_hm3d_bc.yaml",
                 "pr2l_hm3d_bc_val.yaml",
             ],
         )
 
-    def test_pr2l_habitat_web_faithful_config_loads(self):
-        cfg = build_config_from_exp("habitat/pr2l_habitat_bc_faithful")
-        self.assertEqual(cfg.config_name, "habitat/pr2l_habitat_bc_faithful")
-        self.assertEqual(cfg.run_name, "pr2l_habitat_bc_faithful")
+    def test_canonical_hm3d_selection_lives_in_exp_yaml(self):
+        config_root = Path(__file__).resolve().parents[1] / "configs"
+        train_exp = _load_yaml(config_root / "exp" / "habitat" / "pr2l_hm3d_bc.yaml")
+        val_exp = _load_yaml(config_root / "exp" / "habitat" / "pr2l_hm3d_bc_val.yaml")
+        train_data = _load_yaml(config_root / "data" / "pr2l_hm3d_objectnav.yaml")
+        val_data = _load_yaml(config_root / "data" / "pr2l_hm3d_objectnav_val.yaml")
+
+        self.assertEqual(
+            train_exp["data"]["episode_selection_manifest"],
+            "episode_selections/pr2l_hm3d_objectnav/train_scene_object_balanced_7550.jsonl",
+        )
+        self.assertEqual(train_exp["data"]["balanced_subset_size"], 7550)
+        self.assertEqual(
+            val_exp["data"]["episode_selection_manifest"],
+            "episode_selections/pr2l_hm3d_objectnav/val_scene_object_balanced_7550.jsonl",
+        )
+        self.assertEqual(val_exp["data"]["balanced_subset_size"], 7550)
+        self.assertNotIn("episode_selection_manifest", train_data.get("data", {}))
+        self.assertNotIn("balanced_subset_size", train_data.get("data", {}))
+        self.assertNotIn("episode_selection_manifest", val_data.get("data", {}))
+        self.assertNotIn("balanced_subset_size", val_data.get("data", {}))
+
+    def test_pr2l_habitat_web_config_loads(self):
+        cfg = build_config_from_exp("habitat/pr2l_habitat_bc")
+        self.assertEqual(cfg.config_name, "habitat/pr2l_habitat_bc")
+        self.assertEqual(cfg.run_name, "pr2l_habitat_bc")
         self.assertEqual(cfg.data.dataset_name, "pr2l_habitat_web")
         self.assertEqual(cfg.data.trajectory_source, "habitat_web_replay")
         self.assertEqual(cfg.data.cache_format, "pr2l_token_trajectory")
@@ -123,7 +145,7 @@ class ConfigBuilderTest(unittest.TestCase):
         )
         self.assertEqual(
             cfg.data.graph_manifest,
-            "graphs/pr2l_habitat_bc_faithful/train/manifest.jsonl",
+            "graphs/pr2l_habitat_bc/train/manifest.jsonl",
         )
         self.assertEqual(
             cfg.data.episode_selection_manifest,

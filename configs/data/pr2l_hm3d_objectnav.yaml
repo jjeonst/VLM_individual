@@ -5,6 +5,4 @@ data:
   graph_manifest: graphs/pr2l_hm3d_bc/train/manifest.jsonl
   graph_cache_dir: graphs/pr2l_hm3d_bc/train
   embeddings_dir: embeddings/pr2l_hm3d_bc/train
-  episode_selection_manifest: episode_selections/pr2l_hm3d_objectnav/train_scene_object_balanced_7550.jsonl
-  balanced_subset_size: 7550
   frame_stride: 4

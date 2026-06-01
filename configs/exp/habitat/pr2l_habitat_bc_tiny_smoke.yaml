@@ -1,8 +1,8 @@
 defaults:
-  - train: pr2l_habitat_bc_faithful
+  - train: pr2l_habitat_bc
   - data: pr2l_habitat_web
-  - model: pr2l_prismatic_faithful
-  - objectives: pr2l_bc_faithful
+  - model: pr2l_prismatic
+  - objectives: pr2l_bc
   - eval: default
 
 config_name: habitat/pr2l_habitat_bc_tiny_smoke

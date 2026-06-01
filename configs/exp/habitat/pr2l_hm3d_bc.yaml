@@ -6,3 +6,7 @@ defaults:
   - eval: default
 
 config_name: habitat/pr2l_hm3d_bc
+
+data:
+  episode_selection_manifest: episode_selections/pr2l_hm3d_objectnav/train_scene_object_balanced_7550.jsonl
+  balanced_subset_size: 7550
