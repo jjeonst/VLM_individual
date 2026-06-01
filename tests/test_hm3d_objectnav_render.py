@@ -23,9 +23,9 @@ class HM3DObjectNavRenderTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             cfg = TopoVLMConfig()
             cfg.data.data_root = tmpdir
-            cfg.data.dataset_name = "pr2l_hm3d_objectnav_tiny_smoke"
+            cfg.data.dataset_name = "hm3d_objectnav_render_test"
             cfg.data.episodes_manifest = (
-                "episodes/pr2l_hm3d_objectnav_tiny_smoke/train/manifest.jsonl"
+                "episodes/hm3d_objectnav_render_test/train/manifest.jsonl"
             )
             cfg.eval.max_steps = 4
             env = _FakeEnv([_FakeEpisode("0", "scene/scene.glb", "chair")])
@@ -50,9 +50,9 @@ class HM3DObjectNavRenderTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             cfg = TopoVLMConfig()
             cfg.data.data_root = tmpdir
-            cfg.data.dataset_name = "pr2l_hm3d_objectnav_tiny_smoke"
+            cfg.data.dataset_name = "hm3d_objectnav_render_test"
             cfg.data.episodes_manifest = (
-                "episodes/pr2l_hm3d_objectnav_tiny_smoke/train/manifest.jsonl"
+                "episodes/hm3d_objectnav_render_test/train/manifest.jsonl"
             )
             cfg.eval.episode_timeout_seconds = 1
             env = _FakeEnv([_FakeEpisode("0", "scene/scene.glb", "chair")])
