@@ -60,7 +60,7 @@ class HabitatObjectNavDatasetTest(unittest.TestCase):
 
         self.assertEqual(
             objectnav_source_trajectory_id(episode),
-            "hm3d_v0.2/train/00001-scene/scene.basis.glb:7:chair",
+            "hm3d_v0.2/train/00001-scene/scene.basis.glb:7",
         )
 
     def test_resolves_scene_path_with_data_scene_prefix(self):
@@ -86,6 +86,7 @@ class HabitatObjectNavDatasetTest(unittest.TestCase):
             payload = {
                 "episodes": [
                     _episode("a0", "scene_a/scene.basis.glb", "chair"),
+                    _episode("a0", "scene_a/scene.basis.glb", "sofa"),
                     _episode("a1", "scene_a/scene.basis.glb", "chair"),
                     _episode("a2", "scene_a/scene.basis.glb", "table"),
                     _episode("b0", "scene_b/scene.basis.glb", "chair"),
@@ -112,9 +113,9 @@ class HabitatObjectNavDatasetTest(unittest.TestCase):
             self.assertEqual(
                 [record["source_trajectory_id"] for record in records],
                 [
-                    "scene_a/scene.basis.glb:a0:chair",
-                    "scene_a/scene.basis.glb:a2:table",
-                    "scene_b/scene.basis.glb:b0:chair",
+                    "scene_a/scene.basis.glb:a0",
+                    "scene_a/scene.basis.glb:a2",
+                    "scene_b/scene.basis.glb:b0",
                 ],
             )
 

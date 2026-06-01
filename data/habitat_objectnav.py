@@ -127,8 +127,13 @@ def build_objectnav_balanced_selection_manifest(config: DataConfig) -> dict[str,
         raise ValueError("DataConfig.balanced_subset_size is required")
     dataset = HabitatObjectNavDataset(config)
     records_by_bucket: dict[tuple[str, str], list[ObjectNavEpisode]] = defaultdict(list)
+    seen_source_ids = set()
     total_episodes = 0
     for episode in dataset.iter_episodes():
+        source_trajectory_id = objectnav_source_trajectory_id(episode)
+        if source_trajectory_id in seen_source_ids:
+            continue
+        seen_source_ids.add(source_trajectory_id)
         records_by_bucket[(episode.scene_id, episode.object_category)].append(episode)
         total_episodes += 1
 
@@ -230,9 +235,7 @@ def load_objectnav_selection_records(config: DataConfig) -> list[ObjectNavSelect
 
 def objectnav_source_trajectory_id(episode: ObjectNavEpisode | object) -> str:
     scene_id = _canonical_objectnav_scene_id(str(getattr(episode, "scene_id")))
-    episode_id = getattr(episode, "episode_id")
-    object_category = getattr(episode, "object_category")
-    return f"{scene_id}:{episode_id}:{object_category}"
+    return f"{scene_id}:{getattr(episode, 'episode_id')}"
 
 
 def _canonical_objectnav_scene_id(scene_id: str) -> str:

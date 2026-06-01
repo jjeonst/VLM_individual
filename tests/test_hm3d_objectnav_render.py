@@ -92,7 +92,7 @@ class HM3DObjectNavRenderTest(unittest.TestCase):
             selection.write_text(
                 json.dumps(
                     {
-                        "source_trajectory_id": "scene_b/scene.glb:1:table",
+                        "source_trajectory_id": "scene_b/scene.glb:1",
                         "episode_id": "1",
                         "scene_id": "scene_b/scene.glb",
                         "object_category": "table",
@@ -118,7 +118,7 @@ class HM3DObjectNavRenderTest(unittest.TestCase):
             ]
 
             self.assertEqual(result["episodes_written"], 1)
-            self.assertEqual(records[0]["source_trajectory_id"], "scene_b/scene.glb:1:table")
+            self.assertEqual(records[0]["source_trajectory_id"], "scene_b/scene.glb:1")
             self.assertEqual(env.reset_count, 1)
 
     def test_filters_env_episode_list_before_resetting(self):
@@ -133,8 +133,8 @@ class HM3DObjectNavRenderTest(unittest.TestCase):
         _filter_env_episodes_to_selection(
             env,
             {
-                "scene_b/scene.glb:1:table",
-                "scene_c/scene.glb:2:sofa",
+                "scene_b/scene.glb:1",
+                "scene_c/scene.glb:2",
             },
         )
 
