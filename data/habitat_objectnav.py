@@ -229,7 +229,19 @@ def load_objectnav_selection_records(config: DataConfig) -> list[ObjectNavSelect
 
 
 def objectnav_source_trajectory_id(episode: ObjectNavEpisode | object) -> str:
-    return f"{getattr(episode, 'scene_id')}:{getattr(episode, 'episode_id')}"
+    scene_id = _canonical_objectnav_scene_id(str(getattr(episode, "scene_id")))
+    episode_id = getattr(episode, "episode_id")
+    object_category = getattr(episode, "object_category")
+    return f"{scene_id}:{episode_id}:{object_category}"
+
+
+def _canonical_objectnav_scene_id(scene_id: str) -> str:
+    parts = Path(scene_id).parts
+    for marker in ("hm3d_v0.2", "mp3d"):
+        if marker in parts:
+            marker_index = parts.index(marker)
+            return str(Path(*parts[marker_index:]))
+    return scene_id
 
 
 def _load_episode_payload(path: Path) -> list[dict[str, object]]:

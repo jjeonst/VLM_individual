@@ -5,8 +5,11 @@ import unittest
 from pathlib import Path
 
 from configs.schema import DataConfig
-from data.habitat_objectnav import HabitatObjectNavDataset
-from data.habitat_objectnav import build_objectnav_balanced_selection_manifest
+from data.habitat_objectnav import (
+    HabitatObjectNavDataset,
+    build_objectnav_balanced_selection_manifest,
+    objectnav_source_trajectory_id,
+)
 
 
 class HabitatObjectNavDatasetTest(unittest.TestCase):
@@ -40,6 +43,25 @@ class HabitatObjectNavDatasetTest(unittest.TestCase):
 
             self.assertEqual(episode.object_category, "chair")
             self.assertTrue(dataset.resolve_scene_path(episode).exists())
+
+    def test_source_trajectory_id_normalizes_habitat_absolute_scene_path(self):
+        episode = type(
+            "Episode",
+            (),
+            {
+                "scene_id": (
+                    "/data/topovlm/habitat/scene_datasets/hm3d_v0.2/"
+                    "train/00001-scene/scene.basis.glb"
+                ),
+                "episode_id": "7",
+                "object_category": "chair",
+            },
+        )()
+
+        self.assertEqual(
+            objectnav_source_trajectory_id(episode),
+            "hm3d_v0.2/train/00001-scene/scene.basis.glb:7:chair",
+        )
 
     def test_resolves_scene_path_with_data_scene_prefix(self):
         config = DataConfig(data_root="/data/topovlm/habitat")
@@ -90,9 +112,9 @@ class HabitatObjectNavDatasetTest(unittest.TestCase):
             self.assertEqual(
                 [record["source_trajectory_id"] for record in records],
                 [
-                    "scene_a/scene.basis.glb:a0",
-                    "scene_a/scene.basis.glb:a2",
-                    "scene_b/scene.basis.glb:b0",
+                    "scene_a/scene.basis.glb:a0:chair",
+                    "scene_a/scene.basis.glb:a2:table",
+                    "scene_b/scene.basis.glb:b0:chair",
                 ],
             )
 
