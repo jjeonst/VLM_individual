@@ -111,6 +111,8 @@ def build_hm3d_objectnav_episode_manifest(
         with tmp_manifest_path.open("w", encoding="utf-8") as handle:
             for record in written:
                 handle.write(json.dumps(record, sort_keys=True) + "\n")
+            if written:
+                handle.flush()
 
             if remaining_selection_ids is None or remaining_selection_ids:
                 owns_env = env is None
