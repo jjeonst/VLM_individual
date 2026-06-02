@@ -143,6 +143,69 @@ class HM3DObjectNavRenderTest(unittest.TestCase):
             ["1", "2"],
         )
 
+    def test_resumes_existing_selected_payloads(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cfg = TopoVLMConfig()
+            cfg.data.data_root = tmpdir
+            cfg.data.dataset_name = "pr2l_hm3d_objectnav_resume_test"
+            cfg.data.episodes_manifest = (
+                "episodes/pr2l_hm3d_objectnav_resume_test/train/manifest.jsonl"
+            )
+            cfg.data.episode_selection_manifest = (
+                "episode_selections/pr2l_hm3d_objectnav/train_scene_object_balanced.jsonl"
+            )
+            selection = Path(tmpdir) / cfg.data.episode_selection_manifest
+            selection.parent.mkdir(parents=True)
+            selection.write_text(
+                "".join(
+                    json.dumps(record, sort_keys=True) + "\n"
+                    for record in [
+                        {
+                            "source_trajectory_id": "scene_a/scene.glb:0",
+                            "episode_id": "0",
+                            "scene_id": "scene_a/scene.glb",
+                            "object_category": "chair",
+                            "shard_path": "content/scene_a.json.gz",
+                        },
+                        {
+                            "source_trajectory_id": "scene_b/scene.glb:1",
+                            "episode_id": "1",
+                            "scene_id": "scene_b/scene.glb",
+                            "object_category": "table",
+                            "shard_path": "content/scene_b.json.gz",
+                        },
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            rgb_dir = Path(tmpdir) / "rgb" / cfg.data.dataset_name / cfg.data.split
+            actions_dir = Path(tmpdir) / "actions" / cfg.data.dataset_name / cfg.data.split
+            rgb_dir.mkdir(parents=True)
+            actions_dir.mkdir(parents=True)
+            np.save(
+                rgb_dir / "scene_a_scene.glb_0.npy",
+                np.zeros((1, 2, 2, 3), dtype=np.uint8),
+            )
+            np.save(
+                actions_dir / "scene_a_scene.glb_0.npy",
+                np.asarray([0], dtype=np.int64),
+            )
+            env = _FakeEnv([_FakeEpisode("1", "scene_b/scene.glb", "table")])
+            follower = _FakeFollower([0])
+
+            result = build_hm3d_objectnav_episode_manifest(cfg, env=env, follower=follower)
+            records = [
+                json.loads(line)
+                for line in Path(result["manifest"]).read_text(encoding="utf-8").splitlines()
+            ]
+
+            self.assertEqual(result["episodes_written"], 2)
+            self.assertEqual(env.reset_count, 1)
+            self.assertEqual(
+                [record["source_trajectory_id"] for record in records],
+                ["scene_a/scene.glb:0", "scene_b/scene.glb:1"],
+            )
+
     def test_habitat_dataset_split_follows_data_config(self):
         cfg = TopoVLMConfig()
         cfg.data.split = "val"

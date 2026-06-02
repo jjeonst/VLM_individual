@@ -18,7 +18,12 @@ from data.habitat_manifest import (
     resolve_materialization_data_root,
     resolve_runtime_data_root,
 )
-from data.habitat_objectnav import load_objectnav_selection_ids, objectnav_source_trajectory_id
+from data.habitat_objectnav import (
+    ObjectNavSelectionRecord,
+    load_objectnav_selection_records,
+    objectnav_source_trajectory_id,
+    resolve_objectnav_scene_path,
+)
 
 
 class ObjectNavExpertEnv(Protocol):
@@ -61,95 +66,116 @@ def build_hm3d_objectnav_episode_manifest(
     actions_dir.mkdir(parents=True, exist_ok=True)
     tmp_manifest_path = manifest_path.with_suffix(manifest_path.suffix + ".tmp")
 
-    selection_ids = (
-        load_objectnav_selection_ids(cfg.data)
+    selection_records = (
+        load_objectnav_selection_records(cfg.data)
         if cfg.data.episode_selection_manifest is not None
         else None
     )
-    owns_env = env is None
-    if env is None:
-        env = _open_habitat_env(cfg)
+    selection_ids = (
+        {record.source_trajectory_id for record in selection_records}
+        if selection_records is not None
+        else None
+    )
+    existing_records_by_id = (
+        _load_existing_payload_records(cfg, output_data_root, selection_records)
+        if selection_records is not None
+        else {}
+    )
+    remaining_selection_ids = (
+        selection_ids.difference(existing_records_by_id)
+        if selection_ids is not None
+        else None
+    )
+    if existing_records_by_id:
+        print(
+            json.dumps(
+                {
+                    "event": "hm3d_build_episodes_resume",
+                    "existing_payloads": len(existing_records_by_id),
+                    "remaining_selected": len(remaining_selection_ids or set()),
+                    "manifest_tmp": str(tmp_manifest_path),
+                },
+                sort_keys=True,
+            ),
+            flush=True,
+        )
+
+    owns_env = False
+    skipped = []
+    written = list(existing_records_by_id.values())
     if selection_ids is not None:
-        _filter_env_episodes_to_selection(env, selection_ids)
-    if follower is None:
-        follower = _build_shortest_path_follower(env, cfg)
-    seen_selection_ids = set()
-    written = []
+        seen_selection_ids = set(existing_records_by_id)
+    else:
+        seen_selection_ids = set()
     try:
         with tmp_manifest_path.open("w", encoding="utf-8") as handle:
-            total_episodes = len(env.episodes)
-            max_resets = total_episodes
-            if selection_ids is None and cfg.data.max_episodes is not None:
-                max_resets = min(max_resets, int(cfg.data.max_episodes))
-            skipped = []
-            for attempted in range(1, max_resets + 1):
-                observations = env.reset()
-                episode = env.current_episode
-                source_trajectory_id = objectnav_source_trajectory_id(episode)
-                if selection_ids is not None and source_trajectory_id not in selection_ids:
-                    continue
-                seen_selection_ids.add(source_trajectory_id)
-                try:
-                    with _episode_rollout_timeout(cfg, env):
-                        frames, actions = _rollout_shortest_path_episode(
-                            cfg, env, follower, observations
-                        )
-                except Exception as exc:
-                    skipped.append(source_trajectory_id)
-                    print(
-                        json.dumps(
-                            {
-                                "event": "hm3d_build_episodes_skip",
-                                "attempted": attempted,
-                                "source_trajectory_id": source_trajectory_id,
-                                "error_type": type(exc).__name__,
-                                "error": str(exc),
-                            },
-                            sort_keys=True,
-                        ),
-                        flush=True,
-                    )
-                    continue
-                payload_id = _safe_payload_id(source_trajectory_id)
-                rgb_rel = (
-                    Path("rgb") / cfg.data.dataset_name / cfg.data.split / f"{payload_id}.npy"
-                )
-                actions_rel = (
-                    Path("actions")
-                    / cfg.data.dataset_name
-                    / cfg.data.split
-                    / f"{payload_id}.npy"
-                )
-                np.save(resolve_data_path(output_data_root, rgb_rel), frames)
-                np.save(resolve_data_path(output_data_root, actions_rel), actions)
-                record = {
-                    "episode_id": payload_id,
-                    "split": cfg.data.split,
-                    "scene_id": str(getattr(episode, "scene_id")),
-                    "goal_text": str(getattr(episode, "object_category")),
-                    "rgb_path": str(rgb_rel),
-                    "actions_path": str(actions_rel),
-                    "source_dataset": "hm3d_objectnav_shortest_path",
-                    "source_trajectory_id": source_trajectory_id,
-                    "object_category": str(getattr(episode, "object_category")),
-                }
+            for record in written:
                 handle.write(json.dumps(record, sort_keys=True) + "\n")
-                handle.flush()
-                written.append(record)
-                if len(written) == 1 or len(written) % 25 == 0:
-                    print(
-                        json.dumps(
-                            {
-                                "event": "hm3d_build_episodes_progress",
-                                "attempted": attempted,
-                                "written": len(written),
-                                "skipped": len(skipped),
-                                "manifest_tmp": str(tmp_manifest_path),
-                            },
-                            sort_keys=True,
-                        ),
-                        flush=True,
-                    )
+
+            if remaining_selection_ids is None or remaining_selection_ids:
+                owns_env = env is None
+                if env is None:
+                    env = _open_habitat_env(cfg)
+                active_selection_ids = remaining_selection_ids or selection_ids
+                if active_selection_ids is not None:
+                    _filter_env_episodes_to_selection(env, active_selection_ids)
+                if follower is None:
+                    follower = _build_shortest_path_follower(env, cfg)
+                total_episodes = len(env.episodes)
+                max_resets = total_episodes
+                if selection_ids is None and cfg.data.max_episodes is not None:
+                    max_resets = min(max_resets, int(cfg.data.max_episodes))
+                for attempted in range(1, max_resets + 1):
+                    observations = env.reset()
+                    episode = env.current_episode
+                    source_trajectory_id = objectnav_source_trajectory_id(episode)
+                    if (
+                        active_selection_ids is not None
+                        and source_trajectory_id not in active_selection_ids
+                    ):
+                        continue
+                    seen_selection_ids.add(source_trajectory_id)
+                    try:
+                        with _episode_rollout_timeout(cfg, env):
+                            frames, actions = _rollout_shortest_path_episode(
+                                cfg, env, follower, observations
+                            )
+                    except Exception as exc:
+                        skipped.append(source_trajectory_id)
+                        print(
+                            json.dumps(
+                                {
+                                    "event": "hm3d_build_episodes_skip",
+                                    "attempted": attempted,
+                                    "source_trajectory_id": source_trajectory_id,
+                                    "error_type": type(exc).__name__,
+                                    "error": str(exc),
+                                },
+                                sort_keys=True,
+                            ),
+                            flush=True,
+                        )
+                        continue
+                    record = _episode_payload_record(cfg, source_trajectory_id, episode)
+                    np.save(resolve_data_path(output_data_root, record["rgb_path"]), frames)
+                    np.save(resolve_data_path(output_data_root, record["actions_path"]), actions)
+                    handle.write(json.dumps(record, sort_keys=True) + "\n")
+                    handle.flush()
+                    written.append(record)
+                    if len(written) == 1 or len(written) % 25 == 0:
+                        print(
+                            json.dumps(
+                                {
+                                    "event": "hm3d_build_episodes_progress",
+                                    "attempted": attempted,
+                                    "written": len(written),
+                                    "skipped": len(skipped),
+                                    "manifest_tmp": str(tmp_manifest_path),
+                                },
+                                sort_keys=True,
+                            ),
+                            flush=True,
+                        )
             if selection_ids is not None and seen_selection_ids != selection_ids:
                 missing_ids = sorted(selection_ids.difference(seen_selection_ids))
                 raise ValueError(
@@ -193,6 +219,74 @@ def _filter_env_episodes_to_selection(
             f"{sorted(missing_ids)[:5]}"
         )
     env.episodes = selected_episodes
+
+
+def _load_existing_payload_records(
+    cfg: TopoVLMConfig,
+    output_data_root: Path,
+    selection_records: list[ObjectNavSelectionRecord],
+) -> dict[str, dict[str, object]]:
+    records = {}
+    for selection_record in selection_records:
+        source_trajectory_id = selection_record.source_trajectory_id
+        record = _selection_payload_record(cfg, selection_record)
+        rgb_path = resolve_data_path(output_data_root, record["rgb_path"])
+        actions_path = resolve_data_path(output_data_root, record["actions_path"])
+        if _valid_npy_payload(rgb_path, expected_ndim=4) and _valid_npy_payload(
+            actions_path, expected_ndim=1
+        ):
+            records[source_trajectory_id] = record
+    return records
+
+
+def _selection_payload_record(
+    cfg: TopoVLMConfig, selection_record: ObjectNavSelectionRecord
+) -> dict[str, object]:
+    payload_id = _safe_payload_id(selection_record.source_trajectory_id)
+    rgb_rel = Path("rgb") / cfg.data.dataset_name / cfg.data.split / f"{payload_id}.npy"
+    actions_rel = (
+        Path("actions") / cfg.data.dataset_name / cfg.data.split / f"{payload_id}.npy"
+    )
+    return {
+        "episode_id": payload_id,
+        "split": cfg.data.split,
+        "scene_id": str(resolve_objectnav_scene_path(cfg.data, selection_record.scene_id)),
+        "goal_text": selection_record.object_category,
+        "rgb_path": str(rgb_rel),
+        "actions_path": str(actions_rel),
+        "source_dataset": "hm3d_objectnav_shortest_path",
+        "source_trajectory_id": selection_record.source_trajectory_id,
+        "object_category": selection_record.object_category,
+    }
+
+
+def _episode_payload_record(
+    cfg: TopoVLMConfig, source_trajectory_id: str, episode: object
+) -> dict[str, object]:
+    selection_record = ObjectNavSelectionRecord(
+        source_trajectory_id=source_trajectory_id,
+        episode_id=str(getattr(episode, "episode_id")),
+        scene_id=str(getattr(episode, "scene_id")),
+        object_category=str(getattr(episode, "object_category")),
+        shard_path="",
+    )
+    return _selection_payload_record(cfg, selection_record)
+
+
+def _valid_npy_payload(path: Path, *, expected_ndim: int) -> bool:
+    if not path.is_file() or path.stat().st_size <= 0:
+        return False
+    try:
+        array = np.load(path, mmap_mode="r")
+        try:
+            return array.ndim == expected_ndim
+        finally:
+            mmap_obj = getattr(array, "_mmap", None)
+            if mmap_obj is not None:
+                mmap_obj.close()
+            del array
+    except Exception:
+        return False
 
 
 def _rollout_shortest_path_episode(
