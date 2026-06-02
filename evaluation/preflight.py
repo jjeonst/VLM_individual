@@ -12,6 +12,7 @@ from data.habitat_manifest import (
     resolve_materialization_data_root,
 )
 from data.habitat_objectnav import load_objectnav_summary
+from data.habitat_objectnav import load_objectnav_selection_records
 from data.habitat_objectnav import load_objectnav_selection_summary
 from data.habitat_web import (
     load_habitat_web_selection_summary,
@@ -149,9 +150,28 @@ def run_pr2l_manifest_audit(
                 "missing_payload_count": 1,
             }
         raise FileNotFoundError(episode_manifest)
-    records = load_episode_records(episode_manifest)
+    all_records = load_episode_records(episode_manifest)
+    records = all_records
     if cfg.data.max_episodes is not None:
         records = records[: cfg.data.max_episodes]
+    selected_source_ids = set()
+    missing_selected_source_ids = []
+    if cfg.data.episode_selection_manifest is not None:
+        selection_records = load_objectnav_selection_records(cfg.data)
+        selected_source_ids = {record.source_trajectory_id for record in selection_records}
+        materialized_source_ids = {
+            record.source_trajectory_id
+            for record in all_records
+            if record.source_trajectory_id is not None
+        }
+        missing_selected_source_ids = sorted(
+            selected_source_ids.difference(materialized_source_ids)
+        )
+        if missing_selected_source_ids and not allow_missing_data:
+            raise FileNotFoundError(
+                "Missing selected source episodes in PR2L manifest: "
+                f"{missing_selected_source_ids[:5]}"
+            )
     missing_payloads = []
     scenes = set()
     objects = set()
@@ -165,8 +185,9 @@ def run_pr2l_manifest_audit(
                 missing_payloads.append(str(payload_path))
     if missing_payloads and not allow_missing_data:
         raise FileNotFoundError(f"Missing PR2L trajectory payloads: {missing_payloads[:5]}")
+    missing_count = len(missing_payloads) + len(missing_selected_source_ids)
     return {
-        "status": "ok" if not missing_payloads else "missing_allowed",
+        "status": "ok" if missing_count == 0 else "missing_allowed",
         "config_name": cfg.config_name,
         "source_data_root": str(source_data_root),
         "audit_data_root": str(audit_data_root),
@@ -174,6 +195,9 @@ def run_pr2l_manifest_audit(
         "records": len(records),
         "unique_scenes": len(scenes),
         "unique_object_categories": len(objects),
+        "selected_source_episodes": len(selected_source_ids),
+        "missing_selected_source_ids": missing_selected_source_ids[:20],
+        "missing_selected_source_count": len(missing_selected_source_ids),
         "missing_payloads": missing_payloads[:20],
         "missing_payload_count": len(missing_payloads),
     }

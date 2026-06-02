@@ -18,6 +18,60 @@ from training.runner import run_training
 
 
 class PR2LTrajectoryTest(unittest.TestCase):
+    def _build_pr2l_selection_gap_config(self, root: Path) -> TopoVLMConfig:
+        manifest_rel = "episodes/pr2l_hm3d_objectnav/train/manifest.jsonl"
+        selection_rel = "episode_selections/pr2l_hm3d_objectnav/train_subset.jsonl"
+        (root / "episodes/pr2l_hm3d_objectnav/train").mkdir(parents=True)
+        (root / "episode_selections/pr2l_hm3d_objectnav").mkdir(parents=True)
+        np.save(root / "rgb_episode_0.npy", np.zeros((1, 2, 2, 3), dtype="uint8"))
+        np.save(root / "actions_episode_0.npy", np.asarray([0], dtype="int64"))
+        (root / manifest_rel).write_text(
+            json.dumps(
+                {
+                    "episode_id": "episode_0",
+                    "split": "train",
+                    "scene_id": "scene_a/scene.glb",
+                    "goal_text": "chair",
+                    "rgb_path": "rgb_episode_0.npy",
+                    "actions_path": "actions_episode_0.npy",
+                    "source_dataset": "hm3d_objectnav_shortest_path",
+                    "source_trajectory_id": "scene_a/scene.glb:0",
+                    "object_category": "chair",
+                }
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        (root / selection_rel).write_text(
+            "".join(
+                json.dumps(record, sort_keys=True) + "\n"
+                for record in (
+                    {
+                        "source_trajectory_id": "scene_a/scene.glb:0",
+                        "episode_id": "0",
+                        "scene_id": "scene_a/scene.glb",
+                        "object_category": "chair",
+                        "shard_path": "content/scene_a.json.gz",
+                    },
+                    {
+                        "source_trajectory_id": "scene_b/scene.glb:1",
+                        "episode_id": "1",
+                        "scene_id": "scene_b/scene.glb",
+                        "object_category": "table",
+                        "shard_path": "content/scene_b.json.gz",
+                    },
+                )
+            ),
+            encoding="utf-8",
+        )
+        return TopoVLMConfig(
+            data=DataConfig(
+                data_root=str(root),
+                episodes_manifest=manifest_rel,
+                episode_selection_manifest=selection_rel,
+            )
+        )
+
     def test_pr2l_cache_builder_writes_node_action_graph(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
@@ -278,6 +332,60 @@ class PR2LTrajectoryTest(unittest.TestCase):
             self.assertEqual(cache_result["expected_records"], 1)
             self.assertEqual(cache_result["incomplete_record_count"], 0)
             self.assertEqual(cache_result["missing_graph_count"], 0)
+
+    def test_pr2l_manifest_audit_fails_when_selected_source_is_missing(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cfg = self._build_pr2l_selection_gap_config(Path(tmpdir))
+
+            with self.assertRaisesRegex(
+                FileNotFoundError, "Missing selected source episodes in PR2L manifest"
+            ):
+                run_pr2l_manifest_audit(cfg)
+
+    def test_pr2l_manifest_audit_allows_missing_selected_source_in_allow_mode(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cfg = self._build_pr2l_selection_gap_config(Path(tmpdir))
+
+            result = run_pr2l_manifest_audit(cfg, allow_missing_data=True)
+
+            self.assertEqual(result["status"], "missing_allowed")
+            self.assertEqual(result["records"], 1)
+            self.assertEqual(result["selected_source_episodes"], 2)
+            self.assertEqual(result["missing_selected_source_count"], 1)
+            self.assertEqual(result["missing_selected_source_ids"], ["scene_b/scene.glb:1"])
+            self.assertEqual(result["missing_payload_count"], 0)
+
+    def test_pr2l_manifest_audit_still_fails_on_missing_payload_path(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            (root / "episodes/pr2l_hm3d_objectnav/train").mkdir(parents=True)
+            (root / "actions").mkdir()
+            np.save(root / "actions/episode_0.npy", np.asarray([0], dtype="int64"))
+            (root / "episodes/pr2l_hm3d_objectnav/train/manifest.jsonl").write_text(
+                json.dumps(
+                    {
+                        "episode_id": "episode_0",
+                        "split": "train",
+                        "scene_id": "scene",
+                        "goal_text": "chair",
+                        "rgb_path": "rgb/missing_episode_0.npy",
+                        "actions_path": "actions/episode_0.npy",
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            cfg = TopoVLMConfig(
+                data=DataConfig(
+                    data_root=str(root),
+                    episodes_manifest="episodes/pr2l_hm3d_objectnav/train/manifest.jsonl",
+                )
+            )
+
+            with self.assertRaisesRegex(
+                FileNotFoundError, "Missing PR2L trajectory payloads"
+            ):
+                run_pr2l_manifest_audit(cfg)
 
     def test_cache_audit_detects_incomplete_graph_manifest(self):
         with tempfile.TemporaryDirectory() as tmpdir:
