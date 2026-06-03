@@ -126,6 +126,83 @@ class PR2LTrajectoryTest(unittest.TestCase):
             self.assertEqual(graph_payload["nodes"].shape[-2:], (4, 8))
             self.assertEqual(graph_payload["node_actions"].tolist(), [0])
 
+    def test_pr2l_cache_builder_respects_episode_selection_manifest(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            (root / "episodes/pr2l_hm3d_objectnav/train").mkdir(parents=True)
+            (root / "episode_selections/pr2l_hm3d_objectnav").mkdir(parents=True)
+            (root / "rgb").mkdir()
+            (root / "actions").mkdir()
+            np.save(root / "rgb/keep.npy", np.zeros((2, 2, 2, 3), dtype="uint8"))
+            np.save(root / "actions/keep.npy", np.asarray([1, 0], dtype="int64"))
+            np.save(root / "rgb/skip.npy", np.zeros((2, 2, 2, 3), dtype="uint8"))
+            np.save(root / "actions/skip.npy", np.asarray([2, 0], dtype="int64"))
+            (root / "episodes/pr2l_hm3d_objectnav/train/manifest.jsonl").write_text(
+                "".join(
+                    json.dumps(record, sort_keys=True) + "\n"
+                    for record in (
+                        {
+                            "episode_id": "episode_skip",
+                            "split": "train",
+                            "scene_id": "scene_skip",
+                            "goal_text": "sofa",
+                            "rgb_path": "rgb/skip.npy",
+                            "actions_path": "actions/skip.npy",
+                            "source_dataset": "hm3d_objectnav_shortest_path",
+                            "source_trajectory_id": "scene_skip:0",
+                            "object_category": "sofa",
+                        },
+                        {
+                            "episode_id": "episode_keep",
+                            "split": "train",
+                            "scene_id": "scene_keep",
+                            "goal_text": "chair",
+                            "rgb_path": "rgb/keep.npy",
+                            "actions_path": "actions/keep.npy",
+                            "source_dataset": "hm3d_objectnav_shortest_path",
+                            "source_trajectory_id": "scene_keep:0",
+                            "object_category": "chair",
+                        },
+                    )
+                ),
+                encoding="utf-8",
+            )
+            (root / "episode_selections/pr2l_hm3d_objectnav/train_subset.jsonl").write_text(
+                json.dumps({"source_trajectory_id": "scene_keep:0"}) + "\n",
+                encoding="utf-8",
+            )
+            cfg = TopoVLMConfig(
+                data=DataConfig(
+                    data_root=str(root),
+                    cache_format="pr2l_token_trajectory",
+                    episodes_manifest="episodes/pr2l_hm3d_objectnav/train/manifest.jsonl",
+                    episode_selection_manifest="episode_selections/pr2l_hm3d_objectnav/train_subset.jsonl",
+                    graph_manifest="graphs/pr2l/manifest.jsonl",
+                    graph_cache_dir="graphs/pr2l",
+                    embeddings_dir="embeddings/pr2l",
+                ),
+                model=ModelConfig(
+                    vlm=VLMConfig(
+                        representation="pr2l_visual_tokens_last_two_layers",
+                        projection="none",
+                        output_dim=8,
+                    ),
+                    policy=PolicyConfig(input_dim=8, prediction_target="nodes"),
+                ),
+            )
+
+            with patch("data.habitat_cache.build_vlm_encoder", return_value=_FakePR2LEncoder()):
+                result = build_habitat_graph_cache(cfg)
+
+            graph_records = [
+                json.loads(line)
+                for line in (root / "graphs/pr2l/manifest.jsonl")
+                .read_text(encoding="utf-8")
+                .splitlines()
+            ]
+            self.assertEqual(result["graphs_written"], 1)
+            self.assertEqual([record["episode_id"] for record in graph_records], ["episode_keep"])
+
     def test_pr2l_cache_builder_can_write_to_output_data_root(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             source_root = Path(tmpdir) / "source"

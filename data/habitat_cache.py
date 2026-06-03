@@ -33,6 +33,7 @@ def build_habitat_graph_cache(cfg: TopoVLMConfig) -> dict[str, object]:
     output_data_root = resolve_materialization_data_root(cfg.data.data_root)
     episode_manifest = resolve_data_path(data_root, cfg.data.episodes_manifest)
     records = load_episode_records(episode_manifest)
+    records = _filter_records_by_selection(cfg, records, data_root)
     if cfg.data.max_episodes is not None:
         records = records[: cfg.data.max_episodes]
     if not records:
@@ -126,6 +127,7 @@ def _build_pr2l_token_trajectory_cache(cfg: TopoVLMConfig) -> dict[str, object]:
     output_data_root = resolve_materialization_data_root(cfg.data.data_root)
     episode_manifest = resolve_data_path(data_root, cfg.data.episodes_manifest)
     records = load_episode_records(episode_manifest)
+    records = _filter_records_by_selection(cfg, records, data_root)
     if cfg.data.max_episodes is not None:
         records = records[: cfg.data.max_episodes]
     if not records:
@@ -385,6 +387,44 @@ def _apply_projection(tokens, projection, np):
     flat = tokens.reshape(-1, original_shape[-1]).astype("float32")
     projected = (flat - projection["mean"]) @ projection["components"].T
     return projected.reshape(*original_shape[:-1], projected.shape[-1])
+
+
+def _filter_records_by_selection(cfg: TopoVLMConfig, records, data_root: Path):
+    if cfg.data.episode_selection_manifest is None:
+        return records
+    selection_path = resolve_data_path(data_root, cfg.data.episode_selection_manifest)
+    selected_source_ids = []
+    with selection_path.open("r", encoding="utf-8") as handle:
+        for line in handle:
+            if not line.strip():
+                continue
+            raw = json.loads(line)
+            if "source_trajectory_id" not in raw:
+                raise ValueError(f"Selection record missing source_trajectory_id: {selection_path}")
+            selected_source_ids.append(str(raw["source_trajectory_id"]))
+
+    records_by_source_id = {}
+    duplicate_source_ids = []
+    for record in records:
+        if record.source_trajectory_id is None:
+            continue
+        if record.source_trajectory_id in records_by_source_id:
+            duplicate_source_ids.append(record.source_trajectory_id)
+        records_by_source_id[record.source_trajectory_id] = record
+    if duplicate_source_ids:
+        raise ValueError(f"Duplicate episode source_trajectory_id values: {duplicate_source_ids[:5]}")
+
+    selected_records = []
+    missing_source_ids = []
+    for source_id in selected_source_ids:
+        record = records_by_source_id.get(source_id)
+        if record is None:
+            missing_source_ids.append(source_id)
+        else:
+            selected_records.append(record)
+    if missing_source_ids:
+        raise FileNotFoundError(f"Missing selected episode records: {missing_source_ids[:10]}")
+    return selected_records
 
 
 def _representation_id(cfg: TopoVLMConfig) -> str:
