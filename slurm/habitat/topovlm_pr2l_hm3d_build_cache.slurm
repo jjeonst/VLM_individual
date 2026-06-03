@@ -1,7 +1,7 @@
 #!/bin/bash
 
-#SBATCH -p rtx5090
-#SBATCH --gres=gpu:rtx5090:1
+#SBATCH -p h200mig
+#SBATCH --gres=gpu:3g.71gb:1
 #SBATCH -J topovlm_pr2l_hm3d_build_cache
 #SBATCH --time=7-00:00:00
 #SBATCH -o /home/heejun/Projects/TopoVLM/artifacts/logs/slurm-%x-%j.out
@@ -18,7 +18,7 @@ if [ ! -w "/scratch"/"$USER" ]; then
   exit 34
 fi
 
-SOURCE_COMMIT="2e20d4e0e5bdd05b2252f36c819ab22d2025bc61"
+SOURCE_COMMIT="2a341cd145dcda3e42c67a79d8519c2095a739ca"
 if [[ ! "$SOURCE_COMMIT" =~ ^[0-9a-fA-F]{7,40}$ ]] || ! git -C "/home/heejun/Projects/TopoVLM" cat-file -e "$SOURCE_COMMIT^{commit}"; then
   echo "[blocker] SOURCE_COMMIT is not a valid commit: $SOURCE_COMMIT" >&2
   exit 32
@@ -46,7 +46,7 @@ cat > "$STAGE_MANIFEST" <<'JSON'
   "artifacts": [],
   "cache": {
     "code": {
-      "commit_path": "/scratch/$USER/workcache/TopoVLM/code/2e20d4e0e5bdd05b2252f36c819ab22d2025bc61",
+      "commit_path": "/scratch/$USER/workcache/TopoVLM/code/2a341cd145dcda3e42c67a79d8519c2095a739ca",
       "path": "/scratch/$USER/workcache/TopoVLM/code",
       "sync_delete": false
     },
@@ -65,9 +65,9 @@ cat > "$STAGE_MANIFEST" <<'JSON'
   },
   "code": {
     "source": "/home/heejun/Projects/TopoVLM",
-    "source_commit": "2e20d4e0e5bdd05b2252f36c819ab22d2025bc61",
+    "source_commit": "2a341cd145dcda3e42c67a79d8519c2095a739ca",
     "sync": "git_archive_commit_immutable_code",
-    "target": "/scratch/$USER/workcache/TopoVLM/code/2e20d4e0e5bdd05b2252f36c819ab22d2025bc61",
+    "target": "/scratch/$USER/workcache/TopoVLM/code/2a341cd145dcda3e42c67a79d8519c2095a739ca",
     "workdir": "$WORKDIR"
   },
   "data": [
@@ -98,7 +98,7 @@ cat > "$STAGE_MANIFEST" <<'JSON'
     }
   ],
   "flow_key": "topovlm_pr2l_hm3d_build_cache_${SLURM_JOB_ID}",
-  "generated_at_utc": "2026-06-03T07:24:30+00:00",
+  "generated_at_utc": "2026-06-03T08:46:03+00:00",
   "job_name": "topovlm_pr2l_hm3d_build_cache",
   "output": {
     "default_stageout": "/home/heejun/Projects/TopoVLM/artifacts/logs/slurm_outputs/topovlm_pr2l_hm3d_build_cache/${SLURM_JOB_ID}",
@@ -109,12 +109,8 @@ cat > "$STAGE_MANIFEST" <<'JSON'
   "schema_version": 1
 }
 JSON
-export WANDB_DIR="$RUN_OUTPUT_DIR/wandb"
-mkdir -p "$WANDB_DIR"
-if [ -f "$HOME/.config/wandb/apikey" ]; then
-  export WANDB_API_KEY="$(tr -d "[:space:]" < "$HOME/.config/wandb/apikey")"
-  export WANDB_SILENT=true
-fi
+export WANDB_MODE="disabled"
+export WANDB_SILENT=true
 
 write_stage_progress() {
   local phase="$1"
@@ -265,23 +261,6 @@ export RUN_LOCAL_DIR="$RUN_LOCAL_DIR"
 export PYTHONPATH="$WORKDIR:${PYTHONPATH:-}"
 export CHECKPOINT_DIR="$RUN_OUTPUT_DIR/checkpoints"
 mkdir -p "$CHECKPOINT_DIR" "$XDG_CACHE_HOME"
-
-test -f "artifacts/contracts/wandb_identity_contract.json"
-python - "artifacts/contracts/wandb_identity_contract.json" "habitat_bc" "topovlm" "TopoVLM" <<'PY'
-import json
-import sys
-
-contract_path, role_id, expected_entity, expected_project = sys.argv[1:]
-contract = json.load(open(contract_path, encoding='utf-8'))
-if contract.get('canonical_entity') != expected_entity:
-    raise SystemExit('contract entity mismatch')
-roles = {role.get('role_id'): role for role in contract.get('roles', [])}
-role = roles.get(role_id)
-if role is None:
-    raise SystemExit(f'missing contract role: {role_id}')
-if role.get('wandb_project') != expected_project:
-    raise SystemExit('contract project mismatch')
-PY
 
 CHECKPOINT_SYNC_DEST="/home/heejun/Projects/TopoVLM/artifacts/logs/slurm_outputs/topovlm_pr2l_hm3d_build_cache/"${SLURM_JOB_ID}"/checkpoints"
 export CHECKPOINT_SYNC_DEST
