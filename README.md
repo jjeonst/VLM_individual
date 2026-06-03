@@ -112,10 +112,11 @@ NumPy payloads directly under `/data/topovlm/habitat`, and records
 `episodes/pr2l_hm3d_objectnav/<split>/manifest.jsonl`. The existing canonical
 HM3D experiment YAMLs, `configs/exp/habitat/pr2l_hm3d_bc.yaml` and
 `configs/exp/habitat/pr2l_hm3d_bc_val.yaml`, carry the scene/object-balanced
-selection manifests with `balanced_subset_size: 7550`, matching the current
-PR2L-style selection scale instead of using a tiny prefix slice. This is the
-active TopoVLM development path; MP3D/Habitat-Web remains a separate
-external-data branch.
+selection manifests. The active train path uses a deterministic
+`balanced_subset_size: 6000` materialized HM3D subset after timeout-skipped
+shortest-path rollouts; this is a PR2L-style HM3D baseline, not a claim that the
+paper's Habitat-Web subset was exactly reproduced. This is the active TopoVLM
+development path; MP3D/Habitat-Web remains a separate external-data branch.
 
 Smoke and subset runs should be driven by `--debug`, tests, or explicit
 runtime/job manifests, not by extra experiment YAML files. Slurm is reserved for

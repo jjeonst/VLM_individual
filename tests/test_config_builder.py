@@ -35,9 +35,9 @@ class ConfigBuilderTest(unittest.TestCase):
         self.assertIsNone(cfg.data.max_episodes)
         self.assertEqual(
             cfg.data.episode_selection_manifest,
-            "episode_selections/pr2l_hm3d_objectnav/train_scene_object_balanced_7550.jsonl",
+            "episode_selections/pr2l_hm3d_objectnav/train_scene_object_balanced_6000.jsonl",
         )
-        self.assertEqual(cfg.data.balanced_subset_size, 7550)
+        self.assertEqual(cfg.data.balanced_subset_size, 6000)
         self.assertEqual(cfg.model.vlm.representation, "pr2l_visual_tokens_last_two_layers")
         self.assertEqual(cfg.model.vlm.hidden_layer_indices, [-2, -1])
         self.assertEqual(cfg.model.vlm.visual_pool_grid, 4)
@@ -108,9 +108,9 @@ class ConfigBuilderTest(unittest.TestCase):
 
         self.assertEqual(
             train_exp["data"]["episode_selection_manifest"],
-            "episode_selections/pr2l_hm3d_objectnav/train_scene_object_balanced_7550.jsonl",
+            "episode_selections/pr2l_hm3d_objectnav/train_scene_object_balanced_6000.jsonl",
         )
-        self.assertEqual(train_exp["data"]["balanced_subset_size"], 7550)
+        self.assertEqual(train_exp["data"]["balanced_subset_size"], 6000)
         self.assertEqual(
             val_exp["data"]["episode_selection_manifest"],
             "episode_selections/pr2l_hm3d_objectnav/val_scene_object_balanced_7550.jsonl",
