@@ -29,7 +29,7 @@ conda install -y pytorch==2.2.0 torchvision==0.17.0 torchaudio==2.2.0 pytorch-cu
 conda install -y "mkl<2025" "intel-openmp<2025" -c defaults
 python -m pip install --upgrade pip
 python -m pip install -e ".[dev,habitat]"
-python -m pip install "scikit-learn" "transformers==4.38.1" "huggingface-hub<1.0" "prismatic @ git+https://github.com/TRI-ML/prismatic-vlms.git"
+python -m pip install "transformers==4.38.1" "huggingface-hub<1.0" "prismatic @ git+https://github.com/TRI-ML/prismatic-vlms.git"
 ```
 
 See `docs/dependencies.md` for the dependency tiers and Habitat-Sim notes.

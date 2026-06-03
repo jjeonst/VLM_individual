@@ -10,7 +10,6 @@ dependencies = [
   "numpy",
   "Pillow",
   "PyYAML",
-  "scikit-learn",
   "torch",
   "wandb>=0.16",
 ]

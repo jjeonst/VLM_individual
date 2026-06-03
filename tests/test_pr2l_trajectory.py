@@ -10,7 +10,11 @@ import numpy as np
 import torch
 
 from configs.schema import DataConfig, ModelConfig, PolicyConfig, TopoVLMConfig, VLMConfig
-from data.habitat_cache import _load_or_fit_projection, build_habitat_graph_cache
+from data.habitat_cache import (
+    _fit_pca_projection,
+    _load_or_fit_projection,
+    build_habitat_graph_cache,
+)
 from data.habitat_dataset import HabitatGraphDataset, collate_graph_batch
 from evaluation.preflight import run_cache_audit, run_pr2l_manifest_audit
 from policies import build_policy
@@ -311,6 +315,28 @@ class PR2LTrajectoryTest(unittest.TestCase):
                 fit_projection.call_args.args[4],
                 output_root / "embeddings/pr2l_hm3d_bc/projection_pca.npz",
             )
+
+    def test_pr2l_pca_projection_uses_numpy_only(self):
+        sample_matrix = np.asarray(
+            [
+                [1.0, 0.0, 0.0],
+                [0.0, 1.0, 0.0],
+                [0.0, 0.0, 1.0],
+                [1.0, 1.0, 1.0],
+            ],
+            dtype="float32",
+        )
+
+        mean, components, explained_variance = _fit_pca_projection(sample_matrix, 2, np)
+
+        self.assertEqual(mean.dtype, np.float32)
+        self.assertEqual(components.dtype, np.float32)
+        self.assertEqual(explained_variance.dtype, np.float32)
+        self.assertEqual(mean.shape, (3,))
+        self.assertEqual(components.shape, (2, 3))
+        self.assertEqual(explained_variance.shape, (2,))
+        self.assertTrue(np.all(explained_variance >= 0))
+        self.assertTrue(np.allclose(components @ components.T, np.eye(2), atol=1e-5))
 
     def test_pr2l_cache_builder_fails_before_encoder_load_without_hf_token(self):
         with tempfile.TemporaryDirectory() as tmpdir:

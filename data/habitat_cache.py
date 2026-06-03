@@ -327,7 +327,6 @@ def _load_or_fit_projection(cfg, encoder, records, data_root, output_data_root):
 
 def _fit_projection(cfg, encoder, records, data_root, projection_path, np):
     from PIL import Image
-    from sklearn.decomposition import PCA
 
     samples = []
     sample_count = 0
@@ -356,20 +355,41 @@ def _fit_projection(cfg, encoder, records, data_root, projection_path, np):
         raise ValueError(
             f"projection_dim {cfg.model.vlm.projection_dim} exceeds max PCA rank {max_components}"
         )
-    pca = PCA(n_components=cfg.model.vlm.projection_dim, svd_solver="randomized", random_state=0)
-    pca.fit(sample_matrix)
+    mean, components, explained_variance = _fit_pca_projection(
+        sample_matrix, cfg.model.vlm.projection_dim, np
+    )
     projection_path.parent.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(
         projection_path,
-        mean=pca.mean_.astype("float32"),
-        components=pca.components_.astype("float32"),
-        explained_variance=pca.explained_variance_.astype("float32"),
+        mean=mean,
+        components=components,
+        explained_variance=explained_variance,
         sample_count=np.asarray(sample_matrix.shape[0], dtype=np.int64),
         raw_dim=np.asarray(sample_matrix.shape[1], dtype=np.int64),
         projection_dim=np.asarray(cfg.model.vlm.projection_dim, dtype=np.int64),
         representation_id=np.asarray(_representation_id(cfg)),
     )
     return _load_projection(projection_path, np)
+
+
+def _fit_pca_projection(sample_matrix, projection_dim, np):
+    sample_matrix = sample_matrix.astype("float32", copy=False)
+    mean = sample_matrix.mean(axis=0, dtype=np.float64).astype("float32")
+    centered = sample_matrix.astype("float32", copy=True)
+    centered -= mean
+    _, singular_values, vh = np.linalg.svd(centered, full_matrices=False)
+    components = vh[:projection_dim].astype("float32")
+    max_abs_columns = np.argmax(np.abs(components), axis=1)
+    signs = np.sign(components[np.arange(components.shape[0]), max_abs_columns])
+    signs[signs == 0] = 1
+    components *= signs[:, None]
+    if sample_matrix.shape[0] > 1:
+        explained_variance = (
+            singular_values[:projection_dim] ** 2 / (sample_matrix.shape[0] - 1)
+        ).astype("float32")
+    else:
+        explained_variance = np.zeros(projection_dim, dtype="float32")
+    return mean, components, explained_variance
 
 
 def _load_projection(path, np):
