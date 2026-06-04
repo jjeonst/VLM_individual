@@ -4,6 +4,7 @@ import tempfile
 import unittest
 from contextlib import redirect_stdout
 from pathlib import Path
+from unittest.mock import patch
 
 import numpy as np
 import yaml
@@ -74,6 +75,53 @@ class OfflineEvalTest(unittest.TestCase):
                     "label_counts": {"0": 1, "1": 2, "2": 1},
                 },
             )
+
+    def test_validate_offline_policy_eval_uses_explicit_output_data_root(self):
+        import torch
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            output_root = root / "stageout_data"
+            configured_root = root / "configured_data_root_without_cache"
+            manifest_path = output_root / "graphs" / "hm3d_val" / "manifest.jsonl"
+            checkpoint_dir = root / "checkpoint"
+            exp_path = root / "hm3d_val_exp.yaml"
+            graph_dir = output_root / "graphs" / "hm3d_val"
+            graph_dir.mkdir(parents=True)
+            checkpoint_dir.mkdir()
+            _write_graph_record(
+                manifest_path,
+                graph_dir / "episode_0.npz",
+                "episode_0",
+                target_action=1,
+                node_actions=np.asarray([1, 1, 2], dtype=np.int64),
+                action_mask=np.asarray([True, True, False], dtype=bool),
+            )
+            _write_exp_config(exp_path, configured_root)
+            cfg = build_config_from_exp(str(exp_path))
+            policy = build_policy(cfg.model.policy)
+            torch.save({"model": policy.state_dict()}, checkpoint_dir / "model.pt")
+
+            stdout = io.StringIO()
+            with patch.dict(
+                "os.environ",
+                {"TOPOVLM_DATA_OUTPUT_ROOT": str(output_root)},
+                clear=False,
+            ), redirect_stdout(stdout):
+                validate.main(
+                    [
+                        "--runner",
+                        "offline_policy_eval",
+                        "--exp",
+                        str(exp_path),
+                        "--checkpoint-dir",
+                        str(checkpoint_dir),
+                    ]
+                )
+            result = json.loads(stdout.getvalue())
+
+            self.assertEqual(result["status"], "ok")
+            self.assertEqual(result["examples"], 2)
 
 
 def _write_graph_record(

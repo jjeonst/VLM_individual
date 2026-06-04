@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from configs.schema import DataConfig
@@ -16,7 +17,8 @@ class HabitatGraphDataset:
 
         self._np = np
         self.config = config
-        self.data_root = Path(config.data_root)
+        explicit_data_root = os.environ.get("TOPOVLM_DATA_OUTPUT_ROOT")
+        self.data_root = Path(explicit_data_root) if explicit_data_root else Path(config.data_root)
         manifest = resolve_data_path(self.data_root, config.graph_manifest)
         self.records = load_graph_records(manifest)
         if config.max_episodes is not None:
