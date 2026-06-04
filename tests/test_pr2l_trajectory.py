@@ -207,6 +207,37 @@ class PR2LTrajectoryTest(unittest.TestCase):
             self.assertEqual(result["graphs_written"], 1)
             self.assertEqual([record["episode_id"] for record in graph_records], ["episode_keep"])
 
+    def test_pr2l_cache_builder_allows_missing_selected_episode_records(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            cfg = self._build_pr2l_selection_gap_config(root)
+            cfg.data.cache_format = "pr2l_token_trajectory"
+            cfg.data.allow_missing_selected_episode_records = True
+            cfg.data.graph_manifest = "graphs/pr2l/manifest.jsonl"
+            cfg.data.graph_cache_dir = "graphs/pr2l"
+            cfg.data.embeddings_dir = "embeddings/pr2l"
+            cfg.model = ModelConfig(
+                vlm=VLMConfig(
+                    representation="pr2l_visual_tokens_last_two_layers",
+                    projection="none",
+                    output_dim=8,
+                    weights_path=str(root / "fake_prismatic"),
+                ),
+                policy=PolicyConfig(input_dim=8, prediction_target="nodes"),
+            )
+
+            with patch("data.habitat_cache.build_vlm_encoder", return_value=_FakePR2LEncoder()):
+                result = build_habitat_graph_cache(cfg)
+
+            graph_records = [
+                json.loads(line)
+                for line in (root / "graphs/pr2l/manifest.jsonl")
+                .read_text(encoding="utf-8")
+                .splitlines()
+            ]
+            self.assertEqual(result["graphs_written"], 1)
+            self.assertEqual([record["episode_id"] for record in graph_records], ["episode_0"])
+
     def test_pr2l_cache_builder_can_write_to_output_data_root(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             source_root = Path(tmpdir) / "source"

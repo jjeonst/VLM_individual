@@ -443,6 +443,21 @@ def _filter_records_by_selection(cfg: TopoVLMConfig, records, data_root: Path):
         else:
             selected_records.append(record)
     if missing_source_ids:
+        if cfg.data.allow_missing_selected_episode_records:
+            print(
+                json.dumps(
+                    {
+                        "event": "missing_selected_episode_records_allowed",
+                        "materialized_selected_episode_records": len(selected_records),
+                        "missing_selected_episode_records": len(missing_source_ids),
+                        "selected_source_episodes": len(selected_source_ids),
+                        "selection_manifest": cfg.data.episode_selection_manifest,
+                    },
+                    sort_keys=True,
+                ),
+                flush=True,
+            )
+            return selected_records
         raise FileNotFoundError(f"Missing selected episode records: {missing_source_ids[:10]}")
     return selected_records
 

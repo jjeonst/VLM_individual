@@ -10,6 +10,7 @@ run_name: pr2l_hm3d_bc_val
 
 data:
   episode_selection_manifest: episode_selections/pr2l_hm3d_objectnav/val_scene_object_balanced_7550.jsonl
+  allow_missing_selected_episode_records: true
   balanced_subset_size: 7550
 
 eval:

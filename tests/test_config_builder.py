@@ -37,6 +37,7 @@ class ConfigBuilderTest(unittest.TestCase):
             cfg.data.episode_selection_manifest,
             "episode_selections/pr2l_hm3d_objectnav/train_scene_object_balanced_6000.jsonl",
         )
+        self.assertFalse(cfg.data.allow_missing_selected_episode_records)
         self.assertEqual(cfg.data.balanced_subset_size, 6000)
         self.assertEqual(cfg.model.vlm.representation, "pr2l_visual_tokens_last_two_layers")
         self.assertEqual(cfg.model.vlm.hidden_layer_indices, [-2, -1])
@@ -76,6 +77,7 @@ class ConfigBuilderTest(unittest.TestCase):
             cfg.data.episode_selection_manifest,
             "episode_selections/pr2l_hm3d_objectnav/val_scene_object_balanced_7550.jsonl",
         )
+        self.assertTrue(cfg.data.allow_missing_selected_episode_records)
         self.assertEqual(cfg.data.balanced_subset_size, 7550)
 
     def test_debug_overrides_are_operational(self):
@@ -116,6 +118,7 @@ class ConfigBuilderTest(unittest.TestCase):
             "episode_selections/pr2l_hm3d_objectnav/val_scene_object_balanced_7550.jsonl",
         )
         self.assertEqual(val_exp["data"]["balanced_subset_size"], 7550)
+        self.assertTrue(val_exp["data"]["allow_missing_selected_episode_records"])
         self.assertNotIn("episode_selection_manifest", train_data.get("data", {}))
         self.assertNotIn("balanced_subset_size", train_data.get("data", {}))
         self.assertNotIn("episode_selection_manifest", val_data.get("data", {}))
