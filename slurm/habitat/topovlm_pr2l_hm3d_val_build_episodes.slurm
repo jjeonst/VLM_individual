@@ -239,10 +239,15 @@ export RUN_ROOT="$RUN_ROOT"
 export OUTPUT_DIR="$RUN_OUTPUT_DIR"
 export TMPDIR="$RUN_TMP_DIR"
 export XDG_CACHE_HOME="$RUN_TMP_DIR/xdg"
+export HF_HOME="/data/topovlm/caches/huggingface"
+export HF_HUB_CACHE="$HF_HOME/hub"
+export HUGGINGFACE_HUB_CACHE="$HF_HUB_CACHE"
+export HF_XET_CACHE="$HF_HOME/xet"
+export HF_HUB_DISABLE_XET=1
 export RUN_LOCAL_DIR="$RUN_LOCAL_DIR"
 export PYTHONPATH="$WORKDIR:${PYTHONPATH:-}"
 export CHECKPOINT_DIR="$RUN_OUTPUT_DIR/checkpoints"
-mkdir -p "$CHECKPOINT_DIR" "$XDG_CACHE_HOME"
+mkdir -p "$CHECKPOINT_DIR" "$XDG_CACHE_HOME" "$HF_HUB_CACHE" "$HF_XET_CACHE"
 
 CHECKPOINT_SYNC_DEST="/home/heejun/Projects/TopoVLM/artifacts/logs/slurm_outputs/topovlm_pr2l_hm3d_val_build_episodes/"${SLURM_JOB_ID}"/checkpoints"
 export CHECKPOINT_SYNC_DEST
