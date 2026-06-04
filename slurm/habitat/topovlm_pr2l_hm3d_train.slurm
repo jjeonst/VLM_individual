@@ -18,7 +18,7 @@ if [ ! -w "/scratch"/"$USER" ]; then
   exit 34
 fi
 
-SOURCE_COMMIT="d3b2d725cd8c72f781fac5cf18e92fc3c5a11b1f"
+SOURCE_COMMIT="d0b35247bec0d3c1b5411045e5c6e36311309229"
 if [[ ! "$SOURCE_COMMIT" =~ ^[0-9a-fA-F]{7,40}$ ]] || ! git -C "/home/heejun/Projects/TopoVLM" cat-file -e "$SOURCE_COMMIT^{commit}"; then
   echo "[blocker] SOURCE_COMMIT is not a valid commit: $SOURCE_COMMIT" >&2
   exit 32
@@ -46,7 +46,7 @@ cat > "$STAGE_MANIFEST" <<'JSON'
   "artifacts": [],
   "cache": {
     "code": {
-      "commit_path": "/scratch/$USER/workcache/TopoVLM/code/d3b2d725cd8c72f781fac5cf18e92fc3c5a11b1f",
+      "commit_path": "/scratch/$USER/workcache/TopoVLM/code/d0b35247bec0d3c1b5411045e5c6e36311309229",
       "path": "/scratch/$USER/workcache/TopoVLM/code",
       "sync_delete": false
     },
@@ -65,20 +65,20 @@ cat > "$STAGE_MANIFEST" <<'JSON'
   },
   "code": {
     "source": "/home/heejun/Projects/TopoVLM",
-    "source_commit": "d3b2d725cd8c72f781fac5cf18e92fc3c5a11b1f",
+    "source_commit": "d0b35247bec0d3c1b5411045e5c6e36311309229",
     "sync": "git_archive_commit_immutable_code",
-    "target": "/scratch/$USER/workcache/TopoVLM/code/d3b2d725cd8c72f781fac5cf18e92fc3c5a11b1f",
+    "target": "/scratch/$USER/workcache/TopoVLM/code/d0b35247bec0d3c1b5411045e5c6e36311309229",
     "workdir": "$WORKDIR"
   },
   "data": [
     {
-      "reason": "Canonical HM3D PR2L graph cache for training",
-      "source": "/data/topovlm/habitat/graphs/pr2l_hm3d_bc",
+      "reason": "Audited materialized-6000 HM3D PR2L graph cache from cache build job 1519",
+      "source": "/home/heejun/Projects/TopoVLM/artifacts/logs/slurm_outputs/topovlm_pr2l_hm3d_build_cache/1519/data/topovlm/habitat/graphs/pr2l_hm3d_bc",
       "target": "topovlm/habitat/graphs/pr2l_hm3d_bc"
     }
   ],
   "flow_key": "topovlm_pr2l_hm3d_train_${SLURM_JOB_ID}",
-  "generated_at_utc": "2026-05-31T05:55:37+00:00",
+  "generated_at_utc": "2026-06-04T05:39:25+00:00",
   "job_name": "topovlm_pr2l_hm3d_train",
   "output": {
     "default_stageout": "/home/heejun/Projects/TopoVLM/artifacts/logs/slurm_outputs/topovlm_pr2l_hm3d_train/${SLURM_JOB_ID}",
@@ -224,7 +224,7 @@ rsync -a --human-readable --info=progress2 --stats --delete "$CODE_SOURCE/" "$WO
 write_stage_progress "stage_in" "done" "immutable_code"
 
 write_stage_progress "stage_in" "running" "readonly_inputs"
-stage_readonly_data "/data/topovlm/habitat/graphs/pr2l_hm3d_bc" "topovlm/habitat/graphs/pr2l_hm3d_bc"
+stage_readonly_data "/home/heejun/Projects/TopoVLM/artifacts/logs/slurm_outputs/topovlm_pr2l_hm3d_build_cache/1519/data/topovlm/habitat/graphs/pr2l_hm3d_bc" "topovlm/habitat/graphs/pr2l_hm3d_bc"
 write_stage_progress "stage_in" "done" "readonly_inputs"
 
 cd "$WORKDIR"
@@ -259,7 +259,7 @@ if role.get('wandb_project') != expected_project:
     raise SystemExit('contract project mismatch')
 PY
 
-CHECKPOINT_SYNC_DEST="/home/heejun/Projects/TopoVLM/artifacts/logs/slurm_outputs/topovlm_pr2l_hm3d_train/\${SLURM_JOB_ID}/checkpoints"
+CHECKPOINT_SYNC_DEST="/home/heejun/Projects/TopoVLM/artifacts/logs/slurm_outputs/topovlm_pr2l_hm3d_train/"${SLURM_JOB_ID}"/checkpoints"
 export CHECKPOINT_SYNC_DEST
 mkdir -p "$CHECKPOINT_SYNC_DEST"
 checkpoint_sync_loop() {
