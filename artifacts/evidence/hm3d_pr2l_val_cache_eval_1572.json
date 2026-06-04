@@ -1,0 +1,43 @@
+{
+  "artifact_type": "topovlm_hm3d_pr2l_val_cache_eval",
+  "classification": "evaluation_evidence",
+  "checked_at_utc": "2026-06-04T07:45:00+00:00",
+  "config_name": "habitat/pr2l_hm3d_bc_val",
+  "source_commit": "9fe7d4aa70fc3f7d0a3f52fa6818a49b3dc60eac",
+  "val_cache": {
+    "slurm_job_id": "1572",
+    "slurm_job_name": "topovlm_pr2l_hm3d_val_build_cache",
+    "gpu_request": "h200mig gres/gpu:3g.71gb:1",
+    "stage_out": "/home/heejun/Projects/TopoVLM/artifacts/logs/slurm_outputs/topovlm_pr2l_hm3d_val_build_cache/1572",
+    "graph_manifest": "/home/heejun/Projects/TopoVLM/artifacts/logs/slurm_outputs/topovlm_pr2l_hm3d_val_build_cache/1572/data/topovlm/habitat/graphs/pr2l_hm3d_bc/val/manifest.jsonl",
+    "records": 172,
+    "missing_graph_count": 0,
+    "incomplete_record_count": 0,
+    "observed_topovlm_vram_mib": 16616
+  },
+  "train_checkpoint": {
+    "slurm_job_id": "1566",
+    "checkpoint": "/home/heejun/Projects/TopoVLM/artifacts/logs/slurm_outputs/topovlm_pr2l_hm3d_train/1566/checkpoints/pr2l_hm3d_bc/seed_42/model.pt",
+    "observed_topovlm_vram_mib": 2262,
+    "wandb_run_url": "https://wandb.ai/topovlm/TopoVLM/runs/ta0nlxrc"
+  },
+  "offline_policy_eval": {
+    "status": "ok",
+    "examples": 2520,
+    "action_accuracy": 0.5392857142857143,
+    "majority_class_baseline": {
+      "name": "majority_class",
+      "action": 1,
+      "examples": 2520,
+      "correct": 1517,
+      "action_accuracy": 0.601984126984127,
+      "label_counts": {
+        "0": 56,
+        "1": 1517,
+        "2": 505,
+        "3": 442
+      }
+    }
+  },
+  "interpretation": "The HM3D validation cache and offline evaluation pipeline ran end to end, but the trained policy underperforms the majority-action baseline on this held-out cache."
+}
