@@ -38,6 +38,12 @@ def run_hm3d_branch_structure_analysis(cfg: TopoVLMConfig) -> dict[str, object]:
     first_turn_counts: Counter[str] = Counter()
     scene_object_first_turns: dict[tuple[str, str], set[str]] = defaultdict(set)
     scene_object_episode_counts: Counter[tuple[str, str]] = Counter()
+    object_first_turn_counts: dict[str, Counter[str]] = defaultdict(Counter)
+    object_episode_counts: Counter[str] = Counter()
+    length_bin_counts: Counter[str] = Counter()
+    length_bin_turn_run_starts: Counter[str] = Counter()
+    length_bin_turn_steps: Counter[str] = Counter()
+    length_bin_steps: Counter[str] = Counter()
     episode_lengths = []
     turn_step_count = 0
     turn_run_start_count = 0
@@ -47,10 +53,12 @@ def run_hm3d_branch_structure_analysis(cfg: TopoVLMConfig) -> dict[str, object]:
 
     for record in records:
         actions = _load_actions(data_root, record)
+        episode_turn_steps = sum(1 for action in actions if action in TURN_ACTIONS)
+        episode_turn_run_starts = _count_turn_run_starts(actions)
         episode_lengths.append(len(actions))
         action_counts.update(actions)
-        turn_step_count += sum(1 for action in actions if action in TURN_ACTIONS)
-        turn_run_start_count += _count_turn_run_starts(actions)
+        turn_step_count += episode_turn_steps
+        turn_run_start_count += episode_turn_run_starts
         inflection_count += _count_inflections(actions)
         if actions and actions[-1] == 0:
             terminal_stop_count += 1
@@ -63,6 +71,14 @@ def run_hm3d_branch_structure_analysis(cfg: TopoVLMConfig) -> dict[str, object]:
         group_key = (record.scene_id, record.object_category or record.goal_text)
         scene_object_first_turns[group_key].add(first_turn)
         scene_object_episode_counts[group_key] += 1
+        object_key = record.object_category or record.goal_text
+        object_first_turn_counts[object_key][first_turn] += 1
+        object_episode_counts[object_key] += 1
+        length_bin = _length_bin(len(actions))
+        length_bin_counts[length_bin] += 1
+        length_bin_turn_run_starts[length_bin] += episode_turn_run_starts
+        length_bin_turn_steps[length_bin] += episode_turn_steps
+        length_bin_steps[length_bin] += len(actions)
 
     total_steps = sum(episode_lengths)
     action_count_map = _named_action_counts(action_counts)
@@ -113,7 +129,26 @@ def run_hm3d_branch_structure_analysis(cfg: TopoVLMConfig) -> dict[str, object]:
             "scene_object_trajectory_diversity": _scene_object_diversity(
                 scene_object_episode_counts, scene_object_first_turns
             ),
+            "object_category_first_turn": _object_category_first_turn_summary(
+                object_episode_counts, object_first_turn_counts
+            ),
+            "length_bin_turn_pressure": _length_bin_turn_pressure(
+                length_bin_counts,
+                length_bin_turn_run_starts,
+                length_bin_turn_steps,
+                length_bin_steps,
+            ),
         },
+        "evidence_axes": _evidence_axes(
+            turn_run_start_count=turn_run_start_count,
+            total_steps=total_steps,
+            episodes=len(records),
+            first_turn_counts=first_turn_counts,
+            scene_object_episode_counts=scene_object_episode_counts,
+            scene_object_first_turns=scene_object_first_turns,
+            object_episode_counts=object_episode_counts,
+            object_first_turn_counts=object_first_turn_counts,
+        ),
         "interpretation_limits": [
             "Action-only shortest-path data can rank branch-candidate pressure but cannot prove true topological branch points.",
             "Scene/object action diversity is trajectory-family evidence, not same-state counterfactual evidence.",
@@ -195,6 +230,18 @@ def _first_turn_label(actions: list[int]) -> str:
     return "NO_TURN"
 
 
+def _length_bin(length: int) -> str:
+    if length <= 1:
+        return "1"
+    if length <= 32:
+        return "2-32"
+    if length <= 64:
+        return "33-64"
+    if length <= 128:
+        return "65-128"
+    return "129+"
+
+
 def _named_action_counts(counts: Counter[int]) -> dict[str, int]:
     return {ACTION_NAMES[action]: int(counts.get(action, 0)) for action in sorted(ACTION_NAMES)}
 
@@ -255,6 +302,137 @@ def _scene_object_diversity(
     }
 
 
+def _object_category_first_turn_summary(
+    episode_counts: Counter[str], first_turn_counts: dict[str, Counter[str]]
+) -> list[dict[str, object]]:
+    rows = []
+    for object_category, episode_count in episode_counts.items():
+        counts = first_turn_counts[object_category]
+        rows.append(
+            {
+                "object_category": object_category,
+                "episodes": int(episode_count),
+                "first_turn_counts": dict(sorted(counts.items())),
+                "first_turn_entropy_bits": _entropy_bits(
+                    Counter({index: count for index, count in enumerate(counts.values())})
+                ),
+            }
+        )
+    return sorted(
+        rows,
+        key=lambda row: (
+            -float(row["first_turn_entropy_bits"]),
+            -int(row["episodes"]),
+            str(row["object_category"]),
+        ),
+    )[:12]
+
+
+def _length_bin_turn_pressure(
+    bin_counts: Counter[str],
+    bin_turn_run_starts: Counter[str],
+    bin_turn_steps: Counter[str],
+    bin_steps: Counter[str],
+) -> list[dict[str, object]]:
+    rows = []
+    for label in ["1", "2-32", "33-64", "65-128", "129+"]:
+        episodes = bin_counts[label]
+        if episodes == 0:
+            continue
+        rows.append(
+            {
+                "length_bin": label,
+                "episodes": int(episodes),
+                "turn_run_starts_per_episode": _safe_fraction(
+                    bin_turn_run_starts[label], episodes
+                ),
+                "turn_step_fraction": _safe_fraction(bin_turn_steps[label], bin_steps[label]),
+            }
+        )
+    return rows
+
+
+def _evidence_axes(
+    *,
+    turn_run_start_count: int,
+    total_steps: int,
+    episodes: int,
+    first_turn_counts: Counter[str],
+    scene_object_episode_counts: Counter[tuple[str, str]],
+    scene_object_first_turns: dict[tuple[str, str], set[str]],
+    object_episode_counts: Counter[str],
+    object_first_turn_counts: dict[str, Counter[str]],
+) -> list[dict[str, object]]:
+    first_turn_turn_episodes = (
+        first_turn_counts.get("TURN_LEFT", 0) + first_turn_counts.get("TURN_RIGHT", 0)
+    )
+    multi_scene_object_groups = [
+        key for key, count in scene_object_episode_counts.items() if count >= 2
+    ]
+    diverse_scene_object_groups = [
+        key for key in multi_scene_object_groups if len(scene_object_first_turns[key]) >= 2
+    ]
+    diverse_object_categories = [
+        category
+        for category, count in object_episode_counts.items()
+        if count >= 10 and len(object_first_turn_counts[category]) >= 2
+    ]
+    return [
+        {
+            "axis": "turn-run pressure",
+            "evidence_status": "supports",
+            "readout": {
+                "turn_run_starts_per_episode": _safe_fraction(turn_run_start_count, episodes),
+                "turn_run_starts_per_100_steps": 100.0
+                * _safe_fraction(turn_run_start_count, total_steps),
+            },
+            "interpretation": "expert trajectories contain frequent transition points where local policy leaves forward-stable behavior",
+        },
+        {
+            "axis": "first-turn split",
+            "evidence_status": "supports",
+            "readout": {
+                "episodes_with_left_or_right_first_turn_fraction": _safe_fraction(
+                    first_turn_turn_episodes, episodes
+                ),
+                "left_first_turn_episodes": int(first_turn_counts.get("TURN_LEFT", 0)),
+                "right_first_turn_episodes": int(first_turn_counts.get("TURN_RIGHT", 0)),
+            },
+            "interpretation": "many episodes require an early left/right branch choice rather than only forward execution",
+        },
+        {
+            "axis": "same scene-object trajectory diversity",
+            "evidence_status": "mixed",
+            "readout": {
+                "diverse_groups": len(diverse_scene_object_groups),
+                "multi_episode_groups": len(multi_scene_object_groups),
+                "fraction": _safe_fraction(
+                    len(diverse_scene_object_groups), len(multi_scene_object_groups)
+                ),
+            },
+            "interpretation": "same scene/object families often contain different first-turn choices, but this is not same-state counterfactual evidence",
+        },
+        {
+            "axis": "object-category branch diversity",
+            "evidence_status": "mixed",
+            "readout": {
+                "diverse_object_categories_with_10plus_episodes": len(diverse_object_categories),
+                "object_categories": len(object_episode_counts),
+            },
+            "interpretation": "object category conditions branch distributions, but category alone is not a topology label",
+        },
+        {
+            "axis": "latent or policy representation separability",
+            "evidence_status": "insufficient",
+            "readout": {
+                "graph_cache_available": False,
+                "policy_logits_available": False,
+            },
+            "interpretation": "requires VLM/topology latent cache or trained policy logits; action-only expert manifest cannot answer this axis",
+        },
+    ]
+
+
 def _scope_from_config(cfg: TopoVLMConfig) -> str:
     return cfg.config_name.replace("/", "_")
 
@@ -278,6 +456,7 @@ def _write_result_manifest(cfg: TopoVLMConfig, result: dict[str, object]) -> Pat
         "data": result["data"],
         "operational_definition": result["operational_definition"],
         "metrics": result["metrics"],
+        "evidence_axes": result["evidence_axes"],
         "figures": result.get("figures", []),
         "interpretation_limits": result["interpretation_limits"],
         "next_gates": result["next_gates"],

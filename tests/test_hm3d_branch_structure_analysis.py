@@ -57,11 +57,26 @@ class HM3DBranchStructureAnalysisTest(unittest.TestCase):
             self.assertEqual(result["metrics"]["action_counts"]["TURN_RIGHT"], 1)
             self.assertEqual(result["metrics"]["turn_structure"]["turn_run_starts"], 2)
             self.assertEqual(
+                result["metrics"]["length_bin_turn_pressure"][0]["length_bin"], "2-32"
+            )
+            self.assertEqual(
                 result["metrics"]["scene_object_trajectory_diversity"][
                     "groups_with_first_turn_diversity"
                 ],
                 1,
             )
+            self.assertEqual(
+                [axis["axis"] for axis in result["evidence_axes"]],
+                [
+                    "turn-run pressure",
+                    "first-turn split",
+                    "same scene-object trajectory diversity",
+                    "object-category branch diversity",
+                    "latent or policy representation separability",
+                ],
+            )
+            self.assertEqual(result["evidence_axes"][0]["evidence_status"], "supports")
+            self.assertEqual(result["evidence_axes"][-1]["evidence_status"], "insufficient")
             result_manifest = artifact_dir / "result_manifest.json"
             self.assertEqual(result["result_manifest"], str(result_manifest))
             figure_path = artifact_dir / "branch_structure_summary.png"
@@ -74,6 +89,7 @@ class HM3DBranchStructureAnalysisTest(unittest.TestCase):
             self.assertEqual(manifest["artifact_type"], "topovlm_analysis_result_manifest")
             self.assertEqual(manifest["analysis_name"], "hm3d_branch_structure")
             self.assertEqual(manifest["durable_lane_roots"]["artifact_dir"], str(artifact_dir))
+            self.assertEqual(manifest["evidence_axes"], result["evidence_axes"])
             self.assertEqual(manifest["figures"], result["figures"])
             self.assertIn("not_claimed", manifest["operational_definition"])
 
