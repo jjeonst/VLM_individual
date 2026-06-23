@@ -13,12 +13,12 @@ from typing import Protocol
 import numpy as np
 
 from configs.schema import TopoVLMConfig
-from data.habitat_manifest import (
+from topovlm_data.habitat_manifest import (
     resolve_data_path,
     resolve_materialization_data_root,
     resolve_runtime_data_root,
 )
-from data.habitat_objectnav import (
+from topovlm_data.habitat_objectnav import (
     ObjectNavSelectionRecord,
     load_objectnav_selection_records,
     objectnav_source_trajectory_id,

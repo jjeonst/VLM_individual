@@ -10,12 +10,12 @@ import numpy as np
 import torch
 
 from configs.schema import DataConfig, ModelConfig, PolicyConfig, TopoVLMConfig, VLMConfig
-from data.habitat_cache import (
+from topovlm_data.habitat_cache import (
     _fit_pca_projection,
     _load_or_fit_projection,
     build_habitat_graph_cache,
 )
-from data.habitat_dataset import HabitatGraphDataset, collate_graph_batch
+from topovlm_data.habitat_dataset import HabitatGraphDataset, collate_graph_batch
 from evaluation.preflight import run_cache_audit, run_pr2l_manifest_audit
 from policies import build_policy
 from training.runner import run_training
@@ -122,7 +122,7 @@ class PR2LTrajectoryTest(unittest.TestCase):
                 ),
             )
 
-            with patch("data.habitat_cache.build_vlm_encoder", return_value=_FakePR2LEncoder()):
+            with patch("topovlm_data.habitat_cache.build_vlm_encoder", return_value=_FakePR2LEncoder()):
                 result = build_habitat_graph_cache(cfg)
 
             graph_payload = np.load(root / "graphs/pr2l/episode_0.npz")
@@ -133,6 +133,8 @@ class PR2LTrajectoryTest(unittest.TestCase):
     def test_pr2l_cache_builder_respects_episode_selection_manifest(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
+            hf_token_path = root / "hf_token"
+            hf_token_path.write_text("unit-test-token\n", encoding="utf-8")
             (root / "episodes/pr2l_hm3d_objectnav/train").mkdir(parents=True)
             (root / "episode_selections/pr2l_hm3d_objectnav").mkdir(parents=True)
             (root / "rgb").mkdir()
@@ -190,12 +192,13 @@ class PR2LTrajectoryTest(unittest.TestCase):
                         representation="pr2l_visual_tokens_last_two_layers",
                         projection="none",
                         output_dim=8,
+                        hf_token_path=str(hf_token_path),
                     ),
                     policy=PolicyConfig(input_dim=8, prediction_target="nodes"),
                 ),
             )
 
-            with patch("data.habitat_cache.build_vlm_encoder", return_value=_FakePR2LEncoder()):
+            with patch("topovlm_data.habitat_cache.build_vlm_encoder", return_value=_FakePR2LEncoder()):
                 result = build_habitat_graph_cache(cfg)
 
             graph_records = [
@@ -226,7 +229,7 @@ class PR2LTrajectoryTest(unittest.TestCase):
                 policy=PolicyConfig(input_dim=8, prediction_target="nodes"),
             )
 
-            with patch("data.habitat_cache.build_vlm_encoder", return_value=_FakePR2LEncoder()):
+            with patch("topovlm_data.habitat_cache.build_vlm_encoder", return_value=_FakePR2LEncoder()):
                 result = build_habitat_graph_cache(cfg)
 
             graph_records = [
@@ -241,7 +244,7 @@ class PR2LTrajectoryTest(unittest.TestCase):
     def test_pr2l_cache_builder_can_write_to_output_data_root(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             source_root = Path(tmpdir) / "source"
-            output_root = Path(tmpdir) / "outputs/data/topovlm/habitat"
+            output_root = Path(tmpdir) / "outputs/data/habitat"
             (source_root / "episodes/pr2l_habitat_web/train").mkdir(parents=True)
             (source_root / "rgb").mkdir()
             (source_root / "actions").mkdir()
@@ -285,7 +288,7 @@ class PR2LTrajectoryTest(unittest.TestCase):
                 ),
             )
 
-            with patch("data.habitat_cache.build_vlm_encoder", return_value=_FakePR2LEncoder()):
+            with patch("topovlm_data.habitat_cache.build_vlm_encoder", return_value=_FakePR2LEncoder()):
                 with patch.dict(os.environ, {"TOPOVLM_DATA_OUTPUT_ROOT": str(output_root)}):
                     result = build_habitat_graph_cache(cfg)
 
@@ -308,7 +311,7 @@ class PR2LTrajectoryTest(unittest.TestCase):
                 ),
             )
 
-            with patch("data.habitat_cache._fit_projection") as fit_projection:
+            with patch("topovlm_data.habitat_cache._fit_projection") as fit_projection:
                 with self.assertRaisesRegex(
                     FileNotFoundError,
                     "split=val.*embeddings/pr2l_hm3d_bc/projection_pca.npz",
@@ -336,7 +339,7 @@ class PR2LTrajectoryTest(unittest.TestCase):
             projection = {"mean": np.zeros(8), "components": np.zeros((4, 8))}
 
             with patch(
-                "data.habitat_cache._fit_projection", return_value=projection
+                "topovlm_data.habitat_cache._fit_projection", return_value=projection
             ) as fit_projection:
                 result = _load_or_fit_projection(cfg, None, [], root, output_root)
 
@@ -393,7 +396,7 @@ class PR2LTrajectoryTest(unittest.TestCase):
             )
 
             with patch.dict(os.environ, {"HOME": tmpdir}, clear=True):
-                with patch("data.habitat_cache.build_vlm_encoder") as build_encoder:
+                with patch("topovlm_data.habitat_cache.build_vlm_encoder") as build_encoder:
                     with self.assertRaisesRegex(FileNotFoundError, "meta-llama/Llama-2-7b-hf"):
                         build_habitat_graph_cache(cfg)
 
@@ -402,7 +405,7 @@ class PR2LTrajectoryTest(unittest.TestCase):
     def test_pr2l_audits_can_read_materialization_output_root(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             source_root = Path(tmpdir) / "source"
-            output_root = Path(tmpdir) / "outputs/data/topovlm/habitat"
+            output_root = Path(tmpdir) / "outputs/data/habitat"
             (output_root / "episodes/pr2l_habitat_web/train").mkdir(parents=True)
             (output_root / "rgb").mkdir()
             (output_root / "actions").mkdir()
@@ -716,6 +719,11 @@ class PR2LTrajectoryTest(unittest.TestCase):
                 result["history"][0]["examples"],
             )
             self.assertEqual(fake_wandb.run.logs[0]["step"], 1)
+            self.assertIn("source_commit", fake_wandb.init_kwargs["config"])
+            self.assertEqual(
+                fake_wandb.run.summary["source_commit"],
+                fake_wandb.init_kwargs["config"]["source_commit"],
+            )
             self.assertTrue(fake_wandb.run.finished)
             self.assertEqual(manifest["wandb"]["enabled"], True)
             self.assertEqual(manifest["wandb"]["run_id"], "fake-run-id")
@@ -737,6 +745,7 @@ class _FakeWandbRun:
     def __init__(self):
         self.logs = []
         self.finished = False
+        self.summary = {}
 
     def log(self, payload, step=None):
         self.logs.append({"payload": dict(payload), "step": step})

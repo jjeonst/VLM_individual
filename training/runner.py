@@ -7,11 +7,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from configs.schema import TopoVLMConfig
-from data.habitat_dataset import HabitatGraphDataset, collate_graph_batch
-from data.synthetic import SyntheticGraphDataset, collate_synthetic_batch
+from topovlm_data.habitat_dataset import HabitatGraphDataset, collate_graph_batch
+from topovlm_data.synthetic import SyntheticGraphDataset, collate_synthetic_batch
 from objectives import build_objective
 from policies import build_policy
-from utils.checkpoint_io import save_checkpoint
+from utils.checkpoint_io import resolve_source_commit, save_checkpoint
 from utils.randomness import seed_everything
 
 
@@ -128,13 +128,17 @@ def _start_wandb_run(cfg: TopoVLMConfig):
 
     if cfg.wandb_run_name is None:
         cfg.wandb_run_name = _default_wandb_run_name(cfg)
-    return wandb.init(
+    wandb_config = dataclasses.asdict(cfg)
+    wandb_config["source_commit"] = resolve_source_commit()
+    run = wandb.init(
         entity=cfg.wandb_entity,
         project=cfg.wandb_project,
         group=cfg.wandb_group,
         name=cfg.wandb_run_name,
-        config=dataclasses.asdict(cfg),
+        config=wandb_config,
     )
+    run.summary["source_commit"] = wandb_config["source_commit"]
+    return run
 
 
 def _default_wandb_run_name(cfg: TopoVLMConfig) -> str:

@@ -5,7 +5,11 @@ from pathlib import Path
 from unittest.mock import patch
 
 from configs.schema import ModelConfig, TopoVLMConfig, VLMConfig
-from encoders.prismatic import _read_token, inspect_prismatic_hf_auth
+from encoders.prismatic import (
+    _absolute_data_mirror_path,
+    _read_token,
+    inspect_prismatic_hf_auth,
+)
 from evaluation.preflight import run_vlm_auth_audit
 
 
@@ -59,7 +63,7 @@ class PrismaticEncoderTest(unittest.TestCase):
                 '{"model": {"llm_backbone_id": "llama2-7b-pure"}}\n',
                 encoding="utf-8",
             )
-            staged_path = "data/topovlm/vlm_weights/prismatic/prism-dinosiglip+7b"
+            staged_path = "data/unit_test_vlm_weights/prism-dinosiglip+7b"
 
             with patch("encoders.prismatic._absolute_data_mirror_path", return_value=weights):
                 audit = inspect_prismatic_hf_auth(
@@ -68,6 +72,16 @@ class PrismaticEncoderTest(unittest.TestCase):
 
             self.assertEqual(audit["llm_backbone_id"], "llama2-7b-pure")
             self.assertEqual(audit["model_config_path"], str(weights / "config.json"))
+
+    def test_absolute_data_mirror_uses_shared_topovlm_data_root(self):
+        mirror = _absolute_data_mirror_path(
+            "data/vlm_weights/prismatic/prism-dinosiglip+7b"
+        )
+
+        self.assertEqual(
+            mirror,
+            Path("/data/topovlm/data/vlm_weights/prismatic/prism-dinosiglip+7b"),
+        )
 
     def test_hf_auth_audit_reports_explicit_token_source(self):
         with tempfile.TemporaryDirectory() as tmpdir:

@@ -10,8 +10,10 @@ __pycache__/
 .venv/
 venv/
 
+data/**
 checkpoints/**
-!checkpoints/README.md
+artifacts/**
+slurm/
 wandb/
 logs/
 runtime/
@@ -26,17 +28,5 @@ runtime/
 *.tar.gz
 *.tar.gz.bak_*
 
-artifacts/logs/
-artifacts/evidence/
-artifacts/deprecated/
-!artifacts/README.md
-!artifacts/evidence/
-!artifacts/evidence/**/*.json
-!artifacts/contracts/
-!artifacts/contracts/README.md
-!artifacts/contracts/*.json
-
 *.slurm
-!slurm/**/*.slurm
 !individual_researcher_initial/*.slurm
-slurm/tarballs/

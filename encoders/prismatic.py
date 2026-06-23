@@ -248,7 +248,7 @@ def _absolute_data_mirror_path(path_value: str) -> Path | None:
     parts = path.parts
     if not parts or parts[0] != "data":
         return None
-    return Path("/").joinpath(*parts)
+    return Path("/data/topovlm/data").joinpath(*parts[1:])
 
 
 def _read_llm_backbone_id(config_path: Path) -> str:

@@ -11,7 +11,7 @@ from pathlib import Path
 import numpy as np
 
 from configs.schema import TopoVLMConfig
-from data.hm3d_objectnav_render import (
+from topovlm_data.hm3d_objectnav_render import (
     _configure_habitat_dataset,
     _filter_env_episodes_to_selection,
     build_hm3d_objectnav_episode_manifest,
@@ -209,20 +209,20 @@ class HM3DObjectNavRenderTest(unittest.TestCase):
     def test_habitat_dataset_split_follows_data_config(self):
         cfg = TopoVLMConfig()
         cfg.data.split = "val"
-        cfg.data.data_root = "/data/topovlm/habitat"
+        cfg.data.data_root = "data/habitat"
         habitat_config = types.SimpleNamespace(
             habitat=types.SimpleNamespace(
                 dataset=types.SimpleNamespace(
                     split="train",
                     data_path=(
-                        "/data/topovlm/habitat/datasets/objectnav/hm3d/v2/"
+                        "data/habitat/datasets/objectnav/hm3d/v2/"
                         "objectnav_hm3d_v2/{split}/{split}.json.gz"
                     ),
-                    scenes_dir="/data/topovlm/habitat/scene_datasets",
+                    scenes_dir="data/habitat/scene_datasets",
                 ),
                 simulator=types.SimpleNamespace(
                     scene_dataset=(
-                        "/data/topovlm/habitat/scene_datasets/hm3d_v0.2/"
+                        "data/habitat/scene_datasets/hm3d_v0.2/"
                         "hm3d_annotated_basis.scene_dataset_config.json"
                     )
                 ),

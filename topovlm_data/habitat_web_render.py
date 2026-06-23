@@ -10,9 +10,9 @@ from typing import Protocol
 import numpy as np
 
 from configs.schema import DataConfig, TopoVLMConfig
-from data.habitat_manifest import resolve_data_path, resolve_materialization_data_root
-from data.habitat_objectnav import resolve_objectnav_scene_path
-from data.habitat_web import (
+from topovlm_data.habitat_manifest import resolve_data_path, resolve_materialization_data_root
+from topovlm_data.habitat_objectnav import resolve_objectnav_scene_path
+from topovlm_data.habitat_web import (
     HABITAT_WEB_ACTION_TO_ID,
     HabitatWebReplayDataset,
     HabitatWebSelectionRecord,

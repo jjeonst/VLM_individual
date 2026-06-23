@@ -14,7 +14,7 @@ class DataConfig:
     domain: str = "habitat"
     trajectory_source: str = "objectnav_shortest_path"
     cache_format: str = "single_action_graph"
-    data_root: str = "/data/topovlm/habitat"
+    data_root: str = "data/habitat"
     habitat_config: str = "configs/habitat/pr2l_objectnav.yaml"
     split: str = "train"
     objectnav_dataset_dir: str = "datasets/objectnav/hm3d/v2/objectnav_hm3d_v2"
@@ -24,7 +24,7 @@ class DataConfig:
     graph_manifest: str = "graphs/prismatic_objectnav_train/manifest.jsonl"
     graph_cache_dir: str = "graphs/prismatic_objectnav_train"
     embeddings_dir: str = "embeddings/prismatic_objectnav_train"
-    vlm_weights_dir: str = "/data/topovlm/vlm_weights/prismatic"
+    vlm_weights_dir: str = "data/vlm_weights/prismatic"
     image_key: str = "rgb"
     image_height: int = 224
     image_width: int = 224
@@ -48,7 +48,7 @@ class VLMConfig:
 
     backend: str = "prismatic"
     model_id: str = "prism-dinosiglip+7b"
-    weights_path: str = "/data/topovlm/vlm_weights/prismatic/prism-dinosiglip+7b"
+    weights_path: str = "data/vlm_weights/prismatic/prism-dinosiglip+7b"
     hf_token_path: Optional[str] = None
     device: str = "cuda"
     dtype: str = "bfloat16"
@@ -149,7 +149,7 @@ class TopoVLMConfig:
     wandb_project: str = "TopoVLM"
     wandb_group: Optional[str] = "prismatic_graph_policy"
     wandb_run_name: Optional[str] = None
-    wandb_contract_path: str = "artifacts/contracts/wandb_identity_contract.json"
+    wandb_contract_path: str = "contracts/wandb_identity_contract.json"
     wandb_contract_role_id: str = "habitat_bc"
     output_root: str = "checkpoints"
     device: str = "cuda"

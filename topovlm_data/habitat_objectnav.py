@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Iterator
 
 from configs.schema import DataConfig
-from data.habitat_manifest import resolve_data_path
+from topovlm_data.habitat_manifest import resolve_data_path
 
 
 @dataclass(frozen=True)

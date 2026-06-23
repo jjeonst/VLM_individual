@@ -14,9 +14,9 @@ not a `src/` or `topovlm/` package wrapper.
 
 ## Setup
 
-Canonical development happens on `bmlslurm` in the `topovlm` conda environment.
+Canonical development happens on the BML code host in the `topovlm` conda environment.
 The canonical environment is Python 3.9 because `aihabitat` stable
-`habitat-sim 0.3.3` resolves to Python 3.9 builds on `bmlslurm`. Python 3.10
+`habitat-sim 0.3.3` resolves to Python 3.9 builds there. Python 3.10
 matched PR2L's public notebook setup, but Habitat-Sim is required for the
 Habitat-first runtime path.
 
@@ -36,8 +36,8 @@ See `docs/dependencies.md` for the dependency tiers and Habitat-Sim notes.
 
 ## W&B
 
-The repo-local W&B contract is `artifacts/contracts/wandb_identity_contract.json`.
-Dave selected the canonical entity `topovlm`. New W&B-backed runs must resolve
+The repo-local W&B contract is `contracts/wandb_identity_contract.json`.
+The canonical entity is `topovlm`. New W&B-backed runs must resolve
 entity/project/group/run names from that contract rather than command-line
 overrides.
 
@@ -60,15 +60,19 @@ runtime paths.
 
 Large shared payloads are external to the repo:
 
-- Habitat data: `/data/topovlm/habitat`
-- VLM weights/cache: `/data/topovlm/vlm_weights/<vlm_name>`
-- Checkpoints: repo-local ignored `checkpoints/` unless a Slurm wrapper supplies
-  `CHECKPOINT_DIR`; retained runs write `checkpoint_manifest.json` with config,
-  data/cache, W&B contract, source commit, selected checkpoint, and finality
-  metadata
+- `data -> /data/topovlm/data`
+- `checkpoints -> /data/topovlm/checkpoints`
+- `artifacts -> /data/topovlm/artifacts`
 
-Repo-owned durable records, contracts, and small manifests belong under
-`artifacts/`. Runtime code must not import from `artifacts/`.
+The shared data lane exposes Habitat data at `data/habitat` and VLM weights at
+`data/vlm_weights/<vlm_name>`. Retained training runs write checkpoints through
+`CHECKPOINT_DIR` when a scheduler wrapper provides it; otherwise they use the
+repo-local `checkpoints` symlink. Validation/evaluation jobs write durable
+result manifests through `ARTIFACT_DIR` when a scheduler wrapper provides it.
+
+Runtime contracts that define future runs belong under tracked source such as
+`contracts/`, not under `artifacts/`. Runtime code must not import from
+`data/`, `checkpoints/`, or `artifacts/`.
 
 ## Dataset License Boundary
 
@@ -107,7 +111,7 @@ python train.py --exp habitat/pr2l_hm3d_bc --mode train
 
 `build_episodes` opens the HM3D ObjectNav Habitat config, uses Habitat
 `ShortestPathFollower` to generate expert action trajectories, writes RGB/action
-NumPy payloads directly under `/data/topovlm/habitat`, and records
+NumPy payloads directly under `data/habitat`, and records
 `hm3d_objectnav_shortest_path` provenance in
 `episodes/pr2l_hm3d_objectnav/<split>/manifest.jsonl`. The existing canonical
 HM3D experiment YAMLs, `configs/exp/habitat/pr2l_hm3d_bc.yaml` and
@@ -121,29 +125,28 @@ development path; MP3D/Habitat-Web remains a separate external-data branch.
 Smoke and subset runs should be driven by `--debug`, tests, or explicit
 runtime/job manifests, not by extra experiment YAML files. Slurm is reserved for
 GPU-heavy `build_cache` and `train` jobs. For staged cache jobs, generated
-wrappers stage shared `/data/topovlm/...` inputs into job-local `data/...`;
-runtime path resolution maps canonical `/data/...` config paths to that staged
-mirror while stage-out materializers write bundles under
-`OUTPUT_DIR/data/topovlm/habitat`. After a staged `build_cache` job finishes,
+wrappers may stage shared inputs into job-local `data/...`; stage-out
+materializers write bundles under `OUTPUT_DIR/data/habitat`. After a staged
+`build_cache` job finishes,
 audit the bundle by setting `TOPOVLM_DATA_OUTPUT_ROOT` to the staged-out data
 root:
 
 ```bash
-TOPOVLM_DATA_OUTPUT_ROOT=<stageout>/data/topovlm/habitat python validate.py --runner pr2l_manifest_audit --exp habitat/pr2l_hm3d_bc
-TOPOVLM_DATA_OUTPUT_ROOT=<stageout>/data/topovlm/habitat python validate.py --runner cache_audit --exp habitat/pr2l_hm3d_bc
+TOPOVLM_DATA_OUTPUT_ROOT=<stageout>/data/habitat python validate.py --runner pr2l_manifest_audit --exp habitat/pr2l_hm3d_bc
+TOPOVLM_DATA_OUTPUT_ROOT=<stageout>/data/habitat python validate.py --runner cache_audit --exp habitat/pr2l_hm3d_bc
 ```
 
 ## Missing Live Inputs
 
 The current HM3D path needs these live inputs before real training or evaluation:
 
-- `/data/topovlm/habitat` with HM3D scenes and ObjectNav episodes.
-- `/data/topovlm/vlm_weights/prismatic/<model_id>` or Hugging Face access for Prismatic weights.
+- `data/habitat` with HM3D scenes and ObjectNav episodes.
+- `data/vlm_weights/prismatic/<model_id>` or Hugging Face access for Prismatic weights.
 - Generated shortest-path trajectory manifests under `episodes/pr2l_hm3d_objectnav/<split>/manifest.jsonl`.
 
 `objectnav_audit` opens the ObjectNav HM3D v2 shard files, samples one raw
 episode, and resolves its `scene_id` against the canonical HM3D scene layout
-under `/data/topovlm/habitat/scene_datasets/hm3d_v0.2`.
+under `data/habitat/scene_datasets/hm3d_v0.2`.
 
 ## Reference Prototype
 
@@ -154,6 +157,7 @@ TopoVLM runtime contract.
 
 ## Slurm Boundary
 
-Slurm scripts are generated under `slurm/habitat/` through the approved Slurm MCP
-after the repo is clean and committed. Do not submit scheduler jobs from the Mac
-mini or from ad hoc shell scripts.
+Slurm scripts are generated under ignored `slurm/` paths through the approved
+Slurm MCP after the repo is clean and committed. Generated `.slurm` files are
+not tracked source. Do not submit scheduler jobs from the Mac mini or from ad
+hoc shell scripts.

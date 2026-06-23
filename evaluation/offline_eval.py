@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import json
+import os
 from pathlib import Path
 
 from configs.schema import TopoVLMConfig
-from data.habitat_dataset import HabitatGraphDataset, collate_graph_batch
+from topovlm_data.habitat_dataset import HabitatGraphDataset, collate_graph_batch
 from policies import build_policy
+from utils.checkpoint_io import resolve_source_commit
 
 
 def run_offline_policy_eval(cfg: TopoVLMConfig, checkpoint_dir: str) -> dict[str, object]:
@@ -48,13 +51,49 @@ def run_offline_policy_eval(cfg: TopoVLMConfig, checkpoint_dir: str) -> dict[str
                 target = batch["target_action"].to(device)
                 correct += int((pred == target).sum().item())
                 total += int(target.numel())
-    return {
+    result = {
         "status": "ok",
         "checkpoint": str(checkpoint_path),
         "examples": total,
         "action_accuracy": correct / total if total else 0.0,
         "majority_class_baseline": majority_baseline,
     }
+    result_manifest = _write_artifact_result_manifest(cfg, result)
+    if result_manifest is not None:
+        result["result_manifest"] = str(result_manifest)
+    return result
+
+
+def _write_artifact_result_manifest(
+    cfg: TopoVLMConfig, result: dict[str, object]
+) -> Path | None:
+    artifact_dir = os.environ.get("ARTIFACT_DIR")
+    if artifact_dir is None:
+        return None
+    manifest_path = Path(artifact_dir) / "result_manifest.json"
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    manifest = {
+        "artifact_type": "topovlm_validation_result_manifest",
+        "schema_version": 1,
+        "status": result["status"],
+        "config_name": cfg.config_name,
+        "run_name": cfg.run_name,
+        "seed": cfg.seed,
+        "source_commit": resolve_source_commit(),
+        "checkpoint": result["checkpoint"],
+        "metrics": {
+            "examples": result["examples"],
+            "action_accuracy": result["action_accuracy"],
+            "majority_class_baseline": result["majority_class_baseline"],
+        },
+        "durable_lane_roots": {
+            "artifact_dir": str(Path(artifact_dir)),
+        },
+    }
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    return manifest_path
 
 
 def _compute_majority_action_baseline(

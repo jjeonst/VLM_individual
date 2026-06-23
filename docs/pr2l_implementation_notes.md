@@ -74,7 +74,7 @@ Current implementation pieces:
 
 Still missing live input:
 
-- HM3D scenes/ObjectNav shards must be materialized under `/data/topovlm/habitat`
+- HM3D scenes/ObjectNav shards must be materialized under `data/habitat`
   before live trajectory generation.
 - Prismatic still needs local weights plus Hugging Face access for the gated
   Llama 2 metadata path.

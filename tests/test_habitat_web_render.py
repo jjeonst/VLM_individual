@@ -9,7 +9,7 @@ from unittest.mock import patch
 import numpy as np
 
 from configs.schema import DataConfig, TopoVLMConfig
-from data.habitat_web_render import build_habitat_web_episode_manifest
+from topovlm_data.habitat_web_render import build_habitat_web_episode_manifest
 
 
 class HabitatWebRenderTest(unittest.TestCase):
@@ -329,7 +329,7 @@ class HabitatWebRenderTest(unittest.TestCase):
     def test_build_episode_manifest_can_write_to_output_data_root(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir) / "source"
-            output_root = Path(tmpdir) / "outputs/data/topovlm/habitat"
+            output_root = Path(tmpdir) / "outputs/data/habitat"
             split_dir = root / "sources/habitat_web/train_sample"
             content_dir = split_dir / "content"
             content_dir.mkdir(parents=True)

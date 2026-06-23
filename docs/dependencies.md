@@ -7,11 +7,11 @@ The canonical environment is `topovlm` with Python 3.9.
 Rationale:
 
 - Habitat-Sim is required for the Habitat-first runtime path.
-- On `bmlslurm`, `aihabitat` stable `habitat-sim 0.3.3` resolves to `py3.9` builds.
+- On the BML code host, `aihabitat` stable `habitat-sim 0.3.3` resolves to `py3.9` builds.
 - PyTorch 2.2.0, CUDA 11.8, Prismatic, and the TopoVLM package can run under Python 3.9.
 
 Python 3.10 and 3.12 are future compatibility targets only after Habitat-Sim,
-Prismatic import, and any `flash-attn` requirement are verified together on `bmlslurm`.
+Prismatic import, and any `flash-attn` requirement are verified together on the BML code host.
 
 ## Create From Commands
 
@@ -64,7 +64,7 @@ Required for prompt-conditioned VLM feature extraction:
 - Hugging Face access for gated language backbones when the selected model needs it
 
 `prism-dinosiglip+7b` uses the Llama2-7B-pure language backbone. Even when the
-Prismatic checkpoint is stored under `/data/topovlm/vlm_weights`, the loader may
+Prismatic checkpoint is stored under `data/vlm_weights`, the loader may
 need Hugging Face authorization for `meta-llama/Llama-2-7b-hf` tokenizer/config
 metadata. Do not commit tokens. Use one of these runtime credential routes:
 
@@ -112,7 +112,7 @@ python train.py --exp habitat/pr2l_hm3d_bc --mode preflight --allow-missing-data
 python validate.py --runner cache_audit --exp habitat/pr2l_hm3d_bc --allow-missing-data
 ```
 
-Full PR2L validation additionally needs real `/data/topovlm/habitat` payloads
+Full PR2L validation additionally needs real `data/habitat` payloads
 and Prismatic weights.
 
 ## Sources

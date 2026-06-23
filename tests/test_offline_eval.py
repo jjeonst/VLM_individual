@@ -46,9 +46,12 @@ class OfflineEvalTest(unittest.TestCase):
             cfg = build_config_from_exp(str(exp_path))
             policy = build_policy(cfg.model.policy)
             torch.save({"model": policy.state_dict()}, checkpoint_dir / "model.pt")
+            artifact_dir = root / "artifacts" / "validation"
 
             stdout = io.StringIO()
-            with redirect_stdout(stdout):
+            with patch.dict(
+                "os.environ", {"ARTIFACT_DIR": str(artifact_dir)}, clear=False
+            ), redirect_stdout(stdout):
                 validate.main(
                     [
                         "--runner",
@@ -64,6 +67,11 @@ class OfflineEvalTest(unittest.TestCase):
             self.assertEqual(result["status"], "ok")
             self.assertEqual(result["examples"], 4)
             self.assertIn("action_accuracy", result)
+            result_manifest = artifact_dir / "result_manifest.json"
+            self.assertEqual(result["result_manifest"], str(result_manifest))
+            manifest = json.loads(result_manifest.read_text(encoding="utf-8"))
+            self.assertEqual(manifest["artifact_type"], "topovlm_validation_result_manifest")
+            self.assertEqual(manifest["durable_lane_roots"]["artifact_dir"], str(artifact_dir))
             self.assertEqual(
                 result["majority_class_baseline"],
                 {

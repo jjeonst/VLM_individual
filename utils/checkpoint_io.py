@@ -61,7 +61,7 @@ def save_checkpoint(
             }
         ],
         "metrics": metrics,
-        "source_commit": _resolve_source_commit(),
+        "source_commit": resolve_source_commit(),
         "data": {
             "dataset_name": cfg.data.dataset_name,
             "cache_format": cfg.data.cache_format,
@@ -100,7 +100,9 @@ def save_checkpoint(
     return checkpoint_path
 
 
-def _resolve_source_commit() -> Optional[str]:
+def resolve_source_commit() -> Optional[str]:
+    """Return the source commit exposed by the scheduler or current Git checkout."""
+
     if os.environ.get("SOURCE_COMMIT"):
         return os.environ["SOURCE_COMMIT"]
     stage_manifest = os.environ.get("RUN_ROOT")

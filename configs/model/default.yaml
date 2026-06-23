@@ -2,7 +2,7 @@ model:
   vlm:
     backend: prismatic
     model_id: prism-dinosiglip+7b
-    weights_path: /data/topovlm/vlm_weights/prismatic/prism-dinosiglip+7b
+    weights_path: data/vlm_weights/prismatic/prism-dinosiglip+7b
     hf_token_path: null
     device: cuda
     dtype: bfloat16

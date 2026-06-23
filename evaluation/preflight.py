@@ -5,16 +5,16 @@ from __future__ import annotations
 from pathlib import Path
 
 from configs.schema import TopoVLMConfig
-from data.habitat_manifest import (
+from topovlm_data.habitat_manifest import (
     load_episode_records,
     load_graph_records,
     resolve_data_path,
     resolve_materialization_data_root,
 )
-from data.habitat_objectnav import load_objectnav_summary
-from data.habitat_objectnav import load_objectnav_selection_records
-from data.habitat_objectnav import load_objectnav_selection_summary
-from data.habitat_web import (
+from topovlm_data.habitat_objectnav import load_objectnav_summary
+from topovlm_data.habitat_objectnav import load_objectnav_selection_records
+from topovlm_data.habitat_objectnav import load_objectnav_selection_summary
+from topovlm_data.habitat_web import (
     load_habitat_web_selection_summary,
     load_habitat_web_inventory,
     load_habitat_web_summary,

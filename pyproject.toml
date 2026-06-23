@@ -26,11 +26,11 @@ dev = ["pytest", "ruff", "build"]
 [tool.setuptools]
 packages = [
   "configs",
-  "data",
   "encoders",
   "evaluation",
   "objectives",
   "policies",
+  "topovlm_data",
   "topology",
   "training",
   "utils",

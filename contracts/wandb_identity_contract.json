@@ -66,6 +66,18 @@
       "purpose": "Habitat ObjectNav behavior-cloning training, validation, and representation-cache diagnostics. W&B group is the model family, not the dataset, host, scheduler, or smoke state.",
       "role_id": "habitat_bc",
       "run_name_pattern": "{model_key}_seed{seed}_{timestamp}",
+      "source_commit_lineage": {
+        "approved_wandb_fields": [
+          "config.source_commit",
+          "summary.source_commit"
+        ],
+        "semantic_key": "source_commit",
+        "source_env": "SOURCE_COMMIT",
+        "writer_paths": [
+          "training/runner.py",
+          "utils/checkpoint_io.py"
+        ]
+      },
       "sweep_name_pattern": null,
       "wandb_project": "TopoVLM"
     },
@@ -107,6 +119,8 @@
     "configs/exp/habitat/pr2l_hm3d_bc.yaml",
     "configs/model/pr2l_prismatic_hm3d.yaml",
     "configs/train/pr2l_hm3d_bc.yaml",
+    "training/runner.py",
+    "utils/checkpoint_io.py",
     "sweep_wandb.py"
   ],
   "status": "active"

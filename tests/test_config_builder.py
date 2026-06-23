@@ -14,7 +14,7 @@ class ConfigBuilderTest(unittest.TestCase):
         self.assertEqual(cfg.data.dataset_name, "pr2l_hm3d_objectnav")
         self.assertEqual(cfg.data.trajectory_source, "objectnav_shortest_path")
         self.assertEqual(cfg.data.cache_format, "pr2l_token_trajectory")
-        self.assertEqual(cfg.data.data_root, "/data/topovlm/habitat")
+        self.assertEqual(cfg.data.data_root, "data/habitat")
         self.assertEqual(
             cfg.data.objectnav_dataset_dir,
             "datasets/objectnav/hm3d/v2/objectnav_hm3d_v2",
@@ -131,7 +131,7 @@ class ConfigBuilderTest(unittest.TestCase):
         self.assertEqual(cfg.data.dataset_name, "pr2l_habitat_web")
         self.assertEqual(cfg.data.trajectory_source, "habitat_web_replay")
         self.assertEqual(cfg.data.cache_format, "pr2l_token_trajectory")
-        self.assertEqual(cfg.data.data_root, "/data/topovlm/habitat")
+        self.assertEqual(cfg.data.data_root, "data/habitat")
         self.assertEqual(
             cfg.data.objectnav_dataset_dir,
             "sources/habitat_web_hf_metadata/objectnav/objectnav_mp3d_thda_70k",

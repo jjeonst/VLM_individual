@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 
 from configs.schema import TopoVLMConfig
-from data.habitat_manifest import (
+from topovlm_data.habitat_manifest import (
     load_episode_records,
     resolve_data_path,
     resolve_materialization_data_root,

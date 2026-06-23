@@ -1,31 +1,23 @@
 # TopoVLM Data Contract
 
 Large payloads are shared through `/data/topovlm`, not committed to this repo.
-The current `bmlslurm` surface uses `/data/topovlm` as the shared Habitat and
-VLM payload root.
+The repo exposes the shared lanes through symlinks at `data`, `checkpoints`,
+and `artifacts`.
 
 ## Root Layout
 
 ```text
 /data/topovlm/
-  habitat/
-    episodes/
-      train/manifest.jsonl
-      val/manifest.jsonl
-    rgb/
-    actions/
-    episode_selections/
-    scene_datasets/
-    graphs/
-    embeddings/
-  vlm_weights/
-    prismatic/
-      prism-dinosiglip+7b/
+  data/
+    habitat -> /data/topovlm/habitat
+    vlm_weights -> /data/topovlm/vlm_weights
+  checkpoints/
+  artifacts/
 ```
 
-`configs/data/default.yaml` is the canonical config entry for these paths.
-Runtime code resolves relative episode, graph, and embedding paths under
-`data_root`.
+`configs/data/default.yaml` is the canonical config entry for the repo-local
+`data/habitat` and `data/vlm_weights` paths. Runtime code resolves relative
+episode, graph, and embedding paths under `data_root`.
 
 ## Episode Manifest
 
@@ -51,13 +43,13 @@ lineage. The current HM3D path records `source_dataset` as
 For `trajectory_source: objectnav_shortest_path`, `train.py --mode
 build_episodes` opens the configured HM3D ObjectNav Habitat environment, uses
 Habitat `ShortestPathFollower`, and writes NumPy RGB/action arrays directly
-under `/data/topovlm/habitat`. The active canonical HM3D config caps this
-materialization at `data.max_episodes=512`; rendering the full raw train source
-requires an explicit sharded/selection plan. Action ids are: `STOP=0`,
-`MOVE_FORWARD=1`, `TURN_LEFT=2`, and `TURN_RIGHT=3`.
+under `data/habitat`. The active canonical HM3D experiment declares its selected
+subset in the exp YAML; rendering the full raw train source requires an explicit
+sharded/selection plan. Action ids are: `STOP=0`, `MOVE_FORWARD=1`,
+`TURN_LEFT=2`, and `TURN_RIGHT=3`.
 
 The deferred Habitat-Web source data is kept under
-`/data/topovlm/habitat/sources/habitat_web_hf_metadata`. Those source shards
+`data/habitat/sources/habitat_web_hf_metadata`. Those source shards
 store `reference_replay` action/state records, not embedded RGB frames. With
 `trajectory_source: habitat_web_replay`, `build_episodes` renders those replay
 states against MP3D scenes. Habitat-Web action ids additionally include
@@ -78,8 +70,8 @@ Staged materialization outputs are audited by pointing the existing validators a
 the output data root:
 
 ```bash
-TOPOVLM_DATA_OUTPUT_ROOT=<stageout>/data/topovlm/habitat python validate.py --runner pr2l_manifest_audit --exp habitat/pr2l_hm3d_bc
-TOPOVLM_DATA_OUTPUT_ROOT=<stageout>/data/topovlm/habitat python validate.py --runner cache_audit --exp habitat/pr2l_hm3d_bc
+TOPOVLM_DATA_OUTPUT_ROOT=<stageout>/data/habitat python validate.py --runner pr2l_manifest_audit --exp habitat/pr2l_hm3d_bc
+TOPOVLM_DATA_OUTPUT_ROOT=<stageout>/data/habitat python validate.py --runner cache_audit --exp habitat/pr2l_hm3d_bc
 ```
 
 For `cache_format: pr2l_token_trajectory`, graph cache payloads contain
@@ -99,11 +91,11 @@ and projection lineage.
 
 ## Still Missing
 
-- HM3D scene assets and ObjectNav episode shards under `/data/topovlm/habitat`.
+- HM3D scene assets and ObjectNav episode shards under `data/habitat`.
 - Prismatic VLM weights or Hugging Face access for the gated Llama 2 metadata.
 
 The deferred PR2L-faithful path also needs MP3D scene assets under
-`/data/topovlm/habitat/scene_datasets/mp3d`.
+`data/habitat/scene_datasets/mp3d`.
 
 ## PR2L Reference Targets
 

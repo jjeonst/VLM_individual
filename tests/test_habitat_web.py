@@ -5,8 +5,8 @@ import unittest
 from pathlib import Path
 
 from configs.schema import DataConfig
-from data.habitat_web import HABITAT_WEB_ACTION_TO_ID, is_git_lfs_pointer
-from data.habitat_web import (
+from topovlm_data.habitat_web import HABITAT_WEB_ACTION_TO_ID, is_git_lfs_pointer
+from topovlm_data.habitat_web import (
     build_habitat_web_balanced_selection_manifest,
     load_habitat_web_inventory,
     load_habitat_web_selection_summary,

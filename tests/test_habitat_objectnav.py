@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 
 from configs.schema import DataConfig
-from data.habitat_objectnav import (
+from topovlm_data.habitat_objectnav import (
     HabitatObjectNavDataset,
     build_objectnav_balanced_selection_manifest,
     objectnav_source_trajectory_id,
@@ -50,7 +50,7 @@ class HabitatObjectNavDatasetTest(unittest.TestCase):
             (),
             {
                 "scene_id": (
-                    "/data/topovlm/habitat/scene_datasets/hm3d_v0.2/"
+                    "data/habitat/scene_datasets/hm3d_v0.2/"
                     "train/00001-scene/scene.basis.glb"
                 ),
                 "episode_id": "7",
@@ -64,7 +64,7 @@ class HabitatObjectNavDatasetTest(unittest.TestCase):
         )
 
     def test_resolves_scene_path_with_data_scene_prefix(self):
-        config = DataConfig(data_root="/data/topovlm/habitat")
+        config = DataConfig(data_root="data/habitat")
         dataset_scene_id = "data/scene_datasets/hm3d/train/scene/scene.basis.glb"
 
         dataset = HabitatObjectNavDataset.__new__(HabitatObjectNavDataset)
@@ -72,7 +72,7 @@ class HabitatObjectNavDatasetTest(unittest.TestCase):
 
         self.assertEqual(
             str(dataset.resolve_scene_path(type("Episode", (), {"scene_id": dataset_scene_id})())),
-            "/data/topovlm/habitat/scene_datasets/hm3d/train/scene/scene.basis.glb",
+            "data/habitat/scene_datasets/hm3d/train/scene/scene.basis.glb",
         )
 
     def test_builds_scene_object_balanced_selection_manifest(self):

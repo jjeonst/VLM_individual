@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 
 from configs.schema import DataConfig
-from data.habitat_manifest import load_graph_records, resolve_data_path
+from topovlm_data.habitat_manifest import load_graph_records, resolve_data_path
 
 
 class HabitatGraphDataset:

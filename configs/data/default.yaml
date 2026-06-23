@@ -3,7 +3,7 @@ data:
   domain: habitat
   trajectory_source: objectnav_shortest_path
   cache_format: single_action_graph
-  data_root: /data/topovlm/habitat
+  data_root: data/habitat
   habitat_config: configs/habitat/pr2l_objectnav.yaml
   split: train
   objectnav_dataset_dir: datasets/objectnav/hm3d/v2/objectnav_hm3d_v2
@@ -13,7 +13,7 @@ data:
   graph_manifest: graphs/prismatic_objectnav_train/manifest.jsonl
   graph_cache_dir: graphs/prismatic_objectnav_train
   embeddings_dir: embeddings/prismatic_objectnav_train
-  vlm_weights_dir: /data/topovlm/vlm_weights/prismatic
+  vlm_weights_dir: data/vlm_weights/prismatic
   image_key: rgb
   image_height: 224
   image_width: 224
