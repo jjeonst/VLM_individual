@@ -77,19 +77,44 @@ class HM3DBranchStructureAnalysisTest(unittest.TestCase):
             )
             self.assertEqual(result["evidence_axes"][0]["evidence_status"], "supports")
             self.assertEqual(result["evidence_axes"][-1]["evidence_status"], "insufficient")
+            self.assertEqual(
+                [row["role"] for row in result["topology_role_evidence"]],
+                ["junction", "edge", "stem", "dead-end", "learned policy topology"],
+            )
+            self.assertEqual(result["topology_role_evidence"][0]["evidence_status"], "partial")
+            self.assertEqual(result["topology_role_evidence"][1]["evidence_status"], "visible")
+            self.assertEqual(
+                result["topology_role_evidence"][-1]["evidence_status"], "insufficient"
+            )
+            self.assertEqual(
+                result["metrics"]["policy_topology"]["first_after_stem"],
+                {"TURN_LEFT": 1, "TURN_RIGHT": 1},
+            )
+            self.assertIn(
+                "action_mode_prefix_tree",
+                result["metrics"]["policy_topology"],
+            )
             result_manifest = artifact_dir / "result_manifest.json"
             self.assertEqual(result["result_manifest"], str(result_manifest))
             figure_path = artifact_dir / "branch_structure_summary.png"
+            topology_figure_path = artifact_dir / "policy_topology_summary.png"
             self.assertEqual(
                 result["figures"],
-                [{"path": str(figure_path), "role": "branch_structure_summary"}],
+                [
+                    {"path": str(figure_path), "role": "branch_structure_summary"},
+                    {"path": str(topology_figure_path), "role": "policy_topology_summary"},
+                ],
             )
             self.assertTrue(figure_path.exists())
+            self.assertTrue(topology_figure_path.exists())
             manifest = json.loads(result_manifest.read_text(encoding="utf-8"))
             self.assertEqual(manifest["artifact_type"], "topovlm_analysis_result_manifest")
             self.assertEqual(manifest["analysis_name"], "hm3d_branch_structure")
             self.assertEqual(manifest["durable_lane_roots"]["artifact_dir"], str(artifact_dir))
             self.assertEqual(manifest["evidence_axes"], result["evidence_axes"])
+            self.assertEqual(
+                manifest["topology_role_evidence"], result["topology_role_evidence"]
+            )
             self.assertEqual(manifest["figures"], result["figures"])
             self.assertIn("not_claimed", manifest["operational_definition"])
 
