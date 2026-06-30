@@ -47,7 +47,7 @@ def load_graph_manifest(
 def select_scene_trajectory_records(
     data_root: str | Path = DEFAULT_DATA_ROOT,
     *,
-    max_trajectories: int = 6,
+    max_trajectories: int | None = 6,
     min_steps: int = 80,
     min_turns: int = 5,
     require_graph_cache: bool = True,
@@ -81,6 +81,8 @@ def select_scene_trajectory_records(
         ),
     )
     for group in ranked_groups:
+        if max_trajectories is None:
+            return _round_robin_first_turns(group, len(group))
         if len(group) >= max_trajectories:
             return _round_robin_first_turns(group, max_trajectories)
     best_group = ranked_groups[0]
@@ -134,9 +136,15 @@ def trajectory_labels(records: list[dict[str, object]]) -> dict[str, str]:
 
 
 def trajectory_colors(records: list[dict[str, object]]) -> dict[str, tuple[float, float, float, float]]:
-    cmap = plt.get_cmap("tab10")
+    if len(records) <= 20:
+        cmap = plt.get_cmap("tab20")
+        return {
+            str(record["episode_id"]): cmap((index - 1) % 20)
+            for index, record in enumerate(records, start=1)
+        }
+    cmap = plt.get_cmap("hsv")
     return {
-        str(record["episode_id"]): cmap((index - 1) % 10)
+        str(record["episode_id"]): cmap((index - 1) / max(len(records), 1))
         for index, record in enumerate(records, start=1)
     }
 
@@ -192,13 +200,37 @@ def replay_habitat_topdown(
         )
         if missing:
             raise ValueError(f"Habitat replay missed selected episodes: {sorted(missing)[:3]}")
-        topdown_map = maps.get_topdown_map_from_sim(env.sim, map_resolution=1024, draw_border=True)
+        trajectory_heights = np.concatenate(
+            [
+                trajectory["positions"][:, 1]
+                for trajectory in trajectories_by_episode_id.values()
+            ]
+        )
+        height_bin_meters = 0.5
+        height_bins = np.round(trajectory_heights / height_bin_meters)
+        map_heights = np.asarray(
+            [
+                float(np.median(trajectory_heights[height_bins == height_bin]))
+                for height_bin in np.unique(height_bins)
+            ],
+            dtype=np.float32,
+        )
+        topdown_layers = [
+            maps.get_topdown_map(
+                env.sim.pathfinder,
+                float(height),
+                map_resolution=1024,
+                draw_border=True,
+            )
+            for height in map_heights
+        ]
+        topdown_map = np.maximum.reduce(topdown_layers)
         for trajectory in trajectories_by_episode_id.values():
             trajectory["grid_positions"] = np.asarray(
                 [
                     maps.to_grid(
-                        float(position[0]),
                         float(position[2]),
+                        float(position[0]),
                         topdown_map.shape[:2],
                         sim=env.sim,
                     )
@@ -206,10 +238,22 @@ def replay_habitat_topdown(
                 ],
                 dtype=np.int64,
             )
+            height, width = topdown_map.shape[:2]
+            grid = trajectory["grid_positions"]
+            if (
+                np.any(grid[:, 0] < 0)
+                or np.any(grid[:, 0] >= height)
+                or np.any(grid[:, 1] < 0)
+                or np.any(grid[:, 1] >= width)
+            ):
+                raise ValueError(
+                    "Habitat replay produced trajectory coordinates outside the top-down map."
+                )
         return {
             "scene": scene_name(records[0]),
             "object": records[0].get("object_category", records[0]["goal_text"]),
             "topdown_map": topdown_map,
+            "topdown_map_heights": map_heights,
             "records": records,
             "trajectories": [
                 trajectories_by_episode_id[str(record["episode_id"])] for record in records
@@ -219,35 +263,47 @@ def replay_habitat_topdown(
         env.close()
 
 
-def plot_habitat_topdown(replay: dict[str, object]) -> tuple[plt.Figure, np.ndarray]:
+def plot_habitat_topdown(replay: dict[str, object]) -> tuple[plt.Figure, plt.Axes]:
     records = list(replay["records"])
     labels = trajectory_labels(records)
     colors = trajectory_colors(records)
-    fig, axes = plt.subplots(1, 2, figsize=(14, 6), constrained_layout=True)
-    axes[0].imshow(replay["topdown_map"], cmap="gray")
-    axes[0].set_title("Habitat top-down map")
-    axes[0].set_axis_off()
-    axes[1].set_title("World coordinates (x-z)")
-    axes[1].set_xlabel("x")
-    axes[1].set_ylabel("z")
+    fig, ax = plt.subplots(figsize=(10, 10), constrained_layout=True)
+    ax.imshow(replay["topdown_map"], cmap="gray", origin="upper")
+    ax.set_title(f"Habitat traversed-floor map with {len(records)} expert trajectories")
+    ax.set_axis_off()
     for trajectory in replay["trajectories"]:
         record = trajectory["record"]
         episode_id = str(record["episode_id"])
         color = colors[episode_id]
         label = labels[episode_id]
         grid = trajectory["grid_positions"]
-        positions = trajectory["positions"]
-        axes[0].plot(grid[:, 1], grid[:, 0], color=color, linewidth=2.0, alpha=0.95, label=label)
-        axes[0].scatter(grid[0, 1], grid[0, 0], color=color, s=42, marker="o")
-        axes[0].scatter(grid[-1, 1], grid[-1, 0], color=color, s=56, marker="x")
-        axes[1].plot(positions[:, 0], positions[:, 2], color=color, linewidth=2.0, alpha=0.95, label=label)
-        axes[1].scatter(positions[0, 0], positions[0, 2], color=color, s=42, marker="o")
-        axes[1].scatter(positions[-1, 0], positions[-1, 2], color=color, s=56, marker="x")
-    axes[1].axis("equal")
-    axes[1].legend(loc="best", fontsize=8)
-    axes[0].legend(loc="lower right", fontsize=8)
+        ax.plot(
+            grid[:, 1],
+            grid[:, 0],
+            color=color,
+            linewidth=1.8,
+            alpha=0.9,
+            label=label,
+        )
+        ax.scatter(
+            grid[0, 1],
+            grid[0, 0],
+            color=color,
+            s=42,
+            marker="o",
+            edgecolor="black",
+        )
+        ax.scatter(grid[-1, 1], grid[-1, 0], color=color, s=58, marker="x")
+    legend_columns = min(4, max(1, int(np.ceil(len(records) / 18))))
+    ax.legend(
+        loc="center left",
+        bbox_to_anchor=(1.01, 0.5),
+        fontsize=7,
+        ncol=legend_columns,
+        title="Trajectory",
+    )
     fig.suptitle(f"Same Habitat environment: {replay['scene']} / object={replay['object']}")
-    return fig, axes
+    return fig, ax
 
 
 def load_observation_feature_rows(
