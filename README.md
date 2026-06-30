@@ -28,7 +28,7 @@ conda install -y habitat-sim=0.3.3 withbullet -c conda-forge -c aihabitat
 conda install -y pytorch==2.2.0 torchvision==0.17.0 torchaudio==2.2.0 pytorch-cuda=11.8 -c pytorch -c nvidia
 conda install -y "mkl<2025" "intel-openmp<2025" -c defaults
 python -m pip install --upgrade pip
-python -m pip install -e ".[dev,habitat]"
+python -m pip install -e ".[dev,habitat,notebook]"
 python -m pip install "transformers==4.38.1" "huggingface-hub<1.0" "prismatic @ git+https://github.com/TRI-ML/prismatic-vlms.git"
 ```
 

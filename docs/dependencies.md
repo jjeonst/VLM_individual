@@ -2,7 +2,7 @@
 
 ## Decision
 
-The canonical environment is `topovlm` with Python 3.9.
+The canonical environment is `topovlm` with Python 3.9. Notebook use should select the `TopoVLM (py39)` kernel.
 
 Rationale:
 
@@ -25,7 +25,7 @@ conda install -y habitat-sim=0.3.3 withbullet -c conda-forge -c aihabitat
 conda install -y pytorch==2.2.0 torchvision==0.17.0 torchaudio==2.2.0 pytorch-cuda=11.8 -c pytorch -c nvidia
 conda install -y "mkl<2025" "intel-openmp<2025" -c defaults
 python -m pip install --upgrade pip
-python -m pip install -e ".[dev,habitat]"
+python -m pip install -e ".[dev,habitat,notebook]"
 python -m pip install "transformers==4.38.1" "huggingface-hub<1.0" "prismatic @ git+https://github.com/TRI-ML/prismatic-vlms.git"
 ```
 
@@ -44,12 +44,19 @@ and W&B dry-run plumbing:
 - `mkl<2025` and `intel-openmp<2025`; PyTorch 2.2.0 import fails on this host
   with `mkl 2025` because of the missing `iJIT_NotifyEvent` symbol
 - NumPy
-- Pillow
+- Pillow 10.4.0, matching Habitat-Sim 0.3.3 metadata
 - PyYAML
 - NumPy SVD for PR2L PCA projection fitting; avoid an extra scikit-learn
   dependency for this single projection step
 - W&B
 - pytest and ruff for development validation
+
+### Notebook
+
+Required only for opening and executing analysis notebooks in VS Code or Jupyter:
+
+- `ipykernel<7`, `jupyter_client<9`, and `jupyter_core<6` for the `TopoVLM (py39)` kernel
+- `matplotlib-inline<0.2`; newer `matplotlib-inline` expects `matplotlib.__version_info__`, which is absent from the current matplotlib 3.3 runtime
 
 ### Prismatic
 

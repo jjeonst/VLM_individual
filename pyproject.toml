@@ -9,7 +9,7 @@ requires-python = ">=3.9,<3.10"
 dependencies = [
   "numpy",
   "matplotlib",
-  "Pillow",
+  "Pillow==10.4.0",
   "PyYAML",
   "torch",
   "wandb>=0.16",
@@ -22,6 +22,7 @@ prismatic = [
   "huggingface-hub<1.0",
   "prismatic @ git+https://github.com/TRI-ML/prismatic-vlms.git",
 ]
+notebook = ["ipykernel<7", "jupyter_client<9", "jupyter_core<6", "matplotlib-inline<0.2"]
 dev = ["pytest", "ruff", "build"]
 
 [tool.setuptools]
