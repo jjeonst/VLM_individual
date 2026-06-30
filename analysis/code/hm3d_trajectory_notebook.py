@@ -14,6 +14,7 @@ from configs.builder import build_config_from_exp
 from topovlm_data.habitat_manifest import resolve_data_path
 
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
 ACTION_NAMES = {
     0: "STOP",
     1: "MOVE_FORWARD",
@@ -154,6 +155,9 @@ def replay_habitat_topdown(
     root = Path(data_root)
     cfg = build_config_from_exp(exp)
     cfg.data.data_root = str(root)
+    habitat_config = Path(cfg.data.habitat_config)
+    if not habitat_config.is_absolute():
+        cfg.data.habitat_config = str(REPO_ROOT / habitat_config)
     selection_ids = {str(record["source_trajectory_id"]) for record in records}
     record_by_source_id = {str(record["source_trajectory_id"]): record for record in records}
     env = _open_habitat_env(cfg)

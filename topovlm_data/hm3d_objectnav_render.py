@@ -358,14 +358,13 @@ def _configure_habitat_dataset(
 
     OmegaConf.set_readonly(habitat_config, False)
     habitat_config.habitat.dataset.split = cfg.data.split
-    if data_root != Path(cfg.data.data_root):
-        habitat_config.habitat.dataset.data_path = str(
-            data_root / cfg.data.objectnav_dataset_dir / "{split}" / "{split}.json.gz"
-        )
-        habitat_config.habitat.dataset.scenes_dir = str(data_root / "scene_datasets")
-        habitat_config.habitat.simulator.scene_dataset = str(
-            data_root / cfg.data.scene_dataset_config
-        )
+    habitat_config.habitat.dataset.data_path = str(
+        data_root / cfg.data.objectnav_dataset_dir / "{split}" / "{split}.json.gz"
+    )
+    habitat_config.habitat.dataset.scenes_dir = str(data_root / "scene_datasets")
+    habitat_config.habitat.simulator.scene_dataset = str(
+        data_root / cfg.data.scene_dataset_config
+    )
     OmegaConf.set_readonly(habitat_config, True)
 
 
