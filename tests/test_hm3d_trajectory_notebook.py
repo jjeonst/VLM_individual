@@ -5,7 +5,10 @@ from pathlib import Path
 
 import numpy as np
 
-from analysis.code.hm3d_trajectory_notebook import select_scene_trajectory_records
+from analysis.code.hm3d_trajectory_notebook import (
+    marker_legend_handles,
+    select_scene_trajectory_records,
+)
 
 
 class HM3DTrajectoryNotebookTest(unittest.TestCase):
@@ -27,6 +30,55 @@ class HM3DTrajectoryNotebookTest(unittest.TestCase):
 
             self.assertEqual([record["episode_id"] for record in records], ["0", "1", "2"])
             self.assertTrue(all(record["scene_id"] == "scene_a/scene.glb" for record in records))
+
+    def test_user_facing_notebooks_keep_inline_image_outputs_only(self):
+        repo_root = Path(__file__).resolve().parents[1]
+        notebook_paths = [
+            repo_root / "analysis/code/hm3d_01_environment_topdown_trajectories.ipynb",
+            repo_root / "analysis/code/hm3d_02_observation_latent_trajectories.ipynb",
+            repo_root / "analysis/code/hm3d_03_vlm_cached_latent_trajectories.ipynb",
+        ]
+
+        for notebook_path in notebook_paths:
+            with self.subTest(notebook=notebook_path.name):
+                notebook = json.loads(notebook_path.read_text())
+                code_cells = [
+                    cell for cell in notebook["cells"] if cell.get("cell_type") == "code"
+                ]
+                source = "\n".join("".join(cell.get("source", [])) for cell in code_cells)
+
+                self.assertIn("plt.show()", source)
+                self.assertIn("max_trajectories=None", source)
+                self.assertNotIn("save_figure", source)
+                self.assertNotIn("DEFAULT_RESULT_DIR", source)
+                self.assertNotIn("fig.savefig", source)
+
+                outputs = [
+                    output
+                    for cell in code_cells
+                    for output in cell.get("outputs", [])
+                ]
+                image_outputs = [
+                    output
+                    for output in outputs
+                    if "image/png" in output.get("data", {})
+                ]
+                stream_outputs = [
+                    output for output in outputs if output.get("output_type") == "stream"
+                ]
+                error_outputs = [
+                    output for output in outputs if output.get("output_type") == "error"
+                ]
+
+                self.assertEqual(len(image_outputs), 1)
+                self.assertEqual(stream_outputs, [])
+                self.assertEqual(error_outputs, [])
+
+    def test_marker_legend_names_start_and_endpoint(self):
+        labels = [handle.get_label() for handle in marker_legend_handles()]
+
+        self.assertEqual(labels, ["start pose (circle)", "endpoint / last pose (x)"])
+
 
 
 def _write_episode(

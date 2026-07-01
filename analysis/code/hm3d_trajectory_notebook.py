@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 import numpy as np
 from PIL import Image
 
@@ -264,6 +265,30 @@ def replay_habitat_topdown(
         env.close()
 
 
+def marker_legend_handles() -> list[Line2D]:
+    return [
+        Line2D(
+            [0],
+            [0],
+            marker="o",
+            color="none",
+            markerfacecolor="white",
+            markeredgecolor="black",
+            markersize=6,
+            label="start pose (circle)",
+        ),
+        Line2D(
+            [0],
+            [0],
+            marker="x",
+            color="black",
+            linestyle="none",
+            markersize=7,
+            label="endpoint / last pose (x)",
+        ),
+    ]
+
+
 def plot_habitat_topdown(replay: dict[str, object]) -> tuple[plt.Figure, plt.Axes]:
     records = list(replay["records"])
     labels = trajectory_labels(records)
@@ -296,14 +321,22 @@ def plot_habitat_topdown(replay: dict[str, object]) -> tuple[plt.Figure, plt.Axe
         )
         ax.scatter(grid[-1, 1], grid[-1, 0], color=color, s=58, marker="x")
     legend_columns = min(4, max(1, int(np.ceil(len(records) / 18))))
-    ax.legend(
+    trajectory_legend = ax.legend(
         loc="center left",
         bbox_to_anchor=(1.01, 0.5),
         fontsize=7,
         ncol=legend_columns,
         title="Trajectory",
     )
-    fig.suptitle(f"Same Habitat environment: {replay['scene']} / object={replay['object']}")
+    ax.add_artist(trajectory_legend)
+    ax.legend(
+        handles=marker_legend_handles(),
+        loc="upper left",
+        bbox_to_anchor=(1.01, 1.0),
+        fontsize=8,
+        title="Markers",
+    )
+    fig.suptitle(f"Same Habitat environment: {replay['scene']} ({len(records)} selected trajectories)")
     return fig, ax
 
 
@@ -390,7 +423,22 @@ def plot_embedding_trajectories(
     ax.set_xlabel("PC1")
     ax.set_ylabel("PC2")
     ax.set_title(title)
-    ax.legend(loc="best", fontsize=8)
+    legend_columns = min(4, max(1, int(np.ceil(len(records) / 18))))
+    trajectory_legend = ax.legend(
+        loc="center left",
+        bbox_to_anchor=(1.01, 0.5),
+        fontsize=7,
+        ncol=legend_columns,
+        title="Trajectory",
+    )
+    ax.add_artist(trajectory_legend)
+    ax.legend(
+        handles=marker_legend_handles(),
+        loc="upper left",
+        bbox_to_anchor=(1.01, 1.0),
+        fontsize=8,
+        title="Markers",
+    )
     return fig, ax
 
 
