@@ -9,6 +9,7 @@ import json
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+import matplotlib.patheffects as path_effects
 from matplotlib.lines import Line2D
 import numpy as np
 from PIL import Image
@@ -495,7 +496,7 @@ def marker_legend_handles() -> list[Line2D]:
             color="black",
             linestyle="none",
             markersize=7,
-            label="endpoint / last pose (x)",
+            label="agent STOP / last pose (x)",
         ),
         Line2D(
             [0],
@@ -505,7 +506,7 @@ def marker_legend_handles() -> list[Line2D]:
             markerfacecolor="white",
             linestyle="none",
             markersize=9,
-            label="goal position (star)",
+            label="object goal position (star)",
         ),
     ]
 
@@ -514,28 +515,50 @@ def plot_habitat_topdown(replay: dict[str, object]) -> tuple[plt.Figure, plt.Axe
     records = list(replay["records"])
     colors = group_shaded_trajectory_colors(records, alpha=0.85)
     unique_goal_count = _unique_goal_position_count(replay)
+    unique_stop_count = _unique_stop_position_count(replay)
     fig, ax = plt.subplots(figsize=(9.5, 9), constrained_layout=True)
     ax.imshow(replay["topdown_map"], cmap="gray", origin="upper")
     ax.set_title(
         f"{replay['scene']}: {len(records)} expert trajectories, "
-        f"{unique_goal_count} visible goal locations"
+        f"{unique_goal_count} object goals, {unique_stop_count} STOP poses"
     )
     ax.set_axis_off()
     for trajectory in replay["trajectories"]:
         record = trajectory["record"]
         color = colors[trajectory_record_key(record)]
         grid = trajectory["grid_positions"]
-        ax.plot(grid[:, 1], grid[:, 0], color=color, linewidth=0.75, alpha=0.82)
+        (line,) = ax.plot(
+            grid[:, 1],
+            grid[:, 0],
+            color=color,
+            linewidth=1.15,
+            alpha=0.9,
+            zorder=3,
+        )
+        line.set_path_effects(
+            [path_effects.Stroke(linewidth=2.0, foreground="white", alpha=0.35), path_effects.Normal()]
+        )
         ax.scatter(
             grid[0, 1],
             grid[0, 0],
             color=color,
-            s=25,
+            s=15,
             marker="o",
             edgecolor="black",
-            linewidth=0.4,
+            linewidth=0.35,
+            alpha=0.72,
+            zorder=4,
         )
-        ax.scatter(grid[-1, 1], grid[-1, 0], color=color, s=36, marker="x", linewidths=0.8)
+        ax.scatter(
+            grid[-1, 1],
+            grid[-1, 0],
+            color=color,
+            s=24,
+            marker="x",
+            linewidths=0.7,
+            alpha=0.82,
+            zorder=4,
+        )
     _annotate_goal_positions(ax, replay, records)
     group_legend = ax.legend(
         handles=group_legend_handles(records),
@@ -864,6 +887,15 @@ def _unique_goal_position_count(replay: dict[str, object]) -> int:
         goal = np.asarray(trajectory["goal_grid_position"], dtype=np.int64)
         goals.add((int(goal[0]), int(goal[1])))
     return len(goals)
+
+
+def _unique_stop_position_count(replay: dict[str, object]) -> int:
+    stops = set()
+    for trajectory in replay["trajectories"]:
+        grid = np.asarray(trajectory["grid_positions"], dtype=np.int64)
+        stop = grid[-1]
+        stops.add((int(stop[0]), int(stop[1])))
+    return len(stops)
 
 
 def _round_robin_first_turns(

@@ -120,6 +120,8 @@ def _write_scene_topdown_png(
     records = list(replay["records"])
     trajectories = list(replay["trajectories"])
     goal_positions = _scene_goal_positions(trajectories)
+    start_positions = _scene_endpoint_positions(trajectories, endpoint="start")
+    stop_positions = _scene_endpoint_positions(trajectories, endpoint="stop")
 
     fig, _ = plot_habitat_topdown(replay)
     png_path = scene_dir / f"{scene_index:03d}_{_safe_stem(scene)}.png"
@@ -131,8 +133,10 @@ def _write_scene_topdown_png(
         "png_path": str(png_path.relative_to(output_path)),
         "selected_episode_count": len(records),
         "object_categories": sorted(_scene_categories(records)),
+        "unique_start_position_count": len(start_positions),
         "unique_goal_position_count": len(goal_positions),
         "unique_goal_positions_grid": goal_positions,
+        "unique_stop_position_count": len(stop_positions),
     }
     print(
         json.dumps(
@@ -142,6 +146,7 @@ def _write_scene_topdown_png(
                 "png_path": str(png_path),
                 "selected_episode_count": len(records),
                 "unique_goal_position_count": len(goal_positions),
+                "unique_stop_position_count": len(stop_positions),
             },
             sort_keys=True,
         ),
@@ -162,6 +167,7 @@ def _write_manifest(
 ) -> dict[str, object]:
     scene_category_counts = Counter(len(figure["object_categories"]) for figure in figures)
     scene_goal_counts = Counter(int(figure["unique_goal_position_count"]) for figure in figures)
+    scene_stop_counts = Counter(int(figure["unique_stop_position_count"]) for figure in figures)
     selected_episode_count = sum(int(figure["selected_episode_count"]) for figure in figures)
     manifest = {
         "analysis_name": "hm3d_scene_topdown_trajectories",
@@ -183,6 +189,9 @@ def _write_manifest(
         },
         "goal_count_distribution": {
             str(key): scene_goal_counts[key] for key in sorted(scene_goal_counts)
+        },
+        "stop_count_distribution": {
+            str(key): scene_stop_counts[key] for key in sorted(scene_stop_counts)
         },
         "figures": figures,
     }
@@ -242,6 +251,20 @@ def _scene_goal_positions(trajectories: list[dict[str, object]]) -> list[list[in
         goal = np.asarray(trajectory["goal_grid_position"], dtype=np.int64)
         goals.add((int(goal[0]), int(goal[1])))
     return [[row, col] for row, col in sorted(goals)]
+
+
+def _scene_endpoint_positions(
+    trajectories: list[dict[str, object]], *, endpoint: str
+) -> list[list[int]]:
+    if endpoint not in {"start", "stop"}:
+        raise ValueError(f"Unknown trajectory endpoint: {endpoint}")
+    index = 0 if endpoint == "start" else -1
+    positions = set()
+    for trajectory in trajectories:
+        grid = np.asarray(trajectory["grid_positions"], dtype=np.int64)
+        point = grid[index]
+        positions.add((int(point[0]), int(point[1])))
+    return [[row, col] for row, col in sorted(positions)]
 
 
 def _safe_stem(value: str) -> str:

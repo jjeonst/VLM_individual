@@ -97,7 +97,11 @@ class HM3DTrajectoryNotebookTest(unittest.TestCase):
 
         self.assertEqual(
             labels,
-            ["start pose (circle)", "endpoint / last pose (x)", "goal position (star)"],
+            [
+                "start pose (circle)",
+                "agent STOP / last pose (x)",
+                "object goal position (star)",
+            ],
         )
 
     def test_objectnav_selection_key_includes_object_category(self):
@@ -197,10 +201,13 @@ class HM3DTrajectoryNotebookTest(unittest.TestCase):
             self.assertEqual(manifest["selected_episode_count"], 3)
             self.assertEqual(manifest["category_count_distribution"], {"1": 2})
             self.assertEqual(manifest["goal_count_distribution"], {"1": 2})
+            self.assertEqual(manifest["stop_count_distribution"], {"1": 1, "2": 1})
             self.assertEqual(len(manifest["figures"]), 2)
             self.assertTrue((root / "result_manifest.json").exists())
             for figure in manifest["figures"]:
                 self.assertTrue((root / figure["png_path"]).exists())
+                self.assertIn("unique_start_position_count", figure)
+                self.assertIn("unique_stop_position_count", figure)
 
     def test_scene_topdown_export_writes_scene_outputs_during_replay(self):
         with tempfile.TemporaryDirectory() as tmpdir:
