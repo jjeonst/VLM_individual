@@ -17,6 +17,7 @@ RUNNERS = (
     "cache_audit",
     "vlm_auth_audit",
     "hm3d_branch_structure",
+    "predictive_branching_datasets",
     "offline_policy_eval",
 )
 
@@ -76,6 +77,10 @@ def main(argv: list[str] | None = None) -> None:
         from analysis.code.hm3d_branch_structure import run_hm3d_branch_structure_analysis
 
         result = run_hm3d_branch_structure_analysis(cfg)
+    elif args.runner == "predictive_branching_datasets":
+        from analysis.code.predictive_branching_datasets import run_predictive_branching_dataset_analysis
+
+        result = run_predictive_branching_dataset_analysis(cfg)
     elif args.runner == "offline_policy_eval":
         if args.checkpoint_dir is None:
             raise ValueError("offline_policy_eval requires --checkpoint-dir")
