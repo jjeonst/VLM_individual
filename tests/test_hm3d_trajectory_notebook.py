@@ -2,12 +2,17 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 
 import numpy as np
 
+from analysis.code.export_hm3d_scene_topdown_pngs import write_scene_topdown_pngs
 from analysis.code.hm3d_trajectory_notebook import (
+    _episode_selection_key,
+    _selection_record_key,
     marker_legend_handles,
     select_scene_trajectory_records,
+    trajectory_record_key,
 )
 
 
@@ -38,6 +43,11 @@ class HM3DTrajectoryNotebookTest(unittest.TestCase):
             repo_root / "analysis/code/hm3d_02_observation_latent_trajectories.ipynb",
             repo_root / "analysis/code/hm3d_03_vlm_cached_latent_trajectories.ipynb",
         ]
+        minimum_image_outputs = {
+            "hm3d_01_environment_topdown_trajectories.ipynb": 2,
+            "hm3d_02_observation_latent_trajectories.ipynb": 1,
+            "hm3d_03_vlm_cached_latent_trajectories.ipynb": 1,
+        }
 
         for notebook_path in notebook_paths:
             with self.subTest(notebook=notebook_path.name):
@@ -48,7 +58,13 @@ class HM3DTrajectoryNotebookTest(unittest.TestCase):
                 source = "\n".join("".join(cell.get("source", [])) for cell in code_cells)
 
                 self.assertIn("plt.show()", source)
-                self.assertIn("max_trajectories=None", source)
+                if notebook_path.name == "hm3d_01_environment_topdown_trajectories.ipynb":
+                    self.assertIn("replay_selected_objectnav_scene_topdowns", source)
+                    self.assertIn("for replay in scene_replays", source)
+                    self.assertEqual(source.count("plt.show()"), 1)
+                    self.assertNotIn("plot_dataset_action_overview", source)
+                else:
+                    self.assertIn("max_trajectories=None", source)
                 self.assertNotIn("save_figure", source)
                 self.assertNotIn("DEFAULT_RESULT_DIR", source)
                 self.assertNotIn("fig.savefig", source)
@@ -70,15 +86,121 @@ class HM3DTrajectoryNotebookTest(unittest.TestCase):
                     output for output in outputs if output.get("output_type") == "error"
                 ]
 
-                self.assertEqual(len(image_outputs), 1)
+                self.assertGreaterEqual(
+                    len(image_outputs), minimum_image_outputs[notebook_path.name]
+                )
                 self.assertEqual(stream_outputs, [])
                 self.assertEqual(error_outputs, [])
 
     def test_marker_legend_names_start_and_endpoint(self):
         labels = [handle.get_label() for handle in marker_legend_handles()]
 
-        self.assertEqual(labels, ["start pose (circle)", "endpoint / last pose (x)"])
+        self.assertEqual(
+            labels,
+            ["start pose (circle)", "endpoint / last pose (x)", "goal position (star)"],
+        )
 
+    def test_objectnav_selection_key_includes_object_category(self):
+        scene_id = "hm3d_v0.2/train/00006-HkseAnWCgqk/HkseAnWCgqk.basis.glb"
+        chair_episode = SimpleNamespace(
+            scene_id=scene_id,
+            episode_id="0",
+            object_category="chair",
+        )
+        toilet_episode = SimpleNamespace(
+            scene_id=scene_id,
+            episode_id="0",
+            object_category="toilet",
+        )
+
+        self.assertNotEqual(
+            _episode_selection_key(chair_episode),
+            _episode_selection_key(toilet_episode),
+        )
+        self.assertEqual(
+            _selection_record_key(
+                SimpleNamespace(
+                    source_trajectory_id=_episode_selection_key(chair_episode)[0],
+                    object_category="chair",
+                )
+            ),
+            _episode_selection_key(chair_episode),
+        )
+
+    def test_trajectory_record_key_separates_repeated_episode_ids(self):
+        chair_record = {
+            "episode_id": "0",
+            "scene_id": "hm3d_v0.2/train/00006-HkseAnWCgqk/HkseAnWCgqk.basis.glb",
+            "goal_text": "chair",
+            "source_trajectory_id": "scene_a:0",
+            "object_category": "chair",
+        }
+        toilet_record = {
+            "episode_id": "0",
+            "scene_id": "hm3d_v0.2/train/00006-HkseAnWCgqk/HkseAnWCgqk.basis.glb",
+            "goal_text": "toilet",
+            "source_trajectory_id": "scene_a:0",
+            "object_category": "toilet",
+        }
+        other_scene_record = {
+            "episode_id": "0",
+            "scene_id": "hm3d_v0.2/train/00024-3XYAD64HpDr/3XYAD64HpDr.basis.glb",
+            "goal_text": "chair",
+            "source_trajectory_id": "scene_b:0",
+            "object_category": "chair",
+        }
+
+        keys = {
+            trajectory_record_key(chair_record),
+            trajectory_record_key(toilet_record),
+            trajectory_record_key(other_scene_record),
+        }
+
+        self.assertEqual(len(keys), 3)
+
+    def test_scene_topdown_export_writes_manifest_and_pngs(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            scene_replays = [
+                {
+                    "scene": "00006-HkseAnWCgqk",
+                    "topdown_map": np.zeros((24, 24), dtype=np.uint8),
+                    "records": [
+                        _plot_record("0", "chair", "scene_a:0"),
+                        _plot_record("1", "chair", "scene_a:1"),
+                    ],
+                    "trajectories": [
+                        _trajectory("0", "chair", "scene_a:0", [[3, 3], [5, 5]], [8, 8]),
+                        _trajectory("1", "chair", "scene_a:1", [[4, 3], [6, 5]], [8, 8]),
+                    ],
+                },
+                {
+                    "scene": "00024-3XYAD64HpDr",
+                    "topdown_map": np.zeros((24, 24), dtype=np.uint8),
+                    "records": [_plot_record("2", "bed", "scene_b:2")],
+                    "trajectories": [
+                        _trajectory("2", "bed", "scene_b:2", [[10, 10], [12, 11]], [14, 15])
+                    ],
+                },
+            ]
+
+            manifest = write_scene_topdown_pngs(
+                scene_replays,
+                root,
+                data_root="data/habitat",
+                exp="habitat/pr2l_hm3d_bc",
+                dpi=80,
+                command=["python", "analysis/code/export_hm3d_scene_topdown_pngs.py"],
+            )
+
+            self.assertEqual(manifest["scene_count"], 2)
+            self.assertEqual(manifest["selected_episode_count"], 3)
+            self.assertEqual(manifest["category_count_distribution"], {"1": 2})
+            self.assertEqual(manifest["goal_count_distribution"], {"1": 2})
+            self.assertEqual(len(manifest["figures"]), 2)
+            self.assertTrue((root / "result_manifest.json").exists())
+            for figure in manifest["figures"]:
+                self.assertTrue((root / figure["png_path"]).exists())
 
 
 def _write_episode(
@@ -106,3 +228,32 @@ def _write_episode(
     }
     with manifest_path.open("a", encoding="utf-8") as handle:
         handle.write(json.dumps(record, sort_keys=True) + "\n")
+
+
+def _plot_record(
+    episode_id: str,
+    object_category: str,
+    source_trajectory_id: str,
+) -> dict[str, object]:
+    return {
+        "episode_id": episode_id,
+        "scene_id": "hm3d_v0.2/train/00006-HkseAnWCgqk/HkseAnWCgqk.basis.glb",
+        "goal_text": object_category,
+        "object_category": object_category,
+        "source_trajectory_id": source_trajectory_id,
+    }
+
+
+def _trajectory(
+    episode_id: str,
+    object_category: str,
+    source_trajectory_id: str,
+    grid_positions: list[list[int]],
+    goal_grid_position: list[int],
+) -> dict[str, object]:
+    record = _plot_record(episode_id, object_category, source_trajectory_id)
+    return {
+        "record": record,
+        "grid_positions": np.asarray(grid_positions, dtype=np.int64),
+        "goal_grid_position": np.asarray(goal_grid_position, dtype=np.int64),
+    }

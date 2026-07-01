@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from collections import defaultdict
+from collections import Counter, defaultdict
+import colorsys
 import json
 from pathlib import Path
 
@@ -26,6 +27,7 @@ DEFAULT_DATA_ROOT = Path("data/habitat")
 DEFAULT_EPISODE_MANIFEST = Path("episodes/pr2l_hm3d_objectnav/train/manifest.jsonl")
 DEFAULT_GRAPH_MANIFEST = Path("graphs/pr2l_hm3d_bc/train/manifest.jsonl")
 DEFAULT_EXP = "habitat/pr2l_hm3d_bc"
+MAP_HEIGHT_BIN_METERS = 0.5
 
 
 def load_episode_manifest(
@@ -91,6 +93,161 @@ def select_scene_trajectory_records(
     return _round_robin_first_turns(best_group, min(max_trajectories, len(best_group)))
 
 
+def replay_selected_objectnav_scene_topdowns(
+    data_root: str | Path = DEFAULT_DATA_ROOT,
+    *,
+    exp: str = DEFAULT_EXP,
+) -> list[dict[str, object]]:
+    from habitat.utils.visualizations import maps
+    from topovlm_data.habitat_objectnav import load_objectnav_selection_records
+    from topovlm_data.hm3d_objectnav_render import (
+        _open_habitat_env,
+        _select_goal_position,
+    )
+
+    root = Path(data_root)
+    cfg = build_config_from_exp(exp)
+    cfg.data.data_root = str(root)
+    habitat_config = Path(cfg.data.habitat_config)
+    if not habitat_config.is_absolute():
+        cfg.data.habitat_config = str(REPO_ROOT / habitat_config)
+    selections = load_objectnav_selection_records(cfg.data)
+    selection_by_key = {_selection_record_key(selection): selection for selection in selections}
+    if len(selection_by_key) != len(selections):
+        raise ValueError("Duplicate ObjectNav selection keys in selection manifest")
+    payload_by_key = _episode_payloads_by_selection_key(root)
+    missing_payload_keys = set(selection_by_key).difference(payload_by_key)
+    if missing_payload_keys:
+        raise ValueError(
+            f"Selected ObjectNav keys missing materialized expert actions: "
+            f"{sorted(missing_payload_keys)[:3]}"
+        )
+
+    selections_by_scene: dict[str, dict[tuple[str, str], object]] = defaultdict(dict)
+    for key, selection in selection_by_key.items():
+        selections_by_scene[scene_name({"scene_id": selection.scene_id})][key] = selection
+    scene_replays = []
+    seen_keys = set()
+    env = _open_habitat_env(cfg)
+    try:
+        _filter_env_episodes_to_selection_keys(env, selection_by_key)
+        episode_by_key = {_episode_selection_key(episode): episode for episode in env.episodes}
+        missing_episode_keys = set(selection_by_key).difference(episode_by_key)
+        if missing_episode_keys:
+            raise ValueError(f"Filtered Habitat env missed keys: {sorted(missing_episode_keys)[:3]}")
+
+        for scene in sorted(selections_by_scene):
+            scene_selection_by_key = selections_by_scene[scene]
+            replay = {
+                "scene": scene,
+                "topdown_map": None,
+                "topdown_map_heights": [],
+                "_topdown_map_height_bins": set(),
+                "records": [],
+                "trajectories": [],
+            }
+            scene_seen_keys = set()
+            ordered_scene_keys = sorted(
+                scene_selection_by_key,
+                key=lambda key: (
+                    str(scene_selection_by_key[key].object_category),
+                    key[0],
+                ),
+            )
+            for target_key in ordered_scene_keys:
+                episode_to_replay = episode_by_key[target_key]
+                env.episodes = [episode_to_replay]
+                env.reset()
+                episode = env.current_episode
+                key = _episode_selection_key(episode)
+                if key != target_key:
+                    raise ValueError(f"Habitat reset returned {key} instead of {target_key}")
+                selection = scene_selection_by_key[key]
+                payload_record = payload_by_key[key]
+                actions = load_actions(payload_record, root)
+                goal_position = _select_goal_position(env)
+                positions = [_agent_position(env)]
+                replayed_actions = []
+                for step_index, action in enumerate(actions, start=1):
+                    action = int(action)
+                    replayed_actions.append(action)
+                    if action == 0:
+                        break
+                    if step_index > cfg.eval.max_steps:
+                        raise ValueError(
+                            f"Materialized expert actions exceeded max_steps={cfg.eval.max_steps} "
+                            f"for {selection.source_trajectory_id} {selection.object_category}"
+                        )
+                    env.step(action)
+                    positions.append(_agent_position(env))
+                else:
+                    raise ValueError(
+                        f"Materialized expert actions did not include STOP "
+                        f"for {selection.source_trajectory_id} {selection.object_category}"
+                    )
+                record = _selection_to_plot_record(selection, replayed_actions)
+                trajectory = {
+                    "record": record,
+                    "positions": np.asarray(positions, dtype=np.float32),
+                    "goal_position": np.asarray(goal_position, dtype=np.float32),
+                    "actions": np.asarray(replayed_actions, dtype=np.int64),
+                }
+                for height in _map_heights_from_trajectory_heights(trajectory["positions"][:, 1]):
+                    height_bin = int(round(float(height) / MAP_HEIGHT_BIN_METERS))
+                    if height_bin in replay["_topdown_map_height_bins"]:
+                        continue
+                    topdown_layer = maps.get_topdown_map(
+                        env.sim.pathfinder,
+                        float(height),
+                        map_resolution=768,
+                        draw_border=True,
+                    )
+                    replay["topdown_map"] = (
+                        topdown_layer
+                        if replay["topdown_map"] is None
+                        else np.maximum(replay["topdown_map"], topdown_layer)
+                    )
+                    replay["topdown_map_heights"].append(float(height))
+                    replay["_topdown_map_height_bins"].add(height_bin)
+                if replay["topdown_map"] is None:
+                    raise ValueError(f"Could not build top-down map for scene {scene}")
+                trajectory["grid_positions"] = _positions_to_grid(
+                    maps, env, replay["topdown_map"], trajectory["positions"]
+                )
+                trajectory["goal_grid_position"] = _positions_to_grid(
+                    maps, env, replay["topdown_map"], trajectory["goal_position"][None, :]
+                )[0]
+                replay["records"].append(record)
+                replay["trajectories"].append(trajectory)
+                scene_seen_keys.add(key)
+                seen_keys.add(key)
+            missing_scene_keys = set(scene_selection_by_key).difference(scene_seen_keys)
+            if missing_scene_keys:
+                raise ValueError(
+                    f"Habitat replay missed scene keys for {scene}: "
+                    f"{sorted(missing_scene_keys)[:3]}"
+                )
+            ordered_trajectories = sorted(
+                replay["trajectories"],
+                key=lambda trajectory: trajectory_record_key(trajectory["record"]),
+            )
+            replay["records"] = [trajectory["record"] for trajectory in ordered_trajectories]
+            replay["trajectories"] = ordered_trajectories
+            replay["topdown_map_heights"] = np.asarray(
+                sorted(set(float(height) for height in replay["topdown_map_heights"])),
+                dtype=np.float32,
+            )
+            replay.pop("_topdown_map_height_bins")
+            scene_replays.append(replay)
+    finally:
+        env.close()
+
+    missing = set(selection_by_key).difference(seen_keys)
+    if missing:
+        raise ValueError(f"Habitat replay missed selected ObjectNav keys: {sorted(missing)[:3]}")
+    return scene_replays
+
+
 def trajectory_selection_summary(records: list[dict[str, object]]) -> list[dict[str, object]]:
     summary = []
     for index, record in enumerate(records, start=1):
@@ -124,31 +281,81 @@ def first_turn_label(actions: np.ndarray) -> str:
     return "no_turn"
 
 
+def language_instruction(record: dict[str, object]) -> str:
+    return str(record.get("goal_text", record.get("object_category", "unknown")))
+
+
+def trajectory_group(record: dict[str, object]) -> str:
+    return language_instruction(record)
+
+
 def scene_name(record: dict[str, object]) -> str:
     scene_path = Path(str(record["scene_id"]))
     parent = scene_path.parent.name
     return parent if parent else scene_path.stem
 
 
+def trajectory_record_key(record: dict[str, object]) -> str:
+    source_id = str(record.get("source_trajectory_id", ""))
+    if not source_id:
+        source_id = f"{scene_name(record)}:{record['episode_id']}"
+    object_category = str(record.get("object_category", record.get("goal_text", "unknown")))
+    return f"{source_id}|{object_category}"
+
+
 def trajectory_labels(records: list[dict[str, object]]) -> dict[str, str]:
     return {
-        str(record["episode_id"]): f"T{index:02d} {record.get('analysis_first_turn', '')}".strip()
+        trajectory_record_key(record): f"T{index:02d} {record.get('analysis_first_turn', '')}".strip()
         for index, record in enumerate(records, start=1)
     }
 
 
 def trajectory_colors(records: list[dict[str, object]]) -> dict[str, tuple[float, float, float, float]]:
-    if len(records) <= 20:
-        cmap = plt.get_cmap("tab20")
-        return {
-            str(record["episode_id"]): cmap((index - 1) % 20)
-            for index, record in enumerate(records, start=1)
-        }
-    cmap = plt.get_cmap("hsv")
-    return {
-        str(record["episode_id"]): cmap((index - 1) / max(len(records), 1))
-        for index, record in enumerate(records, start=1)
-    }
+    return group_shaded_trajectory_colors(records)
+
+
+def group_shaded_trajectory_colors(
+    records: list[dict[str, object]],
+    *,
+    alpha: float = 0.9,
+) -> dict[str, tuple[float, float, float, float]]:
+    groups: dict[str, list[dict[str, object]]] = defaultdict(list)
+    for record in records:
+        groups[trajectory_group(record)].append(record)
+    base_colors = group_base_colors(records)
+    colors = {}
+    for group, group_records in groups.items():
+        group_records.sort(key=lambda record: (scene_name(record), trajectory_record_key(record)))
+        total = max(1, len(group_records) - 1)
+        for index, record in enumerate(group_records):
+            frac = index / total if total else 0.5
+            colors[trajectory_record_key(record)] = _adjust_color_lightness(
+                base_colors[group],
+                0.34 + 0.42 * frac,
+                alpha,
+            )
+    return colors
+
+
+def group_base_colors(records: list[dict[str, object]]) -> dict[str, tuple[float, float, float, float]]:
+    cmap = plt.get_cmap("tab10")
+    groups = sorted({trajectory_group(record) for record in records})
+    return {group: cmap(index % 10) for index, group in enumerate(groups)}
+
+
+def group_legend_handles(records: list[dict[str, object]]) -> list[Line2D]:
+    counts = Counter(trajectory_group(record) for record in records)
+    base_colors = group_base_colors(records)
+    return [
+        Line2D(
+            [0],
+            [0],
+            color=base_colors[group],
+            linewidth=2.3,
+            label=f"goal_text: {group} | n={counts[group]}",
+        )
+        for group in sorted(counts)
+    ]
 
 
 def replay_habitat_topdown(
@@ -286,49 +493,54 @@ def marker_legend_handles() -> list[Line2D]:
             markersize=7,
             label="endpoint / last pose (x)",
         ),
+        Line2D(
+            [0],
+            [0],
+            marker="*",
+            color="black",
+            markerfacecolor="white",
+            linestyle="none",
+            markersize=9,
+            label="goal position (star)",
+        ),
     ]
 
 
 def plot_habitat_topdown(replay: dict[str, object]) -> tuple[plt.Figure, plt.Axes]:
     records = list(replay["records"])
-    labels = trajectory_labels(records)
-    colors = trajectory_colors(records)
-    fig, ax = plt.subplots(figsize=(10, 10), constrained_layout=True)
+    colors = group_shaded_trajectory_colors(records, alpha=0.85)
+    unique_goal_count = _unique_goal_position_count(replay)
+    fig, ax = plt.subplots(figsize=(9.5, 9), constrained_layout=True)
     ax.imshow(replay["topdown_map"], cmap="gray", origin="upper")
-    ax.set_title(f"Habitat traversed-floor map with {len(records)} expert trajectories")
+    ax.set_title(
+        f"{replay['scene']}: {len(records)} expert trajectories, "
+        f"{unique_goal_count} visible goal locations"
+    )
     ax.set_axis_off()
     for trajectory in replay["trajectories"]:
         record = trajectory["record"]
-        episode_id = str(record["episode_id"])
-        color = colors[episode_id]
-        label = labels[episode_id]
+        color = colors[trajectory_record_key(record)]
         grid = trajectory["grid_positions"]
-        ax.plot(
-            grid[:, 1],
-            grid[:, 0],
-            color=color,
-            linewidth=1.8,
-            alpha=0.9,
-            label=label,
-        )
+        ax.plot(grid[:, 1], grid[:, 0], color=color, linewidth=0.75, alpha=0.82)
         ax.scatter(
             grid[0, 1],
             grid[0, 0],
             color=color,
-            s=42,
+            s=25,
             marker="o",
             edgecolor="black",
+            linewidth=0.4,
         )
-        ax.scatter(grid[-1, 1], grid[-1, 0], color=color, s=58, marker="x")
-    legend_columns = min(4, max(1, int(np.ceil(len(records) / 18))))
-    trajectory_legend = ax.legend(
+        ax.scatter(grid[-1, 1], grid[-1, 0], color=color, s=36, marker="x", linewidths=0.8)
+    _annotate_goal_positions(ax, replay, records)
+    group_legend = ax.legend(
+        handles=group_legend_handles(records),
         loc="center left",
         bbox_to_anchor=(1.01, 0.5),
-        fontsize=7,
-        ncol=legend_columns,
-        title="Trajectory",
+        fontsize=8,
+        title="Language instruction",
     )
-    ax.add_artist(trajectory_legend)
+    ax.add_artist(group_legend)
     ax.legend(
         handles=marker_legend_handles(),
         loc="upper left",
@@ -336,7 +548,6 @@ def plot_habitat_topdown(replay: dict[str, object]) -> tuple[plt.Figure, plt.Axe
         fontsize=8,
         title="Markers",
     )
-    fig.suptitle(f"Same Habitat environment: {replay['scene']} ({len(records)} selected trajectories)")
     return fig, ax
 
 
@@ -402,19 +613,28 @@ def plot_embedding_trajectories(
     title: str,
 ) -> tuple[plt.Figure, plt.Axes]:
     labels = trajectory_labels(records)
-    colors = trajectory_colors(records)
+    colors = group_shaded_trajectory_colors(records, alpha=0.78)
     fig, ax = plt.subplots(figsize=(8, 7), constrained_layout=True)
     row_indices_by_episode: dict[str, list[int]] = defaultdict(list)
     for index, row in enumerate(rows):
-        row_indices_by_episode[str(row["episode_id"])].append(index)
+        row_indices_by_episode[str(row["trajectory_key"])].append(index)
     for record in records:
-        episode_id = str(record["episode_id"])
-        indices = sorted(row_indices_by_episode[episode_id], key=lambda index: int(rows[index]["step"]))
+        trajectory_key = trajectory_record_key(record)
+        indices = sorted(
+            row_indices_by_episode[trajectory_key], key=lambda index: int(rows[index]["step"])
+        )
         if not indices:
             continue
         xy = coords[indices]
-        color = colors[episode_id]
-        ax.plot(xy[:, 0], xy[:, 1], color=color, linewidth=1.7, alpha=0.8, label=labels[episode_id])
+        color = colors[trajectory_key]
+        ax.plot(
+            xy[:, 0],
+            xy[:, 1],
+            color=color,
+            linewidth=0.9,
+            alpha=0.72,
+            label=labels[trajectory_key],
+        )
         ax.scatter(xy[:, 0], xy[:, 1], color=color, s=18, alpha=0.75)
         ax.scatter(xy[0, 0], xy[0, 1], color=color, s=48, marker="o", edgecolor="black")
         ax.scatter(xy[-1, 0], xy[-1, 1], color=color, s=64, marker="x")
@@ -453,6 +673,193 @@ def _load_jsonl(path: Path) -> list[dict[str, object]]:
 
 def _graph_episode_ids(root: Path) -> set[str]:
     return {str(record["episode_id"]) for record in load_graph_manifest(root)}
+
+
+def _selection_record_key(selection: object) -> tuple[str, str]:
+    return str(selection.source_trajectory_id), str(selection.object_category)
+
+
+def _episode_selection_key(episode: object) -> tuple[str, str]:
+    from topovlm_data.habitat_objectnav import objectnav_source_trajectory_id
+
+    return objectnav_source_trajectory_id(episode), str(getattr(episode, "object_category"))
+
+
+def _filter_env_episodes_to_selection_keys(
+    env: object, selection_by_key: dict[tuple[str, str], object]
+) -> None:
+    selected_episodes = [
+        episode for episode in env.episodes if _episode_selection_key(episode) in selection_by_key
+    ]
+    selected_episodes.sort(
+        key=lambda episode: (
+            str(getattr(episode, "scene_id")),
+            str(getattr(episode, "object_category")),
+            _episode_selection_key(episode)[0],
+        )
+    )
+    selected_keys = [_episode_selection_key(episode) for episode in selected_episodes]
+    counts = Counter(selected_keys)
+    duplicate_keys = [key for key, count in counts.items() if count > 1]
+    if duplicate_keys:
+        raise ValueError(f"Duplicate Habitat episodes after ObjectNav key filtering: {duplicate_keys[:3]}")
+    missing_keys = set(selection_by_key).difference(counts)
+    if missing_keys:
+        raise ValueError(f"Selection keys absent from Habitat env: {sorted(missing_keys)[:3]}")
+    env.episodes = selected_episodes
+
+
+def _episode_payloads_by_selection_key(root: Path) -> dict[tuple[str, str], dict[str, object]]:
+    payload_by_key = {}
+    duplicate_keys = []
+    for record in load_episode_manifest(root):
+        key = (
+            str(record["source_trajectory_id"]),
+            str(record.get("object_category", record["goal_text"])),
+        )
+        if key in payload_by_key:
+            duplicate_keys.append(key)
+        payload_by_key[key] = record
+    if duplicate_keys:
+        raise ValueError(f"Duplicate materialized expert action payload keys: {duplicate_keys[:3]}")
+    return payload_by_key
+
+
+def _selection_to_plot_record(selection: object, actions: list[int]) -> dict[str, object]:
+    action_array = np.asarray(actions, dtype=np.int64)
+    return {
+        "episode_id": f"{selection.source_trajectory_id}|{selection.object_category}",
+        "scene_id": selection.scene_id,
+        "goal_text": selection.object_category,
+        "object_category": selection.object_category,
+        "source_trajectory_id": selection.source_trajectory_id,
+        "analysis_actions": action_array,
+        "analysis_steps": int(len(action_array)),
+        "analysis_turns": int(np.isin(action_array, [2, 3]).sum()),
+        "analysis_first_turn": first_turn_label(action_array),
+        "analysis_group": str(selection.object_category),
+        "analysis_language_instruction": str(selection.object_category),
+    }
+
+
+def _map_heights_from_trajectory_heights(trajectory_heights: np.ndarray) -> np.ndarray:
+    height_bins = np.round(trajectory_heights / MAP_HEIGHT_BIN_METERS)
+    return np.asarray(
+        [
+            float(np.median(trajectory_heights[height_bins == height_bin]))
+            for height_bin in np.unique(height_bins)
+        ],
+        dtype=np.float32,
+    )
+
+
+def _positions_to_grid(
+    maps_module: object, env: object, topdown_map: np.ndarray, positions: np.ndarray
+) -> np.ndarray:
+    grid_positions = np.asarray(
+        [
+            maps_module.to_grid(
+                float(position[2]),
+                float(position[0]),
+                topdown_map.shape[:2],
+                sim=env.sim,
+            )
+            for position in positions
+        ],
+        dtype=np.int64,
+    )
+    height, width = topdown_map.shape[:2]
+    if (
+        np.any(grid_positions[:, 0] < 0)
+        or np.any(grid_positions[:, 0] >= height)
+        or np.any(grid_positions[:, 1] < 0)
+        or np.any(grid_positions[:, 1] >= width)
+    ):
+        raise ValueError("Habitat replay produced coordinates outside the top-down map.")
+    return grid_positions
+
+
+def _adjust_color_lightness(
+    rgba: tuple[float, float, float, float], lightness: float, alpha: float
+) -> tuple[float, float, float, float]:
+    hue, _, saturation = colorsys.rgb_to_hls(float(rgba[0]), float(rgba[1]), float(rgba[2]))
+    red, green, blue = colorsys.hls_to_rgb(hue, float(lightness), saturation)
+    return red, green, blue, float(alpha)
+
+
+def _annotate_goal_positions(
+    ax: plt.Axes, replay: dict[str, object], records: list[dict[str, object]]
+) -> None:
+    base_colors = group_base_colors(records)
+    goals_by_group: dict[str, list[tuple[int, int]]] = defaultdict(list)
+    for trajectory in replay["trajectories"]:
+        record = trajectory["record"]
+        if "goal_grid_position" not in trajectory:
+            raise ValueError("Top-down replay is missing actual Habitat goal_grid_position.")
+        goal = np.asarray(trajectory["goal_grid_position"], dtype=np.int64)
+        goals_by_group[trajectory_group(record)].append((int(goal[0]), int(goal[1])))
+    for index, group in enumerate(sorted(goals_by_group)):
+        color = base_colors[group]
+        goal_counts = Counter(goals_by_group[group])
+        goals = np.asarray(list(goal_counts), dtype=np.float32)
+        rows = goals[:, 0]
+        cols = goals[:, 1]
+        counts = np.asarray([goal_counts[tuple(goal)] for goal in goals.astype(np.int64)])
+        map_height, map_width = np.asarray(replay["topdown_map"]).shape[:2]
+        ax.scatter(
+            cols,
+            rows,
+            color=color,
+            marker="*",
+            s=55 + 12 * np.minimum(counts, 8),
+            edgecolor="black",
+            linewidth=0.55,
+            alpha=0.88,
+            zorder=5,
+        )
+        duplicate_labels = 0
+        for row, col, count in zip(rows, cols, counts):
+            if count <= 1 or duplicate_labels >= 12:
+                continue
+            ax.annotate(
+                f"x{int(count)}",
+                xy=(float(col), float(row)),
+                xytext=(5, -5),
+                textcoords="offset points",
+                fontsize=6.5,
+                color="black",
+                bbox={"boxstyle": "round,pad=0.12", "facecolor": "white", "alpha": 0.72},
+                zorder=6,
+            )
+            duplicate_labels += 1
+        label_row, label_col = np.median(goals, axis=0)
+        x_offset = -12 if label_col > 0.72 * map_width else 12
+        y_offset = 18
+        if label_row < 0.18 * map_height:
+            y_offset = 28
+        elif label_row > 0.82 * map_height:
+            y_offset = -22
+        ax.annotate(
+            f"{group}\nn={len(goals_by_group[group])}, visible={len(goal_counts)}",
+            xy=(float(label_col), float(label_row)),
+            xytext=(x_offset, y_offset + 12 * (index % 2)),
+            textcoords="offset points",
+            fontsize=8,
+            color="black",
+            ha="right" if x_offset < 0 else "left",
+            bbox={"boxstyle": "round,pad=0.25", "facecolor": "white", "alpha": 0.88},
+            arrowprops={"arrowstyle": "-", "color": color, "linewidth": 1.1},
+        )
+
+
+def _unique_goal_position_count(replay: dict[str, object]) -> int:
+    goals = set()
+    for trajectory in replay["trajectories"]:
+        if "goal_grid_position" not in trajectory:
+            raise ValueError("Top-down replay is missing actual Habitat goal_grid_position.")
+        goal = np.asarray(trajectory["goal_grid_position"], dtype=np.int64)
+        goals.add((int(goal[0]), int(goal[1])))
+    return len(goals)
 
 
 def _round_robin_first_turns(
@@ -506,6 +913,7 @@ def _trajectory_row(
 ) -> dict[str, object]:
     return {
         "trajectory": f"T{trajectory_order:02d}",
+        "trajectory_key": trajectory_record_key(record),
         "episode_id": str(record["episode_id"]),
         "scene": scene_name(record),
         "object": record.get("object_category", record["goal_text"]),
