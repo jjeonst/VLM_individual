@@ -6,7 +6,7 @@ from types import SimpleNamespace
 
 import numpy as np
 
-from analysis.code.export_hm3d_scene_topdown_pngs import write_scene_topdown_pngs
+from analysis.code import export_hm3d_scene_topdown_pngs as scene_export
 from analysis.code.hm3d_trajectory_notebook import (
     _episode_selection_key,
     _selection_record_key,
@@ -184,7 +184,7 @@ class HM3DTrajectoryNotebookTest(unittest.TestCase):
                 },
             ]
 
-            manifest = write_scene_topdown_pngs(
+            manifest = scene_export.write_scene_topdown_pngs(
                 scene_replays,
                 root,
                 data_root="data/habitat",
@@ -201,6 +201,60 @@ class HM3DTrajectoryNotebookTest(unittest.TestCase):
             self.assertTrue((root / "result_manifest.json").exists())
             for figure in manifest["figures"]:
                 self.assertTrue((root / figure["png_path"]).exists())
+
+    def test_scene_topdown_export_writes_scene_outputs_during_replay(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            scene_replays = [
+                {
+                    "scene": "00006-HkseAnWCgqk",
+                    "topdown_map": np.zeros((24, 24), dtype=np.uint8),
+                    "records": [_plot_record("0", "chair", "scene_a:0")],
+                    "trajectories": [
+                        _trajectory("0", "chair", "scene_a:0", [[3, 3], [5, 5]], [8, 8])
+                    ],
+                },
+                {
+                    "scene": "00024-3XYAD64HpDr",
+                    "topdown_map": np.zeros((24, 24), dtype=np.uint8),
+                    "records": [_plot_record("1", "bed", "scene_b:1")],
+                    "trajectories": [
+                        _trajectory("1", "bed", "scene_b:1", [[10, 10], [12, 11]], [14, 15])
+                    ],
+                },
+            ]
+            observed_png_counts = []
+            observed_manifest_status = []
+
+            def fake_replay(data_root, *, exp, on_scene_replay=None):
+                self.assertEqual(str(data_root), "data/habitat")
+                self.assertEqual(exp, "habitat/pr2l_hm3d_bc")
+                self.assertIsNotNone(on_scene_replay)
+                for scene_index, replay in enumerate(scene_replays):
+                    on_scene_replay(scene_index, replay)
+                    observed_png_counts.append(len(list((root / "scenes").glob("*.png"))))
+                    manifest_path = root / "result_manifest.json"
+                    self.assertTrue(manifest_path.exists())
+                    observed_manifest_status.append(json.loads(manifest_path.read_text())["status"])
+                return scene_replays
+
+            original_replay = scene_export.replay_selected_objectnav_scene_topdowns
+            scene_export.replay_selected_objectnav_scene_topdowns = fake_replay
+            try:
+                manifest = scene_export.export_scene_topdown_pngs(
+                    "data/habitat",
+                    exp="habitat/pr2l_hm3d_bc",
+                    output_dir=root,
+                    dpi=80,
+                    command=["python", "analysis/code/export_hm3d_scene_topdown_pngs.py"],
+                )
+            finally:
+                scene_export.replay_selected_objectnav_scene_topdowns = original_replay
+
+            self.assertEqual(observed_png_counts, [1, 2])
+            self.assertEqual(observed_manifest_status, ["running", "running"])
+            self.assertEqual(manifest["status"], "completed")
+            self.assertEqual(manifest["scene_count"], 2)
 
 
 def _write_episode(

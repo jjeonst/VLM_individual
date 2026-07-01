@@ -49,52 +49,124 @@ def write_scene_topdown_pngs(
     scene_dir.mkdir(parents=True, exist_ok=True)
 
     figures = []
-    scene_category_counts = Counter()
-    scene_goal_counts = Counter()
-    selected_episode_count = 0
     for scene_index, replay in enumerate(scene_replays):
-        scene = str(replay["scene"])
-        records = list(replay["records"])
-        trajectories = list(replay["trajectories"])
-        selected_episode_count += len(records)
-        category_count = len(_scene_categories(records))
-        goal_positions = _scene_goal_positions(trajectories)
-        scene_category_counts[category_count] += 1
-        scene_goal_counts[len(goal_positions)] += 1
+        figures.append(_write_scene_topdown_png(replay, output_path, scene_dir, scene_index, dpi))
 
-        fig, _ = plot_habitat_topdown(replay)
-        png_path = scene_dir / f"{scene_index:03d}_{_safe_stem(scene)}.png"
-        fig.savefig(png_path, dpi=dpi, bbox_inches="tight")
-        plt.close(fig)
+    return _write_manifest(
+        output_path=output_path,
+        scene_dir=scene_dir,
+        figures=figures,
+        status="completed",
+        data_root=data_root,
+        exp=exp,
+        command=command,
+    )
 
-        figures.append(
+
+def export_scene_topdown_pngs(
+    data_root: str | Path,
+    *,
+    exp: str,
+    output_dir: str | Path,
+    dpi: int,
+    command: list[str],
+) -> dict[str, object]:
+    output_path = Path(output_dir)
+    scene_dir = output_path / "scenes"
+    scene_dir.mkdir(parents=True, exist_ok=True)
+    figures: list[dict[str, object]] = []
+
+    def write_scene(scene_index: int, replay: dict[str, object]) -> None:
+        figures.append(_write_scene_topdown_png(replay, output_path, scene_dir, scene_index, dpi))
+        _write_manifest(
+            output_path=output_path,
+            scene_dir=scene_dir,
+            figures=figures,
+            status="running",
+            data_root=data_root,
+            exp=exp,
+            command=command,
+        )
+
+    scene_replays = replay_selected_objectnav_scene_topdowns(
+        data_root,
+        exp=exp,
+        on_scene_replay=write_scene,
+    )
+    if len(scene_replays) != len(figures):
+        raise RuntimeError(
+            f"Expected one written figure per replayed scene, got "
+            f"{len(figures)} figures for {len(scene_replays)} scenes."
+        )
+    return _write_manifest(
+        output_path=output_path,
+        scene_dir=scene_dir,
+        figures=figures,
+        status="completed",
+        data_root=data_root,
+        exp=exp,
+        command=command,
+    )
+
+
+def _write_scene_topdown_png(
+    replay: dict[str, object],
+    output_path: Path,
+    scene_dir: Path,
+    scene_index: int,
+    dpi: int,
+) -> dict[str, object]:
+    scene = str(replay["scene"])
+    records = list(replay["records"])
+    trajectories = list(replay["trajectories"])
+    goal_positions = _scene_goal_positions(trajectories)
+
+    fig, _ = plot_habitat_topdown(replay)
+    png_path = scene_dir / f"{scene_index:03d}_{_safe_stem(scene)}.png"
+    fig.savefig(png_path, dpi=dpi, bbox_inches="tight")
+    plt.close(fig)
+
+    figure = {
+        "scene": scene,
+        "png_path": str(png_path.relative_to(output_path)),
+        "selected_episode_count": len(records),
+        "object_categories": sorted(_scene_categories(records)),
+        "unique_goal_position_count": len(goal_positions),
+        "unique_goal_positions_grid": goal_positions,
+    }
+    print(
+        json.dumps(
             {
+                "event": "scene_png_written",
                 "scene": scene,
-                "png_path": str(png_path.relative_to(output_path)),
+                "png_path": str(png_path),
                 "selected_episode_count": len(records),
-                "object_categories": sorted(_scene_categories(records)),
                 "unique_goal_position_count": len(goal_positions),
-                "unique_goal_positions_grid": goal_positions,
-            }
-        )
-        print(
-            json.dumps(
-                {
-                    "event": "scene_png_written",
-                    "scene": scene,
-                    "png_path": str(png_path),
-                    "selected_episode_count": len(records),
-                    "unique_goal_position_count": len(goal_positions),
-                },
-                sort_keys=True,
-            ),
-            flush=True,
-        )
+            },
+            sort_keys=True,
+        ),
+        flush=True,
+    )
+    return figure
 
+
+def _write_manifest(
+    *,
+    output_path: Path,
+    scene_dir: Path,
+    figures: list[dict[str, object]],
+    status: str,
+    data_root: str | Path,
+    exp: str,
+    command: list[str],
+) -> dict[str, object]:
+    scene_category_counts = Counter(len(figure["object_categories"]) for figure in figures)
+    scene_goal_counts = Counter(int(figure["unique_goal_position_count"]) for figure in figures)
+    selected_episode_count = sum(int(figure["selected_episode_count"]) for figure in figures)
     manifest = {
         "analysis_name": "hm3d_scene_topdown_trajectories",
         "scope": "habitat_pr2l_hm3d_bc",
-        "status": "completed",
+        "status": status,
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "source_commit": _git_output("rev-parse", "HEAD"),
         "source_status_short": _git_output("status", "--short"),
@@ -104,7 +176,7 @@ def write_scene_topdown_pngs(
         "exp": exp,
         "output_dir": str(output_path),
         "scene_png_dir": str(scene_dir.relative_to(output_path)),
-        "scene_count": len(scene_replays),
+        "scene_count": len(figures),
         "selected_episode_count": selected_episode_count,
         "category_count_distribution": {
             str(key): scene_category_counts[key] for key in sorted(scene_category_counts)
@@ -133,14 +205,13 @@ def build_arg_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> None:
     parser = build_arg_parser()
     args = parser.parse_args(argv)
-    scene_replays = replay_selected_objectnav_scene_topdowns(args.data_root, exp=args.exp)
-    manifest = write_scene_topdown_pngs(
-        scene_replays,
-        args.output_dir,
+    command = [sys.executable, *sys.argv] if argv is None else [sys.executable, *argv]
+    manifest = export_scene_topdown_pngs(
         data_root=args.data_root,
         exp=args.exp,
+        output_dir=args.output_dir,
         dpi=args.dpi,
-        command=[sys.executable, *sys.argv] if argv is None else [sys.executable, *argv],
+        command=command,
     )
     print(
         json.dumps(

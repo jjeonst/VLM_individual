@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections import Counter, defaultdict
+from collections.abc import Callable
 import colorsys
 import json
 from pathlib import Path
@@ -97,6 +98,7 @@ def replay_selected_objectnav_scene_topdowns(
     data_root: str | Path = DEFAULT_DATA_ROOT,
     *,
     exp: str = DEFAULT_EXP,
+    on_scene_replay: Callable[[int, dict[str, object]], None] | None = None,
 ) -> list[dict[str, object]]:
     from habitat.utils.visualizations import maps
     from topovlm_data.habitat_objectnav import load_objectnav_selection_records
@@ -238,6 +240,8 @@ def replay_selected_objectnav_scene_topdowns(
                 dtype=np.float32,
             )
             replay.pop("_topdown_map_height_bins")
+            if on_scene_replay is not None:
+                on_scene_replay(len(scene_replays), replay)
             scene_replays.append(replay)
     finally:
         env.close()
