@@ -25,7 +25,6 @@ DEFAULT_DATA_ROOT = Path("data/habitat")
 DEFAULT_EPISODE_MANIFEST = Path("episodes/pr2l_hm3d_objectnav/train/manifest.jsonl")
 DEFAULT_GRAPH_MANIFEST = Path("graphs/pr2l_hm3d_bc/train/manifest.jsonl")
 DEFAULT_EXP = "habitat/pr2l_hm3d_bc"
-DEFAULT_RESULT_DIR = Path("analysis/results/hm3d_trajectory_notebook_views")
 
 
 def load_episode_manifest(
@@ -360,18 +359,6 @@ def pca_2d(features: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     variance = singular_values**2
     explained = variance[:2] / variance.sum() if variance.sum() > 0 else np.zeros(2)
     return coords.astype(np.float32), explained.astype(np.float32)
-
-
-def save_figure(
-    fig: plt.Figure,
-    filename: str,
-    result_dir: str | Path = DEFAULT_RESULT_DIR,
-) -> Path:
-    output_dir = Path(result_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
-    path = output_dir / filename
-    fig.savefig(path, dpi=180, bbox_inches="tight")
-    return path
 
 
 def plot_embedding_trajectories(
