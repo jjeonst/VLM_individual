@@ -80,9 +80,11 @@ def select_scene_trajectory_records(
             str(group[0].get("object_category", group[0]["goal_text"])),
         ),
     )
+    if max_trajectories is None:
+        best_group = ranked_groups[0]
+        return _round_robin_first_turns(best_group, len(best_group))
+
     for group in ranked_groups:
-        if max_trajectories is None:
-            return _round_robin_first_turns(group, len(group))
         if len(group) >= max_trajectories:
             return _round_robin_first_turns(group, max_trajectories)
     best_group = ranked_groups[0]
