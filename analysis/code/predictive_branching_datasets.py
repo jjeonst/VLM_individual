@@ -12,8 +12,10 @@ import json
 import math
 import os
 import shutil
+import sys
 from collections import Counter, defaultdict
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -24,6 +26,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 import numpy as np
+
+from utils.checkpoint_io import resolve_source_commit
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -37,6 +41,7 @@ R2R_DATASET_ROOT = (
 KITCHEN_DATASET_ROOT = DATA_ROOT / "d4rl_kitchen_compositional_v2" / "hf_snapshot" / "kitchen"
 RESULT_ROOT = REPO_ROOT / "analysis" / "results" / "predictive_branching_datasets"
 ARTIFACT_ROOT = REPO_ROOT / "artifacts" / "analysis" / "predictive_branching_datasets"
+ANALYSIS_NAME = "predictive_branching_datasets"
 
 
 @dataclass(frozen=True)
@@ -448,8 +453,124 @@ def _analyze_kitchen(output_root: Path) -> dict[str, Any]:
     return payload
 
 
+def _config_identity(cfg: Any | None) -> dict[str, Any]:
+    if cfg is None:
+        return {"config_name": None, "run_name": None, "seed": None, "debug": None}
+    return {
+        "config_name": getattr(cfg, "config_name", None),
+        "run_name": getattr(cfg, "run_name", None),
+        "seed": getattr(cfg, "seed", None),
+        "debug": getattr(cfg, "debug", None),
+    }
+
+
+def _input_data_manifest() -> dict[str, Any]:
+    kitchen_files = {
+        dataset_name: str(KITCHEN_DATASET_ROOT / dataset_name / "data" / "main_data.hdf5")
+        for dataset_name in ("complete-v2", "partial-v2", "mixed-v2")
+    }
+    return {
+        "navigation": {
+            "dataset_name": "r2r_vlnce_v1_3_preprocessed",
+            "dataset_path": str(R2R_DATASET_ROOT),
+            "setup_manifest": str(DATA_ROOT / "r2r_vlnce_v1_3_preprocessed" / "setup_manifest.json"),
+            "split_files": {
+                split: {
+                    "episodes": str(R2R_DATASET_ROOT / split / f"{split}.json.gz"),
+                    "ground_truth": str(R2R_DATASET_ROOT / split / f"{split}_gt.json.gz"),
+                }
+                for split in ("train", "val_seen", "val_unseen")
+            },
+            "native_fields_used": ["episodes[*].scene_id", "episodes[*].instruction", "*_gt.json.gz.locations"],
+        },
+        "robotics": {
+            "dataset_name": "d4rl_kitchen_compositional_v2",
+            "dataset_path": str(KITCHEN_DATASET_ROOT),
+            "setup_manifest": str(DATA_ROOT / "d4rl_kitchen_compositional_v2" / "setup_manifest.json"),
+            "hdf5_files": kitchen_files,
+            "native_fields_used": [
+                "episodes/*/observations/achieved_goal/*",
+                "episodes/*/observations/desired_goal/*",
+            ],
+        },
+    }
+
+
+def _outputs_for_root(root: Path, navigation: dict[str, Any], robotics: dict[str, Any]) -> dict[str, Any]:
+    png_files = []
+    for plot in [*navigation["plots"], *robotics["plots"]]:
+        relative_plot = Path(plot["file"]).relative_to(RESULT_ROOT)
+        png_files.append(str(root / relative_plot))
+    return {
+        "navigation_summary": str(root / "navigation_r2r_vlnce" / "navigation_r2r_summary.json"),
+        "robotics_summary": str(root / "robotics_d4rl_kitchen" / "robotics_kitchen_summary.json"),
+        "png_files": png_files,
+    }
+
+
+def _build_result_manifest(
+    *,
+    cfg: Any | None,
+    navigation: dict[str, Any],
+    robotics: dict[str, Any],
+    lane_root: Path,
+) -> dict[str, Any]:
+    datasets = {
+        "navigation": {
+            "name": "r2r_vlnce_v1_3_preprocessed",
+            "path": str(R2R_DATASET_ROOT),
+            "episodes_train": navigation["splits"]["train"]["episodes"],
+            "scenes_train": navigation["splits"]["train"]["scenes"],
+            "top_scene_branch_cells": navigation["splits"]["train"]["top_scenes"][0]["branch_cells"],
+        },
+        "robotics": {
+            "name": "d4rl_kitchen_compositional_v2",
+            "path": str(KITCHEN_DATASET_ROOT),
+            "datasets": {
+                name: {
+                    "episodes": summary["episodes"],
+                    "unique_heuristic_orders": summary["unique_heuristic_orders"],
+                }
+                for name, summary in robotics["datasets"].items()
+            },
+        },
+    }
+    return {
+        "artifact_type": "topovlm_analysis_result_manifest",
+        "schema_version": 1,
+        "status": "passed",
+        "analysis_name": ANALYSIS_NAME,
+        "created_at_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "source_commit": resolve_source_commit(),
+        "command": [sys.executable, *sys.argv],
+        "config_identity": _config_identity(cfg),
+        "input_data": _input_data_manifest(),
+        "datasets": datasets,
+        "operational_definition": {
+            "navigation_branch_candidate": (
+                "A 0.5 m x-z cell visited by real R2R/VLN-CE GT trajectories with at least two outgoing "
+                "8-bin direction choices."
+            ),
+            "robotics_branch_candidate": (
+                "Different Franka Kitchen object-completion orders from real achieved-goal state trajectories "
+                "under a common task object set."
+            ),
+        },
+        "interpretation_limits": [
+            "Navigation plots use dataset GT path coordinates, not reconstructed occupancy maps or Habitat top-down maps.",
+            "Kitchen completion orders are heuristic thresholds over achieved-goal progress, not environment success labels.",
+            "These outputs identify dataset suitability; they do not yet prove learned policy or VLM latent topology.",
+        ],
+        "outputs": _outputs_for_root(lane_root, navigation, robotics),
+        "durable_lane_roots": {
+            "result_root": str(RESULT_ROOT),
+            "artifact_root": str(ARTIFACT_ROOT),
+            "manifest_root": str(lane_root),
+        },
+    }
+
+
 def run_predictive_branching_dataset_analysis(cfg: Any | None = None) -> dict[str, Any]:
-    del cfg
     if not R2R_DATASET_ROOT.exists():
         raise FileNotFoundError(f"Missing R2R/VLN-CE dataset root: {R2R_DATASET_ROOT}")
     if not KITCHEN_DATASET_ROOT.exists():
@@ -458,39 +579,21 @@ def run_predictive_branching_dataset_analysis(cfg: Any | None = None) -> dict[st
     RESULT_ROOT.mkdir(parents=True, exist_ok=True)
     navigation = _analyze_r2r(RESULT_ROOT / "navigation_r2r_vlnce")
     robotics = _analyze_kitchen(RESULT_ROOT / "robotics_d4rl_kitchen")
-    manifest = {
-        "status": "passed",
-        "result_root": str(RESULT_ROOT),
-        "artifact_root": str(ARTIFACT_ROOT),
-        "datasets": {
-            "navigation": {
-                "name": "r2r_vlnce_v1_3_preprocessed",
-                "path": str(R2R_DATASET_ROOT),
-                "episodes_train": navigation["splits"]["train"]["episodes"],
-                "scenes_train": navigation["splits"]["train"]["scenes"],
-                "top_scene_branch_cells": navigation["splits"]["train"]["top_scenes"][0]["branch_cells"],
-            },
-            "robotics": {
-                "name": "d4rl_kitchen_compositional_v2",
-                "path": str(KITCHEN_DATASET_ROOT),
-                "datasets": {
-                    name: {
-                        "episodes": summary["episodes"],
-                        "unique_heuristic_orders": summary["unique_heuristic_orders"],
-                    }
-                    for name, summary in robotics["datasets"].items()
-                },
-            },
-        },
-        "outputs": {
-            "navigation_summary": str(RESULT_ROOT / "navigation_r2r_vlnce" / "navigation_r2r_summary.json"),
-            "robotics_summary": str(RESULT_ROOT / "robotics_d4rl_kitchen" / "robotics_kitchen_summary.json"),
-            "png_files": [
-                *[plot["file"] for plot in navigation["plots"]],
-                *[plot["file"] for plot in robotics["plots"]],
-            ],
-        },
-    }
-    _safe_json_dump(RESULT_ROOT / "manifest.json", manifest)
+    result_manifest = _build_result_manifest(
+        cfg=cfg,
+        navigation=navigation,
+        robotics=robotics,
+        lane_root=RESULT_ROOT,
+    )
+    _safe_json_dump(RESULT_ROOT / "result_manifest.json", result_manifest)
+    _safe_json_dump(RESULT_ROOT / "manifest.json", result_manifest)
     _copy_outputs_to_artifact_lane(RESULT_ROOT, ARTIFACT_ROOT)
-    return manifest
+    artifact_manifest = _build_result_manifest(
+        cfg=cfg,
+        navigation=navigation,
+        robotics=robotics,
+        lane_root=ARTIFACT_ROOT,
+    )
+    _safe_json_dump(ARTIFACT_ROOT / "result_manifest.json", artifact_manifest)
+    _safe_json_dump(ARTIFACT_ROOT / "manifest.json", artifact_manifest)
+    return artifact_manifest
