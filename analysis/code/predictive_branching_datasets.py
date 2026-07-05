@@ -24,6 +24,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib import patheffects as path_effects
 from matplotlib.lines import Line2D
 import numpy as np
 
@@ -39,6 +40,7 @@ R2R_DATASET_ROOT = (
     / "R2R_VLNCE_v1-3_preprocessed"
 )
 KITCHEN_DATASET_ROOT = DATA_ROOT / "d4rl_kitchen_compositional_v2" / "hf_snapshot" / "kitchen"
+MP3D_SCENE_ROOT = DATA_ROOT / "habitat" / "scene_datasets" / "mp3d"
 RESULT_ROOT = REPO_ROOT / "analysis" / "results" / "predictive_branching_datasets"
 ARTIFACT_ROOT = REPO_ROOT / "artifacts" / "analysis" / "predictive_branching_datasets"
 ANALYSIS_NAME = "predictive_branching_datasets"
@@ -190,18 +192,6 @@ def _plot_r2r_scene(scene_id: str, records: list[R2RRecord], output_path: Path) 
         ax.scatter(x[0], z[0], s=12, marker="o", color=color, edgecolor="black", linewidth=0.25, alpha=0.72)
         ax.scatter(x[-1], z[-1], s=20, marker="x", color=color, linewidth=0.8, alpha=0.82)
 
-    if branch_cells:
-        branch_xy = np.asarray([(cell[0] * 0.5 + 0.25, cell[1] * 0.5 + 0.25) for cell in branch_cells], dtype=float)
-        ax.scatter(
-            branch_xy[:, 0],
-            branch_xy[:, 1],
-            s=13,
-            marker="s",
-            color="black",
-            alpha=0.44,
-            label="branch candidate cell",
-        )
-
     ax.scatter([], [], marker="o", s=20, color="white", edgecolor="black", label="start")
     ax.scatter([], [], marker="x", s=24, color="black", label="goal")
     ax.set_aspect("equal", adjustable="box")
@@ -211,8 +201,7 @@ def _plot_r2r_scene(scene_id: str, records: list[R2RRecord], output_path: Path) 
         "R2R/VLN-CE real GT trajectories by scene\n"
         f"{_scene_key(scene_id)}: {len(records)} episodes, "
         f"{len({r.start_cell for r in records})} start cells, "
-        f"{len({r.goal_cell for r in records})} goal cells, "
-        f"{len(branch_cells)} branch candidate cells"
+        f"{len({r.goal_cell for r in records})} goal cells"
     )
     ax.grid(True, linewidth=0.3, alpha=0.28)
     handles, labels = ax.get_legend_handles_labels()
@@ -242,6 +231,133 @@ def _plot_r2r_scene(scene_id: str, records: list[R2RRecord], output_path: Path) 
     }
 
 
+
+
+def _mp3d_scene_asset(scene_id: str) -> dict[str, Any]:
+    scene_key = _scene_key(scene_id)
+    scene_dir = MP3D_SCENE_ROOT / scene_key
+    glb_path = scene_dir / f"{scene_key}.glb"
+    navmesh_path = scene_dir / f"{scene_key}.navmesh"
+    return {
+        "scene_key": scene_key,
+        "scene_dir": str(scene_dir),
+        "glb_path": str(glb_path),
+        "navmesh_path": str(navmesh_path),
+        "available": glb_path.exists() and navmesh_path.exists(),
+    }
+
+
+def _trajectory_map_heights(records: list[R2RRecord], height_bin_meters: float = 0.5) -> np.ndarray:
+    trajectory_heights = np.concatenate([record.positions[:, 1] for record in records])
+    height_bins = np.round(trajectory_heights / height_bin_meters)
+    return np.asarray(
+        [float(np.median(trajectory_heights[height_bins == height_bin])) for height_bin in np.unique(height_bins)],
+        dtype=np.float32,
+    )
+
+
+def _plot_r2r_topdown_overlay(
+    scene_id: str,
+    records: list[R2RRecord],
+    output_path: Path,
+    map_resolution: int = 1024,
+) -> dict[str, Any]:
+    import habitat_sim
+    from habitat.utils.visualizations import maps
+
+    asset = _mp3d_scene_asset(scene_id)
+    if not asset["available"]:
+        raise FileNotFoundError(
+            f"Missing MP3D scene asset for {_scene_key(scene_id)}: "
+            f"{asset['glb_path']} and {asset['navmesh_path']}"
+        )
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    backend_cfg = habitat_sim.SimulatorConfiguration()
+    backend_cfg.scene_id = asset["glb_path"]
+    sim = habitat_sim.Simulator(habitat_sim.Configuration(backend_cfg, [habitat_sim.agent.AgentConfiguration()]))
+    try:
+        sim.pathfinder.load_nav_mesh(asset["navmesh_path"])
+        topdown_layers = [
+            maps.get_topdown_map(
+                sim.pathfinder,
+                float(height),
+                map_resolution=map_resolution,
+                draw_border=True,
+            )
+            for height in _trajectory_map_heights(records)
+        ]
+        topdown_map = np.maximum.reduce(topdown_layers)
+        goal_counts_original = Counter(record.goal_cell for record in records)
+        goal_counts_for_label = Counter(goal_counts_original)
+        goal_order = [goal for goal, _ in goal_counts_original.most_common()]
+        goal_rank = {goal: idx for idx, goal in enumerate(goal_order)}
+        cmap = plt.get_cmap("tab20")
+        colors = [cmap(i % 20) for i in range(max(1, len(goal_order)))]
+
+        fig, ax = plt.subplots(figsize=(9.5, 9.0), constrained_layout=True)
+        ax.imshow(topdown_map, cmap="gray", origin="upper")
+        for record in records:
+            grid = np.asarray(
+                [
+                    maps.to_grid(
+                        float(position[2]),
+                        float(position[0]),
+                        topdown_map.shape[:2],
+                        sim=sim,
+                    )
+                    for position in record.positions
+                ],
+                dtype=np.int64,
+            )
+            height, width = topdown_map.shape[:2]
+            if (
+                np.any(grid[:, 0] < 0)
+                or np.any(grid[:, 0] >= height)
+                or np.any(grid[:, 1] < 0)
+                or np.any(grid[:, 1] >= width)
+            ):
+                raise ValueError(f"R2R GT coordinates for {_scene_key(scene_id)} fall outside Habitat topdown map")
+            rank = goal_rank[record.goal_cell]
+            color = colors[rank]
+            label = None
+            if goal_counts_for_label[record.goal_cell] > 1 and rank < 10:
+                label = f"goal-cell {rank} (n={goal_counts_original[record.goal_cell]})"
+                goal_counts_for_label[record.goal_cell] = -goal_counts_for_label[record.goal_cell]
+            (line,) = ax.plot(grid[:, 1], grid[:, 0], color=color, linewidth=1.05, alpha=0.86, label=label, zorder=3)
+            line.set_path_effects([path_effects.Stroke(linewidth=2.0, foreground="white", alpha=0.32), path_effects.Normal()])
+            ax.scatter(grid[0, 1], grid[0, 0], s=16, marker="o", color=color, edgecolor="black", linewidth=0.35, alpha=0.75, zorder=4)
+            ax.scatter(grid[-1, 1], grid[-1, 0], s=25, marker="x", color=color, linewidth=0.75, alpha=0.85, zorder=4)
+
+        ax.scatter([], [], marker="o", s=20, color="white", edgecolor="black", label="start")
+        ax.scatter([], [], marker="x", s=24, color="black", label="goal")
+        ax.set_axis_off()
+        ax.set_title(
+            "MP3D Habitat-Sim topdown map with R2R/VLN-CE GT trajectory overlay\n"
+            f"{_scene_key(scene_id)}: {len(records)} trajectories"
+        )
+        handles, labels = ax.get_legend_handles_labels()
+        dedup: dict[str, Any] = {}
+        for handle, label in zip(handles, labels):
+            if label and label not in dedup:
+                dedup[label] = handle
+        ax.legend(dedup.values(), dedup.keys(), loc="upper left", bbox_to_anchor=(1.02, 1.0), fontsize=7, frameon=True, borderaxespad=0.0)
+        fig.savefig(output_path, dpi=180)
+        plt.close(fig)
+        return {
+            "file": str(output_path),
+            "plot_kind": "habitat_sim_topdown_trajectory_overlay",
+            "scene_id": scene_id,
+            "scene_key": _scene_key(scene_id),
+            "episodes": len(records),
+            "map_resolution": map_resolution,
+            "glb_path": asset["glb_path"],
+            "navmesh_path": asset["navmesh_path"],
+        }
+    finally:
+        sim.close()
+
+
+
 def _analyze_r2r(output_root: Path) -> dict[str, Any]:
     output_root.mkdir(parents=True, exist_ok=True)
     split_records = {split: _load_r2r_records(split) for split in ("train", "val_seen", "val_unseen")}
@@ -251,22 +367,48 @@ def _analyze_r2r(output_root: Path) -> dict[str, Any]:
     for record in split_records["train"]:
         train_by_scene[record.scene_id].append(record)
     top_scene_ids = [row["scene_id"] for row in summaries["train"]["top_scenes"][:5]]
-    plot_files = []
+    trajectory_plots = []
     for rank, scene_id in enumerate(top_scene_ids):
-        plot_files.append(
+        scene_records = train_by_scene[scene_id]
+        trajectory_plots.append(
             _plot_r2r_scene(
                 scene_id,
-                train_by_scene[scene_id],
+                scene_records,
                 output_root / f"navigation_r2r_scene_{rank:02d}_{_scene_key(scene_id)}.png",
             )
         )
+    topdown_scene_ids = [scene_id for scene_id in train_by_scene if _mp3d_scene_asset(scene_id)["available"]]
+    topdown_scene_ids.sort(
+        key=lambda scene_id: (len(_r2r_branch_cells(train_by_scene[scene_id])), len(train_by_scene[scene_id]), _scene_key(scene_id)),
+        reverse=True,
+    )
+    topdown_plots = []
+    for rank, scene_id in enumerate(topdown_scene_ids[:5]):
+        topdown_plots.append(
+            _plot_r2r_topdown_overlay(
+                scene_id,
+                train_by_scene[scene_id],
+                output_root / f"navigation_r2r_topdown_overlay_{rank:02d}_{_scene_key(scene_id)}.png",
+            )
+        )
+    top_scene_asset_blockers = [
+        {"scene_id": scene_id, **_mp3d_scene_asset(scene_id)}
+        for scene_id in top_scene_ids
+        if not _mp3d_scene_asset(scene_id)["available"]
+    ]
+    plot_files = [*trajectory_plots, *topdown_plots]
 
     payload = {
         "dataset_path": str(R2R_DATASET_ROOT),
         "source_dataset": "VLN-CE R2R_VLNCE_v1-3_preprocessed",
         "trajectory_source": "*_gt.json.gz locations",
         "branch_definition": "A 0.5 m x-z cell visited by trajectories with at least two outgoing 8-bin direction choices.",
+        "trajectory_plot_rule": "GT trajectory overlays only; branch candidate cell markers are not rendered.",
+        "topdown_overlay_rule": "Habitat-Sim topdown map overlays are generated only for R2R scenes with installed MP3D GLB and navmesh assets.",
         "splits": summaries,
+        "trajectory_plots": trajectory_plots,
+        "topdown_plots": topdown_plots,
+        "top_scene_asset_blockers": top_scene_asset_blockers,
         "plots": plot_files,
     }
     _safe_json_dump(output_root / "navigation_r2r_summary.json", payload)
@@ -549,7 +691,11 @@ def _build_result_manifest(
         "operational_definition": {
             "navigation_branch_candidate": (
                 "A 0.5 m x-z cell visited by real R2R/VLN-CE GT trajectories with at least two outgoing "
-                "8-bin direction choices."
+                "8-bin direction choices; retained in summaries, not drawn as plot markers."
+            ),
+            "navigation_topdown_overlay": (
+                "Habitat-Sim topdown maps for installed MP3D scene assets with R2R/VLN-CE GT trajectories "
+                "converted to map grid coordinates."
             ),
             "robotics_branch_candidate": (
                 "Different Franka Kitchen object-completion orders from real achieved-goal state trajectories "
@@ -557,7 +703,8 @@ def _build_result_manifest(
             ),
         },
         "interpretation_limits": [
-            "Navigation plots use dataset GT path coordinates, not reconstructed occupancy maps or Habitat top-down maps.",
+            "Navigation trajectory plots use dataset GT path coordinates and do not render branch candidate cell markers.",
+            "Navigation topdown overlays require installed MP3D GLB/navmesh assets; missing scene assets are recorded as blockers, not replaced with fake maps.",
             "Kitchen completion orders are heuristic thresholds over achieved-goal progress, not environment success labels.",
             "These outputs identify dataset suitability; they do not yet prove learned policy or VLM latent topology.",
         ],
