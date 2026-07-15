@@ -1,0 +1,30 @@
+{
+  "split": "val_unseen",
+  "scene_key": "QUCTc6BB5sX",
+  "episode_a": "94",
+  "episode_b": "1114",
+  "trajectory_a": 300,
+  "trajectory_b": 4479,
+  "match_dist_m": 0.5,
+  "a_shared_run_idx": [
+    18,
+    39
+  ],
+  "b_shared_run_idx": [
+    17,
+    35
+  ],
+  "same_direction": true,
+  "merge_point_xz": [
+    -5.015537261962891,
+    -11.954625129699707
+  ],
+  "branch_point_xz": [
+    0.20038864016532898,
+    -12.213444709777832
+  ],
+  "stitched_len_points": 55,
+  "instruction_a": "Walk forward, take a left around the corner and walk all the way to the end of the hallway, and stop at the door before the bedroom. ",
+  "instruction_b": "Walk straight across the wine cellar and exit out the door on the other side. Once out turn left and then enter in the door to your left in the corner. Stop once you enter the open room with several large cabinets. ",
+  "figure": "analysis/week2/results/r2r_overlaps/val_unseen/figures/stitch_QUCTc6BB5sX_94_1114.png"
+}

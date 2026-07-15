@@ -1,0 +1,19 @@
+{
+  "num_episodes": 100,
+  "episode_len": 1001,
+  "stacking_episodes": 87,
+  "stacking_pct": 87.0,
+  "cube0_on_cube1_eps": 62,
+  "cube1_on_cube0_eps": 64,
+  "avg_stacked_step_pct": 9.1,
+  "both_cubes_lifted_eps": 99,
+  "cube0_manipulated_eps": 99,
+  "cube1_manipulated_eps": 100,
+  "first_moved_cube0": 56,
+  "first_moved_cube1": 44,
+  "timeline_episode": {
+    "s": 96096,
+    "e": 97096,
+    "score": 232
+  }
+}

@@ -1,0 +1,6 @@
+scene_key,episode_id_a,episode_id_b,trajectory_id_a,trajectory_id_b,longest_shared_run_m,min_divergent_tail_m,same_direction,shared_points_a,shared_points_b,a_len_points,b_len_points,shared_fraction_a,shared_fraction_b,start_diverges,goal_diverges,stitch_candidate,both_ends_diverge
+Z6MFQCViBuw,1555,1696,6093,6721,15.25,0.0,False,62,62,62,62,1.0,1.0,True,True,True,True
+QUCTc6BB5sX,151,1699,620,6750,14.76,0.0,False,60,59,60,59,1.0,1.0,True,True,True,True
+zsNo4HB9uLZ,865,1384,3525,5463,14.54,0.0,False,57,59,60,62,0.95,0.952,True,True,True,True
+Z6MFQCViBuw,469,550,1879,2233,14.28,0.0,False,58,57,67,71,0.866,0.803,True,True,True,True
+Z6MFQCViBuw,469,667,1879,2751,14.28,0.0,False,58,55,67,55,0.866,1.0,True,True,True,True

@@ -1,0 +1,434 @@
+{
+  "split_episodes": 6000,
+  "immediate_stop": 961,
+  "immediate_stop_pct": 16.0,
+  "any_reversal_episodes": 376,
+  "any_reversal_pct": 6.3,
+  "midroute_reversal_episodes": 0,
+  "midroute_reversal_pct": 0.0,
+  "avg_inflections_per_episode": 14.86,
+  "num_fork_groups": 102,
+  "top_forks": [
+    {
+      "scene": "00757-LVgQNuK8vtv",
+      "object": "sofa",
+      "episodes": 50,
+      "left": 25,
+      "right": 25,
+      "straight": 0,
+      "split_balance": 0.5
+    },
+    {
+      "scene": "00164-XfUxBGTFQQb",
+      "object": "chair",
+      "episodes": 51,
+      "left": 26,
+      "right": 25,
+      "straight": 0,
+      "split_balance": 0.49
+    },
+    {
+      "scene": "00166-RaYrxWt5pR1",
+      "object": "plant",
+      "episodes": 51,
+      "left": 26,
+      "right": 25,
+      "straight": 0,
+      "split_balance": 0.49
+    },
+    {
+      "scene": "00179-MVVzj944atG",
+      "object": "bed",
+      "episodes": 51,
+      "left": 25,
+      "right": 26,
+      "straight": 0,
+      "split_balance": 0.49
+    },
+    {
+      "scene": "00205-NEVASPhcrxR",
+      "object": "plant",
+      "episodes": 51,
+      "left": 26,
+      "right": 25,
+      "straight": 0,
+      "split_balance": 0.49
+    },
+    {
+      "scene": "00256-92vYG1q49FY",
+      "object": "sofa",
+      "episodes": 51,
+      "left": 25,
+      "right": 26,
+      "straight": 0,
+      "split_balance": 0.49
+    },
+    {
+      "scene": "00304-X6Pct1msZv5",
+      "object": "tv_monitor",
+      "episodes": 51,
+      "left": 25,
+      "right": 26,
+      "straight": 0,
+      "split_balance": 0.49
+    },
+    {
+      "scene": "00384-ceJTwFNjqCt",
+      "object": "chair",
+      "episodes": 51,
+      "left": 26,
+      "right": 25,
+      "straight": 0,
+      "split_balance": 0.49
+    },
+    {
+      "scene": "00407-NPHxDe6VeCc",
+      "object": "plant",
+      "episodes": 51,
+      "left": 25,
+      "right": 26,
+      "straight": 0,
+      "split_balance": 0.49
+    },
+    {
+      "scene": "00487-erXNfWVjqZ8",
+      "object": "plant",
+      "episodes": 51,
+      "left": 26,
+      "right": 25,
+      "straight": 0,
+      "split_balance": 0.49
+    },
+    {
+      "scene": "00534-DBBESbk4Y3k",
+      "object": "toilet",
+      "episodes": 51,
+      "left": 25,
+      "right": 26,
+      "straight": 0,
+      "split_balance": 0.49
+    },
+    {
+      "scene": "00619-R9fYpvCUkV7",
+      "object": "sofa",
+      "episodes": 51,
+      "left": 26,
+      "right": 25,
+      "straight": 0,
+      "split_balance": 0.49
+    },
+    {
+      "scene": "00664-u5atqC7vRCY",
+      "object": "sofa",
+      "episodes": 51,
+      "left": 26,
+      "right": 25,
+      "straight": 0,
+      "split_balance": 0.49
+    },
+    {
+      "scene": "00688-SgkmkWjjmDJ",
+      "object": "chair",
+      "episodes": 51,
+      "left": 25,
+      "right": 26,
+      "straight": 0,
+      "split_balance": 0.49
+    },
+    {
+      "scene": "00732-Z2DQddYp1fn",
+      "object": "sofa",
+      "episodes": 50,
+      "left": 26,
+      "right": 24,
+      "straight": 0,
+      "split_balance": 0.48
+    }
+  ],
+  "reversal_examples": [
+    {
+      "episode_id": "hm3d_v0.2_train_00217-qz3829g1Lzf_qz3829g1Lzf.basis.glb_0",
+      "object": "bed",
+      "length": 95,
+      "reversal_turns": 6,
+      "reversal_dir": "LEFT",
+      "reversal_start": 0,
+      "forward_before": 0
+    },
+    {
+      "episode_id": "hm3d_v0.2_train_00410-v7DzfFFEpsD_v7DzfFFEpsD.basis.glb_0",
+      "object": "sofa",
+      "length": 60,
+      "reversal_turns": 6,
+      "reversal_dir": "LEFT",
+      "reversal_start": 0,
+      "forward_before": 0
+    },
+    {
+      "episode_id": "hm3d_v0.2_train_00534-DBBESbk4Y3k_DBBESbk4Y3k.basis.glb_0",
+      "object": "toilet",
+      "length": 76,
+      "reversal_turns": 6,
+      "reversal_dir": "LEFT",
+      "reversal_start": 0,
+      "forward_before": 0
+    },
+    {
+      "episode_id": "hm3d_v0.2_train_00712-HZ2iMMBsBQ9_HZ2iMMBsBQ9.basis.glb_0",
+      "object": "chair",
+      "length": 22,
+      "reversal_turns": 6,
+      "reversal_dir": "LEFT",
+      "reversal_start": 0,
+      "forward_before": 0
+    },
+    {
+      "episode_id": "hm3d_v0.2_train_00179-MVVzj944atG_MVVzj944atG.basis.glb_1",
+      "object": "bed",
+      "length": 55,
+      "reversal_turns": 6,
+      "reversal_dir": "LEFT",
+      "reversal_start": 0,
+      "forward_before": 0
+    },
+    {
+      "episode_id": "hm3d_v0.2_train_00245-741Fdj7NLF9_741Fdj7NLF9.basis.glb_1",
+      "object": "chair",
+      "length": 63,
+      "reversal_turns": 6,
+      "reversal_dir": "LEFT",
+      "reversal_start": 0,
+      "forward_before": 0
+    },
+    {
+      "episode_id": "hm3d_v0.2_train_00255-NGyoyh91xXJ_NGyoyh91xXJ.basis.glb_1",
+      "object": "sofa",
+      "length": 55,
+      "reversal_turns": 6,
+      "reversal_dir": "LEFT",
+      "reversal_start": 0,
+      "forward_before": 0
+    },
+    {
+      "episode_id": "hm3d_v0.2_train_00410-v7DzfFFEpsD_v7DzfFFEpsD.basis.glb_1",
+      "object": "sofa",
+      "length": 57,
+      "reversal_turns": 6,
+      "reversal_dir": "LEFT",
+      "reversal_start": 0,
+      "forward_before": 0
+    },
+    {
+      "episode_id": "hm3d_v0.2_train_00434-L5QEsaVqwrY_L5QEsaVqwrY.basis.glb_1",
+      "object": "bed",
+      "length": 58,
+      "reversal_turns": 6,
+      "reversal_dir": "LEFT",
+      "reversal_start": 0,
+      "forward_before": 0
+    },
+    {
+      "episode_id": "hm3d_v0.2_train_00541-FnDDfrBZPhh_FnDDfrBZPhh.basis.glb_1",
+      "object": "plant",
+      "length": 68,
+      "reversal_turns": 6,
+      "reversal_dir": "LEFT",
+      "reversal_start": 0,
+      "forward_before": 0
+    },
+    {
+      "episode_id": "hm3d_v0.2_train_00598-mt9H8KcxRKD_mt9H8KcxRKD.basis.glb_1",
+      "object": "toilet",
+      "length": 36,
+      "reversal_turns": 6,
+      "reversal_dir": "LEFT",
+      "reversal_start": 0,
+      "forward_before": 0
+    },
+    {
+      "episode_id": "hm3d_v0.2_train_00638-iePHCSf119p_iePHCSf119p.basis.glb_1",
+      "object": "plant",
+      "length": 35,
+      "reversal_turns": 6,
+      "reversal_dir": "LEFT",
+      "reversal_start": 0,
+      "forward_before": 0
+    },
+    {
+      "episode_id": "hm3d_v0.2_train_00746-RTV2n6fXB2w_RTV2n6fXB2w.basis.glb_1",
+      "object": "chair",
+      "length": 61,
+      "reversal_turns": 6,
+      "reversal_dir": "LEFT",
+      "reversal_start": 0,
+      "forward_before": 0
+    },
+    {
+      "episode_id": "hm3d_v0.2_train_00031-Wo6kuutE9i7_Wo6kuutE9i7.basis.glb_2",
+      "object": "bed",
+      "length": 52,
+      "reversal_turns": 6,
+      "reversal_dir": "LEFT",
+      "reversal_start": 0,
+      "forward_before": 0
+    },
+    {
+      "episode_id": "hm3d_v0.2_train_00255-NGyoyh91xXJ_NGyoyh91xXJ.basis.glb_2",
+      "object": "sofa",
+      "length": 52,
+      "reversal_turns": 6,
+      "reversal_dir": "LEFT",
+      "reversal_start": 0,
+      "forward_before": 0
+    },
+    {
+      "episode_id": "hm3d_v0.2_train_00304-X6Pct1msZv5_X6Pct1msZv5.basis.glb_2",
+      "object": "tv_monitor",
+      "length": 42,
+      "reversal_turns": 6,
+      "reversal_dir": "LEFT",
+      "reversal_start": 0,
+      "forward_before": 0
+    },
+    {
+      "episode_id": "hm3d_v0.2_train_00534-DBBESbk4Y3k_DBBESbk4Y3k.basis.glb_2",
+      "object": "toilet",
+      "length": 71,
+      "reversal_turns": 6,
+      "reversal_dir": "LEFT",
+      "reversal_start": 0,
+      "forward_before": 0
+    },
+    {
+      "episode_id": "hm3d_v0.2_train_00662-aRKASs4e8j1_aRKASs4e8j1.basis.glb_2",
+      "object": "tv_monitor",
+      "length": 56,
+      "reversal_turns": 6,
+      "reversal_dir": "LEFT",
+      "reversal_start": 0,
+      "forward_before": 0
+    },
+    {
+      "episode_id": "hm3d_v0.2_train_00299-bdp1XNEdvmW_bdp1XNEdvmW.basis.glb_3",
+      "object": "chair",
+      "length": 116,
+      "reversal_turns": 6,
+      "reversal_dir": "LEFT",
+      "reversal_start": 0,
+      "forward_before": 0
+    },
+    {
+      "episode_id": "hm3d_v0.2_train_00463-URjpCob8MGw_URjpCob8MGw.basis.glb_3",
+      "object": "chair",
+      "length": 41,
+      "reversal_turns": 6,
+      "reversal_dir": "LEFT",
+      "reversal_start": 0,
+      "forward_before": 0
+    },
+    {
+      "episode_id": "hm3d_v0.2_train_00598-mt9H8KcxRKD_mt9H8KcxRKD.basis.glb_3",
+      "object": "toilet",
+      "length": 29,
+      "reversal_turns": 6,
+      "reversal_dir": "LEFT",
+      "reversal_start": 0,
+      "forward_before": 0
+    },
+    {
+      "episode_id": "hm3d_v0.2_train_00643-ggNAcMh8JPT_ggNAcMh8JPT.basis.glb_3",
+      "object": "sofa",
+      "length": 53,
+      "reversal_turns": 6,
+      "reversal_dir": "LEFT",
+      "reversal_start": 0,
+      "forward_before": 0
+    },
+    {
+      "episode_id": "hm3d_v0.2_train_00250-U3oQjwTuMX8_U3oQjwTuMX8.basis.glb_4",
+      "object": "sofa",
+      "length": 113,
+      "reversal_turns": 6,
+      "reversal_dir": "LEFT",
+      "reversal_start": 0,
+      "forward_before": 0
+    },
+    {
+      "episode_id": "hm3d_v0.2_train_00487-erXNfWVjqZ8_erXNfWVjqZ8.basis.glb_4",
+      "object": "plant",
+      "length": 25,
+      "reversal_turns": 6,
+      "reversal_dir": "LEFT",
+      "reversal_start": 0,
+      "forward_before": 0
+    },
+    {
+      "episode_id": "hm3d_v0.2_train_00529-W9YAR9qcuvN_W9YAR9qcuvN.basis.glb_4",
+      "object": "chair",
+      "length": 44,
+      "reversal_turns": 6,
+      "reversal_dir": "LEFT",
+      "reversal_start": 0,
+      "forward_before": 0
+    },
+    {
+      "episode_id": "hm3d_v0.2_train_00680-YmWinf3mhb5_YmWinf3mhb5.basis.glb_4",
+      "object": "bed",
+      "length": 62,
+      "reversal_turns": 6,
+      "reversal_dir": "LEFT",
+      "reversal_start": 0,
+      "forward_before": 0
+    },
+    {
+      "episode_id": "hm3d_v0.2_train_00397-ZNanfzgCdm3_ZNanfzgCdm3.basis.glb_5",
+      "object": "chair",
+      "length": 37,
+      "reversal_turns": 6,
+      "reversal_dir": "LEFT",
+      "reversal_start": 0,
+      "forward_before": 0
+    },
+    {
+      "episode_id": "hm3d_v0.2_train_00414-77mMEyxhs44_77mMEyxhs44.basis.glb_5",
+      "object": "bed",
+      "length": 54,
+      "reversal_turns": 6,
+      "reversal_dir": "LEFT",
+      "reversal_start": 0,
+      "forward_before": 0
+    },
+    {
+      "episode_id": "hm3d_v0.2_train_00547-9h5JJxM6E5S_9h5JJxM6E5S.basis.glb_5",
+      "object": "plant",
+      "length": 143,
+      "reversal_turns": 6,
+      "reversal_dir": "LEFT",
+      "reversal_start": 0,
+      "forward_before": 0
+    },
+    {
+      "episode_id": "hm3d_v0.2_train_00746-RTV2n6fXB2w_RTV2n6fXB2w.basis.glb_5",
+      "object": "chair",
+      "length": 56,
+      "reversal_turns": 6,
+      "reversal_dir": "LEFT",
+      "reversal_start": 0,
+      "forward_before": 0
+    }
+  ],
+  "transitions": {
+    "FORWARD->FORWARD": 117266,
+    "LEFT->FORWARD": 47248,
+    "RIGHT->FORWARD": 46470,
+    "FORWARD->LEFT": 44740,
+    "FORWARD->RIGHT": 44410,
+    "LEFT->LEFT": 12289,
+    "RIGHT->RIGHT": 9833,
+    "FORWARD->STOP": 5039,
+    "START->LEFT": 2508,
+    "START->RIGHT": 2060,
+    "START->STOP": 961,
+    "START->FORWARD": 471
+  }
+}

@@ -1,0 +1,131 @@
+{
+  "num_junctions": 338,
+  "num_clean_forks": 138,
+  "chosen": {
+    "scene": "00463-URjpCob8MGw",
+    "cell": [
+      -2,
+      16
+    ],
+    "cell_xz": [
+      -0.75,
+      8.25
+    ],
+    "n_from_incoming": 10,
+    "n_branches": 2,
+    "separation_deg": 90,
+    "balance": 1.0
+  },
+  "top_forks": [
+    {
+      "scene": "00463-URjpCob8MGw",
+      "cell": [
+        -2,
+        16
+      ],
+      "n_from_incoming": 10,
+      "n_branches": 2,
+      "separation_deg": 90,
+      "balance": 1.0
+    },
+    {
+      "scene": "00087-YY8rqV6L6rf",
+      "cell": [
+        -12,
+        -14
+      ],
+      "n_from_incoming": 9,
+      "n_branches": 2,
+      "separation_deg": 90,
+      "balance": 1.0
+    },
+    {
+      "scene": "00547-9h5JJxM6E5S",
+      "cell": [
+        6,
+        4
+      ],
+      "n_from_incoming": 9,
+      "n_branches": 2,
+      "separation_deg": 90,
+      "balance": 1.0
+    },
+    {
+      "scene": "00016-qk9eeNeR4vw",
+      "cell": [
+        -6,
+        0
+      ],
+      "n_from_incoming": 8,
+      "n_branches": 2,
+      "separation_deg": 90,
+      "balance": 1.0
+    },
+    {
+      "scene": "00109-GTV2Y73Sn5t",
+      "cell": [
+        -14,
+        -11
+      ],
+      "n_from_incoming": 7,
+      "n_branches": 2,
+      "separation_deg": 90,
+      "balance": 1.0
+    },
+    {
+      "scene": "00109-GTV2Y73Sn5t",
+      "cell": [
+        -15,
+        -10
+      ],
+      "n_from_incoming": 7,
+      "n_branches": 2,
+      "separation_deg": 90,
+      "balance": 1.0
+    },
+    {
+      "scene": "00262-1xGrZPxG1Hz",
+      "cell": [
+        -19,
+        3
+      ],
+      "n_from_incoming": 7,
+      "n_branches": 2,
+      "separation_deg": 135,
+      "balance": 1.0
+    },
+    {
+      "scene": "00378-DqJKU7YU7dA",
+      "cell": [
+        -11,
+        30
+      ],
+      "n_from_incoming": 7,
+      "n_branches": 2,
+      "separation_deg": 135,
+      "balance": 1.0
+    },
+    {
+      "scene": "00466-xAHnY3QzFUN",
+      "cell": [
+        -12,
+        17
+      ],
+      "n_from_incoming": 7,
+      "n_branches": 2,
+      "separation_deg": 135,
+      "balance": 1.0
+    },
+    {
+      "scene": "00529-W9YAR9qcuvN",
+      "cell": [
+        8,
+        4
+      ],
+      "n_from_incoming": 7,
+      "n_branches": 2,
+      "separation_deg": 90,
+      "balance": 1.0
+    }
+  ]
+}

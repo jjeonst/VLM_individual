@@ -1,0 +1,156 @@
+{
+  "probe": "branch_validity_judgment",
+  "instances": [
+    {
+      "id": "objnav_branch_deadend_00135-HeSYRw7eMtG",
+      "input": {
+        "segment": [
+          [
+            0.84,
+            -4.9
+          ],
+          [
+            1.81,
+            -4.82
+          ],
+          [
+            2.75,
+            -4.71
+          ],
+          [
+            3.67,
+            -4.38
+          ],
+          [
+            4.59,
+            -4.05
+          ],
+          [
+            4.68,
+            -4.6
+          ],
+          [
+            3.94,
+            -5.27
+          ],
+          [
+            3.89,
+            -6.16
+          ],
+          [
+            3.99,
+            -7.1
+          ],
+          [
+            3.29,
+            -7.42
+          ],
+          [
+            2.92,
+            -6.65
+          ],
+          [
+            3.6,
+            -6.15
+          ],
+          [
+            3.8,
+            -5.86
+          ],
+          [
+            3.95,
+            -4.96
+          ],
+          [
+            3.63,
+            -4.04
+          ],
+          [
+            2.81,
+            -3.65
+          ],
+          [
+            2.01,
+            -4.2
+          ],
+          [
+            1.4,
+            -4.59
+          ]
+        ],
+        "target_object": "plant"
+      },
+      "question": "Taking this next segment: does it make progress to a new region toward the goal, or is it a dead-end that returns near where it started?",
+      "gold": {
+        "label": "dead-end",
+        "detour_m": 16.5,
+        "gap_closed_m": 0.64
+      },
+      "correctness_criterion": "label == dead-end (segment endpoint within ~1 m of its start after a long detour)",
+      "source": "ObjectNav dead-end 00135-HeSYRw7eMtG ep …glb_19"
+    },
+    {
+      "id": "objnav_branch_progress_00440-wPLokgvCnuk",
+      "input": {
+        "segment": [
+          [
+            1.69,
+            -6.88
+          ],
+          [
+            2.14,
+            -7.36
+          ],
+          [
+            2.29,
+            -8.33
+          ],
+          [
+            2.99,
+            -8.41
+          ],
+          [
+            2.04,
+            -8.36
+          ],
+          [
+            1.98,
+            -7.4
+          ],
+          [
+            1.52,
+            -6.53
+          ],
+          [
+            0.7,
+            -6.51
+          ],
+          [
+            0.38,
+            -5.55
+          ],
+          [
+            0.24,
+            -4.59
+          ],
+          [
+            0.2,
+            -3.63
+          ],
+          [
+            0.94,
+            -3.12
+          ]
+        ],
+        "target_object": null
+      },
+      "question": "Taking this next segment: does it make progress to a new region toward the goal, or is it a dead-end that returns near where it started?",
+      "gold": {
+        "label": "goal-route",
+        "start_to_end_m": 3.84
+      },
+      "correctness_criterion": "label == goal-route (endpoint far from start)",
+      "source": "ObjectNav clean route 00440-wPLokgvCnuk"
+    }
+  ]
+}

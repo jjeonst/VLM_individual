@@ -1,0 +1,17 @@
+{
+  "scene": "00440-wPLokgvCnuk",
+  "bottleneck_xz": [
+    1.75,
+    -6.75
+  ],
+  "traffic_fraction": 0.804,
+  "same_place_episodes": [
+    "hm3d_v0.2_train_00440-wPLokgvCnuk_wPLokgvCnuk.basis.glb_32",
+    "hm3d_v0.2_train_00440-wPLokgvCnuk_wPLokgvCnuk.basis.glb_48",
+    "hm3d_v0.2_train_00440-wPLokgvCnuk_wPLokgvCnuk.basis.glb_14"
+  ],
+  "distractor_episode": "hm3d_v0.2_train_00440-wPLokgvCnuk_wPLokgvCnuk.basis.glb_2",
+  "question": "Which of these egocentric views depict the SAME place (doorway)?",
+  "gold": "views 1-3 = same doorway; view 4 = different location",
+  "figure": "analysis/week3/results/probes/obs_same_place_00440.png"
+}

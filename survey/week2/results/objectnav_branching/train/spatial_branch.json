@@ -1,0 +1,222 @@
+{
+  "num_scenes": 106,
+  "total_trajectories": 5039,
+  "deadend_episodes": 1208,
+  "deadend_pct": 24.0,
+  "best_bottleneck_scene": "00440-wPLokgvCnuk",
+  "best_scene_top_cells": [
+    {
+      "cell": [
+        3,
+        -14
+      ],
+      "xz": [
+        1.75,
+        -6.75
+      ],
+      "traffic": 41,
+      "fraction": 0.804
+    },
+    {
+      "cell": [
+        4,
+        -14
+      ],
+      "xz": [
+        2.25,
+        -6.75
+      ],
+      "traffic": 37,
+      "fraction": 0.725
+    },
+    {
+      "cell": [
+        5,
+        -14
+      ],
+      "xz": [
+        2.75,
+        -6.75
+      ],
+      "traffic": 31,
+      "fraction": 0.608
+    },
+    {
+      "cell": [
+        2,
+        -14
+      ],
+      "xz": [
+        1.25,
+        -6.75
+      ],
+      "traffic": 29,
+      "fraction": 0.569
+    },
+    {
+      "cell": [
+        3,
+        -15
+      ],
+      "xz": [
+        1.75,
+        -7.25
+      ],
+      "traffic": 29,
+      "fraction": 0.569
+    }
+  ],
+  "best_scene_num_trajectories": 51,
+  "deadend_examples": [
+    {
+      "return_from": 3,
+      "return_to": 134,
+      "detour_m": 16.5,
+      "gap_closed_m": 0.64,
+      "episode_id": "hm3d_v0.2_train_00135-HeSYRw7eMtG_HeSYRw7eMtG.basis.glb_19",
+      "scene_key": "00135-HeSYRw7eMtG",
+      "object": "plant",
+      "length": 138
+    },
+    {
+      "return_from": 0,
+      "return_to": 161,
+      "detour_m": 15.38,
+      "gap_closed_m": 0.75,
+      "episode_id": "hm3d_v0.2_train_00105-xWvSkKiWQpC_xWvSkKiWQpC.basis.glb_24",
+      "scene_key": "00105-xWvSkKiWQpC",
+      "object": "tv_monitor",
+      "length": 164
+    },
+    {
+      "return_from": 6,
+      "return_to": 150,
+      "detour_m": 14.33,
+      "gap_closed_m": 0.71,
+      "episode_id": "hm3d_v0.2_train_00105-xWvSkKiWQpC_xWvSkKiWQpC.basis.glb_18",
+      "scene_key": "00105-xWvSkKiWQpC",
+      "object": "tv_monitor",
+      "length": 172
+    },
+    {
+      "return_from": 18,
+      "return_to": 140,
+      "detour_m": 13.68,
+      "gap_closed_m": 0.74,
+      "episode_id": "hm3d_v0.2_train_00135-HeSYRw7eMtG_HeSYRw7eMtG.basis.glb_16",
+      "scene_key": "00135-HeSYRw7eMtG",
+      "object": "plant",
+      "length": 142
+    },
+    {
+      "return_from": 0,
+      "return_to": 95,
+      "detour_m": 13.08,
+      "gap_closed_m": 0.66,
+      "episode_id": "hm3d_v0.2_train_00440-wPLokgvCnuk_wPLokgvCnuk.basis.glb_40",
+      "scene_key": "00440-wPLokgvCnuk",
+      "object": "tv_monitor",
+      "length": 117
+    },
+    {
+      "return_from": 4,
+      "return_to": 137,
+      "detour_m": 12.82,
+      "gap_closed_m": 0.75,
+      "episode_id": "hm3d_v0.2_train_00105-xWvSkKiWQpC_xWvSkKiWQpC.basis.glb_48",
+      "scene_key": "00105-xWvSkKiWQpC",
+      "object": "tv_monitor",
+      "length": 165
+    },
+    {
+      "return_from": 3,
+      "return_to": 126,
+      "detour_m": 12.04,
+      "gap_closed_m": 0.67,
+      "episode_id": "hm3d_v0.2_train_00105-xWvSkKiWQpC_xWvSkKiWQpC.basis.glb_9",
+      "scene_key": "00105-xWvSkKiWQpC",
+      "object": "tv_monitor",
+      "length": 177
+    },
+    {
+      "return_from": 23,
+      "return_to": 133,
+      "detour_m": 12.04,
+      "gap_closed_m": 0.67,
+      "episode_id": "hm3d_v0.2_train_00547-9h5JJxM6E5S_9h5JJxM6E5S.basis.glb_19",
+      "scene_key": "00547-9h5JJxM6E5S",
+      "object": "plant",
+      "length": 134
+    },
+    {
+      "return_from": 8,
+      "return_to": 179,
+      "detour_m": 11.74,
+      "gap_closed_m": 0.65,
+      "episode_id": "hm3d_v0.2_train_00172-bB6nKqfsb1z_bB6nKqfsb1z.basis.glb_11",
+      "scene_key": "00172-bB6nKqfsb1z",
+      "object": "toilet",
+      "length": 180
+    },
+    {
+      "return_from": 0,
+      "return_to": 80,
+      "detour_m": 11.47,
+      "gap_closed_m": 0.57,
+      "episode_id": "hm3d_v0.2_train_00135-HeSYRw7eMtG_HeSYRw7eMtG.basis.glb_28",
+      "scene_key": "00135-HeSYRw7eMtG",
+      "object": "plant",
+      "length": 133
+    },
+    {
+      "return_from": 0,
+      "return_to": 93,
+      "detour_m": 11.29,
+      "gap_closed_m": 0.75,
+      "episode_id": "hm3d_v0.2_train_00440-wPLokgvCnuk_wPLokgvCnuk.basis.glb_46",
+      "scene_key": "00440-wPLokgvCnuk",
+      "object": "tv_monitor",
+      "length": 106
+    },
+    {
+      "return_from": 4,
+      "return_to": 135,
+      "detour_m": 11.24,
+      "gap_closed_m": 0.72,
+      "episode_id": "hm3d_v0.2_train_00135-HeSYRw7eMtG_HeSYRw7eMtG.basis.glb_35",
+      "scene_key": "00135-HeSYRw7eMtG",
+      "object": "plant",
+      "length": 136
+    },
+    {
+      "return_from": 3,
+      "return_to": 78,
+      "detour_m": 10.79,
+      "gap_closed_m": 0.67,
+      "episode_id": "hm3d_v0.2_train_00135-HeSYRw7eMtG_HeSYRw7eMtG.basis.glb_21",
+      "scene_key": "00135-HeSYRw7eMtG",
+      "object": "plant",
+      "length": 104
+    },
+    {
+      "return_from": 32,
+      "return_to": 112,
+      "detour_m": 10.55,
+      "gap_closed_m": 0.7,
+      "episode_id": "hm3d_v0.2_train_00547-9h5JJxM6E5S_9h5JJxM6E5S.basis.glb_39",
+      "scene_key": "00547-9h5JJxM6E5S",
+      "object": "plant",
+      "length": 134
+    },
+    {
+      "return_from": 0,
+      "return_to": 91,
+      "detour_m": 10.47,
+      "gap_closed_m": 0.72,
+      "episode_id": "hm3d_v0.2_train_00172-bB6nKqfsb1z_bB6nKqfsb1z.basis.glb_24",
+      "scene_key": "00172-bB6nKqfsb1z",
+      "object": "toilet",
+      "length": 170
+    }
+  ]
+}

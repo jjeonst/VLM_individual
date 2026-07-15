@@ -1,0 +1,13 @@
+{
+  "scene": "00463-URjpCob8MGw",
+  "junction_cell_xz": [
+    -0.75,
+    8.25
+  ],
+  "branch1_episode": "hm3d_v0.2_train_00463-URjpCob8MGw_URjpCob8MGw.basis.glb_12",
+  "branch1_target": "chair",
+  "branch2_episode": "hm3d_v0.2_train_00463-URjpCob8MGw_URjpCob8MGw.basis.glb_13",
+  "question": "At the junction, target='chair'. Which branch view leads to the goal?",
+  "gold": "branch 1 (the expert to the target took it)",
+  "figure": "analysis/week3/results/probes/obs_branch_choice_00463.png"
+}

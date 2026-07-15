@@ -1,0 +1,24 @@
+{
+  "split": "val_unseen",
+  "match_dist_m": 0.5,
+  "min_shared_run_m": 2.0,
+  "num_paths_loaded": 613,
+  "num_scenes": 11,
+  "episodes_per_scene": {
+    "2azQ1b91cZZ": 84,
+    "8194nk5LbLH": 13,
+    "EU6Fwq7SyZv": 44,
+    "QUCTc6BB5sX": 85,
+    "TbHJrupSAjP": 88,
+    "X7HyMhZNoso": 47,
+    "Z6MFQCViBuw": 53,
+    "oLBMNvg9in8": 59,
+    "pLe4wQe7qrG": 6,
+    "x8F5xyUWy9e": 34,
+    "zsNo4HB9uLZ": 100
+  },
+  "num_candidate_pairs": 5453,
+  "num_stitch_candidates": 5450,
+  "num_both_ends_diverge": 4620,
+  "top_written": 5
+}
