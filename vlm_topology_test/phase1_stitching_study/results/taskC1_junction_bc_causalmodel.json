@@ -1,0 +1,49 @@
+{
+  "checkpoint": "/data/topovlm/checkpoints/pr2l_hm3d_bc/seed_42/model.pt",
+  "inference_mode": "bidirectional_full_trajectory",
+  "episodes": 6000,
+  "nodes_evaluated": 71060,
+  "decision_point_definition": "inflection: node_action[i] != node_action[i-1] (trainer def)",
+  "inflection_decision_nodes": {
+    "count": 33662,
+    "policy_accuracy": 0.992,
+    "majority_baseline": 0.476,
+    "majority_action": "FORWARD",
+    "policy_minus_baseline": 0.516,
+    "pct_predicted_FORWARD": 47.3
+  },
+  "non_inflection_corridor_nodes": {
+    "count": 37398,
+    "policy_accuracy": 0.952,
+    "majority_baseline": 0.839,
+    "majority_action": "FORWARD",
+    "policy_minus_baseline": 0.112
+  },
+  "accuracy_gap_corridor_minus_decision": -0.04,
+  "inflection_confusion_expert_x_pred": {
+    "STOP": {
+      "STOP": 1292,
+      "FORWARD": 3,
+      "LEFT": 0,
+      "RIGHT": 0
+    },
+    "FORWARD": {
+      "STOP": 9,
+      "FORWARD": 15825,
+      "LEFT": 134,
+      "RIGHT": 46
+    },
+    "LEFT": {
+      "STOP": 0,
+      "FORWARD": 31,
+      "LEFT": 8261,
+      "RIGHT": 1
+    },
+    "RIGHT": {
+      "STOP": 0,
+      "FORWARD": 48,
+      "LEFT": 0,
+      "RIGHT": 8012
+    }
+  }
+}

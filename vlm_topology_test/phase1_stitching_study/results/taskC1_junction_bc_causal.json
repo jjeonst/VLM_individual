@@ -1,0 +1,49 @@
+{
+  "checkpoint": "/data/topovlm/checkpoints/pr2l_hm3d_bc/seed_42/model.pt",
+  "inference_mode": "causal_past_only",
+  "episodes": 6000,
+  "nodes_evaluated": 71060,
+  "decision_point_definition": "inflection: node_action[i] != node_action[i-1] (trainer def)",
+  "inflection_decision_nodes": {
+    "count": 33662,
+    "policy_accuracy": 0.776,
+    "majority_baseline": 0.476,
+    "majority_action": "FORWARD",
+    "policy_minus_baseline": 0.301,
+    "pct_predicted_FORWARD": 56.6
+  },
+  "non_inflection_corridor_nodes": {
+    "count": 37398,
+    "policy_accuracy": 0.821,
+    "majority_baseline": 0.839,
+    "majority_action": "FORWARD",
+    "policy_minus_baseline": -0.018
+  },
+  "accuracy_gap_corridor_minus_decision": 0.045,
+  "inflection_confusion_expert_x_pred": {
+    "STOP": {
+      "STOP": 1293,
+      "FORWARD": 1,
+      "LEFT": 0,
+      "RIGHT": 1
+    },
+    "FORWARD": {
+      "STOP": 917,
+      "FORWARD": 14196,
+      "LEFT": 476,
+      "RIGHT": 425
+    },
+    "LEFT": {
+      "STOP": 290,
+      "FORWARD": 2299,
+      "LEFT": 5639,
+      "RIGHT": 65
+    },
+    "RIGHT": {
+      "STOP": 343,
+      "FORWARD": 2572,
+      "LEFT": 138,
+      "RIGHT": 5007
+    }
+  }
+}

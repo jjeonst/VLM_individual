@@ -1,0 +1,108 @@
+{
+  "scene": "00172-bB6nKqfsb1z",
+  "epA": "hm3d_v0.2_train_00172-bB6nKqfsb1z_bB6nKqfsb1z.basis.glb_8",
+  "epB": "hm3d_v0.2_train_00172-bB6nKqfsb1z_bB6nKqfsb1z.basis.glb_48",
+  "goal_A_object": "toilet",
+  "goal_B_object": "toilet",
+  "goal_frame_sim": 0.15,
+  "junction_xz": [
+    3.1050660610198975,
+    10.13933277130127
+  ],
+  "shared_run_m": 2.25,
+  "min_tail_m": 4.55,
+  "start_div_m": 7.48,
+  "goal_div_m": 3.26,
+  "gold": "correct",
+  "options": {
+    "correct": [
+      [
+        "hm3d_v0.2_train_00172-bB6nKqfsb1z_bB6nKqfsb1z.basis.glb_8",
+        0
+      ],
+      [
+        "hm3d_v0.2_train_00172-bB6nKqfsb1z_bB6nKqfsb1z.basis.glb_8",
+        48
+      ],
+      [
+        "hm3d_v0.2_train_00172-bB6nKqfsb1z_bB6nKqfsb1z.basis.glb_8",
+        96
+      ],
+      [
+        "hm3d_v0.2_train_00172-bB6nKqfsb1z_bB6nKqfsb1z.basis.glb_48",
+        68
+      ],
+      [
+        "hm3d_v0.2_train_00172-bB6nKqfsb1z_bB6nKqfsb1z.basis.glb_48",
+        116
+      ]
+    ],
+    "D1_broken_seam": [
+      [
+        "hm3d_v0.2_train_00172-bB6nKqfsb1z_bB6nKqfsb1z.basis.glb_8",
+        0
+      ],
+      [
+        "hm3d_v0.2_train_00172-bB6nKqfsb1z_bB6nKqfsb1z.basis.glb_8",
+        44
+      ],
+      [
+        "hm3d_v0.2_train_00172-bB6nKqfsb1z_bB6nKqfsb1z.basis.glb_8",
+        89
+      ],
+      [
+        "hm3d_v0.2_train_00172-bB6nKqfsb1z_bB6nKqfsb1z.basis.glb_48",
+        72
+      ],
+      [
+        "hm3d_v0.2_train_00172-bB6nKqfsb1z_bB6nKqfsb1z.basis.glb_48",
+        116
+      ]
+    ],
+    "D3_wrong_goal": [
+      [
+        "hm3d_v0.2_train_00172-bB6nKqfsb1z_bB6nKqfsb1z.basis.glb_8",
+        0
+      ],
+      [
+        "hm3d_v0.2_train_00172-bB6nKqfsb1z_bB6nKqfsb1z.basis.glb_8",
+        42
+      ],
+      [
+        "hm3d_v0.2_train_00172-bB6nKqfsb1z_bB6nKqfsb1z.basis.glb_8",
+        84
+      ],
+      [
+        "hm3d_v0.2_train_00172-bB6nKqfsb1z_bB6nKqfsb1z.basis.glb_8",
+        126
+      ],
+      [
+        "hm3d_v0.2_train_00172-bB6nKqfsb1z_bB6nKqfsb1z.basis.glb_8",
+        168
+      ]
+    ],
+    "D4_reversed": [
+      [
+        "hm3d_v0.2_train_00172-bB6nKqfsb1z_bB6nKqfsb1z.basis.glb_8",
+        0
+      ],
+      [
+        "hm3d_v0.2_train_00172-bB6nKqfsb1z_bB6nKqfsb1z.basis.glb_8",
+        37
+      ],
+      [
+        "hm3d_v0.2_train_00172-bB6nKqfsb1z_bB6nKqfsb1z.basis.glb_8",
+        74
+      ],
+      [
+        "hm3d_v0.2_train_00172-bB6nKqfsb1z_bB6nKqfsb1z.basis.glb_8",
+        112
+      ],
+      [
+        "hm3d_v0.2_train_00172-bB6nKqfsb1z_bB6nKqfsb1z.basis.glb_48",
+        0
+      ]
+    ]
+  },
+  "question": "route A와 route B가 주어졌을 때, start_A에서 goal_B로 가는 올바른 경로는?"
+}

@@ -1,0 +1,300 @@
+{
+  "config": {
+    "frames": 5,
+    "max_new_tokens": 48,
+    "candidates": {
+      "baseline_presence": "Would a {goal} be found here? Why or why not?",
+      "A_direction": "Which direction should I move to find a {goal}? Explain what you see.",
+      "C_structure_and_goal": "Where can I go from here, and which of those directions most likely leads to a {goal}? Why?",
+      "D_room_connectivity": "What room is this? Which rooms connect from here, and where would a {goal} be?"
+    }
+  },
+  "timing_per_frame": {
+    "baseline_presence": {
+      "mean_total_seconds": 0.458,
+      "mean_generation_seconds": 0.406,
+      "mean_forward_seconds": 0.053,
+      "mean_answer_words": 8.2
+    },
+    "A_direction": {
+      "mean_total_seconds": 0.487,
+      "mean_generation_seconds": 0.43,
+      "mean_forward_seconds": 0.057,
+      "mean_answer_words": 16.0
+    },
+    "C_structure_and_goal": {
+      "mean_total_seconds": 0.866,
+      "mean_generation_seconds": 0.808,
+      "mean_forward_seconds": 0.058,
+      "mean_answer_words": 33.6
+    },
+    "D_room_connectivity": {
+      "mean_total_seconds": 0.878,
+      "mean_generation_seconds": 0.82,
+      "mean_forward_seconds": 0.058,
+      "mean_answer_words": 31.4
+    }
+  },
+  "records": [
+    {
+      "episode": "hm3d_v0.2_train_00016-qk9eeNeR4vw_qk9eeNeR4vw.basis.glb_0",
+      "frame_index": 34,
+      "goal": "plant",
+      "candidate": "baseline_presence",
+      "question": "Would a plant be found here? Why or why not?",
+      "answer": "No, there is no plant in the image.",
+      "answer_words": 8,
+      "generation_seconds": 0.948,
+      "forward_seconds": 0.053,
+      "total_seconds": 1.001,
+      "representation_norm": 105.91
+    },
+    {
+      "episode": "hm3d_v0.2_train_00016-qk9eeNeR4vw_qk9eeNeR4vw.basis.glb_0",
+      "frame_index": 34,
+      "goal": "plant",
+      "candidate": "A_direction",
+      "question": "Which direction should I move to find a plant? Explain what you see.",
+      "answer": "Move to the right, as there is a plant on the right side of the image.",
+      "answer_words": 16,
+      "generation_seconds": 0.434,
+      "forward_seconds": 0.058,
+      "total_seconds": 0.492,
+      "representation_norm": 110.559
+    },
+    {
+      "episode": "hm3d_v0.2_train_00016-qk9eeNeR4vw_qk9eeNeR4vw.basis.glb_0",
+      "frame_index": 34,
+      "goal": "plant",
+      "candidate": "C_structure_and_goal",
+      "question": "Where can I go from here, and which of those directions most likely leads to a plant? Why?",
+      "answer": "You can go left or right from the hallway, but the right direction is more likely to lead to a plant because of the presence of a green plant in the image.",
+      "answer_words": 32,
+      "generation_seconds": 0.748,
+      "forward_seconds": 0.058,
+      "total_seconds": 0.806,
+      "representation_norm": 113.831
+    },
+    {
+      "episode": "hm3d_v0.2_train_00016-qk9eeNeR4vw_qk9eeNeR4vw.basis.glb_0",
+      "frame_index": 34,
+      "goal": "plant",
+      "candidate": "D_room_connectivity",
+      "question": "What room is this? Which rooms connect from here, and where would a plant be?",
+      "answer": "This is a hallway leading to a bedroom, with a doorway to a living room and a doorway to a bathroom. A plant could be placed in the living room.",
+      "answer_words": 30,
+      "generation_seconds": 0.809,
+      "forward_seconds": 0.058,
+      "total_seconds": 0.867,
+      "representation_norm": 110.872
+    },
+    {
+      "episode": "hm3d_v0.2_train_00016-qk9eeNeR4vw_qk9eeNeR4vw.basis.glb_0",
+      "frame_index": 82,
+      "goal": "plant",
+      "candidate": "baseline_presence",
+      "question": "Would a plant be found here? Why or why not?",
+      "answer": "No, because it is not mentioned in the image.",
+      "answer_words": 9,
+      "generation_seconds": 0.284,
+      "forward_seconds": 0.053,
+      "total_seconds": 0.336,
+      "representation_norm": 112.156
+    },
+    {
+      "episode": "hm3d_v0.2_train_00016-qk9eeNeR4vw_qk9eeNeR4vw.basis.glb_0",
+      "frame_index": 82,
+      "goal": "plant",
+      "candidate": "A_direction",
+      "question": "Which direction should I move to find a plant? Explain what you see.",
+      "answer": "Move to the right, as there is a green plant on the floor.",
+      "answer_words": 13,
+      "generation_seconds": 0.359,
+      "forward_seconds": 0.053,
+      "total_seconds": 0.412,
+      "representation_norm": 114.002
+    },
+    {
+      "episode": "hm3d_v0.2_train_00016-qk9eeNeR4vw_qk9eeNeR4vw.basis.glb_0",
+      "frame_index": 82,
+      "goal": "plant",
+      "candidate": "C_structure_and_goal",
+      "question": "Where can I go from here, and which of those directions most likely leads to a plant? Why?",
+      "answer": "You can go left or right from the hallway. The left direction is more likely to lead to a plant because it is mentioned in the image information.",
+      "answer_words": 28,
+      "generation_seconds": 0.678,
+      "forward_seconds": 0.058,
+      "total_seconds": 0.736,
+      "representation_norm": 113.467
+    },
+    {
+      "episode": "hm3d_v0.2_train_00016-qk9eeNeR4vw_qk9eeNeR4vw.basis.glb_0",
+      "frame_index": 82,
+      "goal": "plant",
+      "candidate": "D_room_connectivity",
+      "question": "What room is this? Which rooms connect from here, and where would a plant be?",
+      "answer": "This is a hallway leading to the living room, dining room, and kitchen. A plant could be placed in the corner of the room.",
+      "answer_words": 24,
+      "generation_seconds": 0.654,
+      "forward_seconds": 0.057,
+      "total_seconds": 0.712,
+      "representation_norm": 113.047
+    },
+    {
+      "episode": "hm3d_v0.2_train_00016-qk9eeNeR4vw_qk9eeNeR4vw.basis.glb_1",
+      "frame_index": 33,
+      "goal": "plant",
+      "candidate": "baseline_presence",
+      "question": "Would a plant be found here? Why or why not?",
+      "answer": "No, there is no plant in the image.",
+      "answer_words": 8,
+      "generation_seconds": 0.269,
+      "forward_seconds": 0.053,
+      "total_seconds": 0.322,
+      "representation_norm": 109.099
+    },
+    {
+      "episode": "hm3d_v0.2_train_00016-qk9eeNeR4vw_qk9eeNeR4vw.basis.glb_1",
+      "frame_index": 33,
+      "goal": "plant",
+      "candidate": "A_direction",
+      "question": "Which direction should I move to find a plant? Explain what you see.",
+      "answer": "Move to the left, as there is a plant on a shelf on the left side of the image.",
+      "answer_words": 19,
+      "generation_seconds": 0.495,
+      "forward_seconds": 0.058,
+      "total_seconds": 0.553,
+      "representation_norm": 99.18
+    },
+    {
+      "episode": "hm3d_v0.2_train_00016-qk9eeNeR4vw_qk9eeNeR4vw.basis.glb_1",
+      "frame_index": 33,
+      "goal": "plant",
+      "candidate": "C_structure_and_goal",
+      "question": "Where can I go from here, and which of those directions most likely leads to a plant? Why?",
+      "answer": "You can go left or right from the living room. The left direction leads to a bedroom, and the right direction leads to a hallway. The most likely direction to a plant is the right direction, as there is a plant in",
+      "answer_words": 42,
+      "generation_seconds": 0.986,
+      "forward_seconds": 0.058,
+      "total_seconds": 1.044,
+      "representation_norm": 112.702
+    },
+    {
+      "episode": "hm3d_v0.2_train_00016-qk9eeNeR4vw_qk9eeNeR4vw.basis.glb_1",
+      "frame_index": 33,
+      "goal": "plant",
+      "candidate": "D_room_connectivity",
+      "question": "What room is this? Which rooms connect from here, and where would a plant be?",
+      "answer": "This is a living room with a view of the bedroom. The living room connects to the bedroom through a hallway. A plant could be placed in the corner of the living room or the bedroom to add some greenery",
+      "answer_words": 40,
+      "generation_seconds": 0.986,
+      "forward_seconds": 0.059,
+      "total_seconds": 1.045,
+      "representation_norm": 114.91
+    },
+    {
+      "episode": "hm3d_v0.2_train_00016-qk9eeNeR4vw_qk9eeNeR4vw.basis.glb_1",
+      "frame_index": 79,
+      "goal": "plant",
+      "candidate": "baseline_presence",
+      "question": "Would a plant be found here? Why or why not?",
+      "answer": "No, there is no plant in the image.",
+      "answer_words": 8,
+      "generation_seconds": 0.262,
+      "forward_seconds": 0.053,
+      "total_seconds": 0.314,
+      "representation_norm": 107.265
+    },
+    {
+      "episode": "hm3d_v0.2_train_00016-qk9eeNeR4vw_qk9eeNeR4vw.basis.glb_1",
+      "frame_index": 79,
+      "goal": "plant",
+      "candidate": "A_direction",
+      "question": "Which direction should I move to find a plant? Explain what you see.",
+      "answer": "Move to the right, as there is a plant on the right side of the image.",
+      "answer_words": 16,
+      "generation_seconds": 0.425,
+      "forward_seconds": 0.058,
+      "total_seconds": 0.482,
+      "representation_norm": 109.164
+    },
+    {
+      "episode": "hm3d_v0.2_train_00016-qk9eeNeR4vw_qk9eeNeR4vw.basis.glb_1",
+      "frame_index": 79,
+      "goal": "plant",
+      "candidate": "C_structure_and_goal",
+      "question": "Where can I go from here, and which of those directions most likely leads to a plant? Why?",
+      "answer": "You can go left or right from the hallway. The left direction leads to a room with a plant, as indicated by the presence of a potted plant in the image.",
+      "answer_words": 31,
+      "generation_seconds": 0.765,
+      "forward_seconds": 0.059,
+      "total_seconds": 0.823,
+      "representation_norm": 116.499
+    },
+    {
+      "episode": "hm3d_v0.2_train_00016-qk9eeNeR4vw_qk9eeNeR4vw.basis.glb_1",
+      "frame_index": 79,
+      "goal": "plant",
+      "candidate": "D_room_connectivity",
+      "question": "What room is this? Which rooms connect from here, and where would a plant be?",
+      "answer": "This is a hallway leading to the living room, dining room, and kitchen. A plant could be placed in the corner of the living room.",
+      "answer_words": 25,
+      "generation_seconds": 0.67,
+      "forward_seconds": 0.058,
+      "total_seconds": 0.727,
+      "representation_norm": 112.342
+    },
+    {
+      "episode": "hm3d_v0.2_train_00016-qk9eeNeR4vw_qk9eeNeR4vw.basis.glb_10",
+      "frame_index": 32,
+      "goal": "plant",
+      "candidate": "baseline_presence",
+      "question": "Would a plant be found here? Why or why not?",
+      "answer": "No, there is no plant in the image.",
+      "answer_words": 8,
+      "generation_seconds": 0.266,
+      "forward_seconds": 0.053,
+      "total_seconds": 0.319,
+      "representation_norm": 107.096
+    },
+    {
+      "episode": "hm3d_v0.2_train_00016-qk9eeNeR4vw_qk9eeNeR4vw.basis.glb_10",
+      "frame_index": 32,
+      "goal": "plant",
+      "candidate": "A_direction",
+      "question": "Which direction should I move to find a plant? Explain what you see.",
+      "answer": "Move to the left, as there is a plant on the left side of the hallway.",
+      "answer_words": 16,
+      "generation_seconds": 0.438,
+      "forward_seconds": 0.058,
+      "total_seconds": 0.496,
+      "representation_norm": 101.905
+    },
+    {
+      "episode": "hm3d_v0.2_train_00016-qk9eeNeR4vw_qk9eeNeR4vw.basis.glb_10",
+      "frame_index": 32,
+      "goal": "plant",
+      "candidate": "C_structure_and_goal",
+      "question": "Where can I go from here, and which of those directions most likely leads to a plant? Why?",
+      "answer": "You can go left or right from the hallway. The left direction is more likely to lead to a plant because there is a plant in the room on the left side of the hallway.",
+      "answer_words": 35,
+      "generation_seconds": 0.861,
+      "forward_seconds": 0.058,
+      "total_seconds": 0.919,
+      "representation_norm": 112.375
+    },
+    {
+      "episode": "hm3d_v0.2_train_00016-qk9eeNeR4vw_qk9eeNeR4vw.basis.glb_10",
+      "frame_index": 32,
+      "goal": "plant",
+      "candidate": "D_room_connectivity",
+      "question": "What room is this? Which rooms connect from here, and where would a plant be?",
+      "answer": "This is a hallway with a white door, leading to a bedroom. The hallway connects to the living room and the bedroom. A plant could be placed in the living room or the bedroom to add some greenery",
+      "answer_words": 38,
+      "generation_seconds": 0.983,
+      "forward_seconds": 0.058,
+      "total_seconds": 1.041,
+      "representation_norm": 115.618
+    }
+  ]
+}

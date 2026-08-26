@@ -1,0 +1,1979 @@
+{
+  "scenes": 8,
+  "candidates": [
+    {
+      "scene": "00006-HkseAnWCgqk",
+      "episode_id": "0",
+      "object": "toilet",
+      "start_position": [
+        -3.035439968109131,
+        2.8926000595092773,
+        3.452850103378296
+      ],
+      "start_rotation": [
+        0.0,
+        0.5262600183486938,
+        0.0,
+        -0.8503199815750122
+      ],
+      "start_geodesic_m": 4.951,
+      "expert_steps": 25,
+      "expert_walked_m": 4.35,
+      "expert_final_geodesic_m": 0.853,
+      "junctions_on_route": 0
+    },
+    {
+      "scene": "00006-HkseAnWCgqk",
+      "episode_id": "0",
+      "object": "tv_monitor",
+      "start_position": [
+        -7.522819995880127,
+        0.0364999994635582,
+        3.9910600185394287
+      ],
+      "start_rotation": [
+        0.0,
+        0.2807599902153015,
+        0.0,
+        0.9597799777984619
+      ],
+      "start_geodesic_m": 1.584,
+      "expert_steps": 9,
+      "expert_walked_m": 0.91,
+      "expert_final_geodesic_m": 0.809,
+      "junctions_on_route": 0
+    },
+    {
+      "scene": "00006-HkseAnWCgqk",
+      "episode_id": "0",
+      "object": "chair",
+      "start_position": [
+        -5.802159786224365,
+        3.1705899238586426,
+        2.5004000663757324
+      ],
+      "start_rotation": [
+        0.0,
+        0.1492999941110611,
+        0.0,
+        0.988789975643158
+      ],
+      "start_geodesic_m": 4.605,
+      "expert_steps": 22,
+      "expert_walked_m": 3.99,
+      "expert_final_geodesic_m": 0.965,
+      "junctions_on_route": 5
+    },
+    {
+      "scene": "00006-HkseAnWCgqk",
+      "episode_id": "1",
+      "object": "toilet",
+      "start_position": [
+        -2.6728899478912354,
+        2.8926000595092773,
+        3.4122700691223145
+      ],
+      "start_rotation": [
+        0.0,
+        0.9104800224304199,
+        0.0,
+        -0.4135499894618988
+      ],
+      "start_geodesic_m": 4.978,
+      "expert_steps": 24,
+      "expert_walked_m": 4.36,
+      "expert_final_geodesic_m": 0.804,
+      "junctions_on_route": 1
+    },
+    {
+      "scene": "00006-HkseAnWCgqk",
+      "episode_id": "1",
+      "object": "tv_monitor",
+      "start_position": [
+        -7.4998297691345215,
+        0.03401000052690506,
+        3.8661000728607178
+      ],
+      "start_rotation": [
+        0.0,
+        0.5127999782562256,
+        0.0,
+        -0.8585100173950195
+      ],
+      "start_geodesic_m": 1.625,
+      "expert_steps": 4,
+      "expert_walked_m": 0.82,
+      "expert_final_geodesic_m": 0.855,
+      "junctions_on_route": 0
+    },
+    {
+      "scene": "00006-HkseAnWCgqk",
+      "episode_id": "1",
+      "object": "sofa",
+      "start_position": [
+        -7.198480129241943,
+        0.005919999908655882,
+        -0.6758400201797485
+      ],
+      "start_rotation": [
+        0.0,
+        0.9302300214767456,
+        0.0,
+        0.3669700026512146
+      ],
+      "start_geodesic_m": 1.125,
+      "expert_steps": 4,
+      "expert_walked_m": 0.26,
+      "expert_final_geodesic_m": 0.883,
+      "junctions_on_route": 0
+    },
+    {
+      "scene": "00006-HkseAnWCgqk",
+      "episode_id": "1",
+      "object": "chair",
+      "start_position": [
+        -5.45782995223999,
+        3.180910110473633,
+        1.3344999551773071
+      ],
+      "start_rotation": [
+        0.0,
+        0.7727000117301941,
+        0.0,
+        -0.6347699761390686
+      ],
+      "start_geodesic_m": 3.396,
+      "expert_steps": 17,
+      "expert_walked_m": 2.64,
+      "expert_final_geodesic_m": 0.937,
+      "junctions_on_route": 4
+    },
+    {
+      "scene": "00006-HkseAnWCgqk",
+      "episode_id": "2",
+      "object": "toilet",
+      "start_position": [
+        -2.9691200256347656,
+        2.8926000595092773,
+        3.8599300384521484
+      ],
+      "start_rotation": [
+        0.0,
+        0.901419997215271,
+        0.0,
+        -0.4329400062561035
+      ],
+      "start_geodesic_m": 5.358,
+      "expert_steps": 30,
+      "expert_walked_m": 4.85,
+      "expert_final_geodesic_m": 0.769,
+      "junctions_on_route": 2
+    },
+    {
+      "scene": "00006-HkseAnWCgqk",
+      "episode_id": "2",
+      "object": "tv_monitor",
+      "start_position": [
+        -7.558690071105957,
+        0.0392099991440773,
+        2.6938700675964355
+      ],
+      "start_rotation": [
+        0.0,
+        0.9929999709129333,
+        0.0,
+        0.11808999627828598
+      ],
+      "start_geodesic_m": 2.088,
+      "expert_steps": 8,
+      "expert_walked_m": 1.48,
+      "expert_final_geodesic_m": 0.843,
+      "junctions_on_route": 2
+    },
+    {
+      "scene": "00006-HkseAnWCgqk",
+      "episode_id": "2",
+      "object": "chair",
+      "start_position": [
+        -4.910369873046875,
+        3.1926000118255615,
+        1.1224600076675415
+      ],
+      "start_rotation": [
+        0.0,
+        0.7527700066566467,
+        0.0,
+        -0.6582800149917603
+      ],
+      "start_geodesic_m": 3.139,
+      "expert_steps": 14,
+      "expert_walked_m": 2.32,
+      "expert_final_geodesic_m": 0.912,
+      "junctions_on_route": 3
+    },
+    {
+      "scene": "00009-vLpv2VX547B",
+      "episode_id": "0",
+      "object": "toilet",
+      "start_position": [
+        -2.04367995262146,
+        0.010099999606609344,
+        -3.028599977493286
+      ],
+      "start_rotation": [
+        0.0,
+        0.9557899832725525,
+        0.0,
+        0.29403001070022583
+      ],
+      "start_geodesic_m": 9.158,
+      "expert_steps": 51,
+      "expert_walked_m": 8.63,
+      "expert_final_geodesic_m": 0.938,
+      "junctions_on_route": 13
+    },
+    {
+      "scene": "00009-vLpv2VX547B",
+      "episode_id": "0",
+      "object": "tv_monitor",
+      "start_position": [
+        -20.357389450073242,
+        0.060100000351667404,
+        1.8625999689102173
+      ],
+      "start_rotation": [
+        0.0,
+        0.5674700140953064,
+        0.0,
+        0.823390007019043
+      ],
+      "start_geodesic_m": 13.775,
+      "expert_steps": 78,
+      "expert_walked_m": 13.31,
+      "expert_final_geodesic_m": 0.762,
+      "junctions_on_route": 15
+    },
+    {
+      "scene": "00009-vLpv2VX547B",
+      "episode_id": "0",
+      "object": "bed",
+      "start_position": [
+        -1.826740026473999,
+        0.010099999606609344,
+        -1.0620700120925903
+      ],
+      "start_rotation": [
+        0.0,
+        0.904420018196106,
+        0.0,
+        0.42664000391960144
+      ],
+      "start_geodesic_m": 3.103,
+      "expert_steps": 19,
+      "expert_walked_m": 2.35,
+      "expert_final_geodesic_m": 0.954,
+      "junctions_on_route": 4
+    },
+    {
+      "scene": "00009-vLpv2VX547B",
+      "episode_id": "0",
+      "object": "sofa",
+      "start_position": [
+        -1.7869700193405151,
+        0.010099999606609344,
+        -1.5130200386047363
+      ],
+      "start_rotation": [
+        0.0,
+        0.9529500007629395,
+        0.0,
+        -0.3031400144100189
+      ],
+      "start_geodesic_m": 4.179,
+      "expert_steps": 22,
+      "expert_walked_m": 3.61,
+      "expert_final_geodesic_m": 0.796,
+      "junctions_on_route": 5
+    },
+    {
+      "scene": "00009-vLpv2VX547B",
+      "episode_id": "0",
+      "object": "plant",
+      "start_position": [
+        -2.087369918823242,
+        0.010099999606609344,
+        -2.0256199836730957
+      ],
+      "start_rotation": [
+        0.0,
+        0.7656300067901611,
+        0.0,
+        0.643280029296875
+      ],
+      "start_geodesic_m": 6.645,
+      "expert_steps": 36,
+      "expert_walked_m": 5.86,
+      "expert_final_geodesic_m": 0.974,
+      "junctions_on_route": 7
+    },
+    {
+      "scene": "00009-vLpv2VX547B",
+      "episode_id": "0",
+      "object": "chair",
+      "start_position": [
+        -2.1608400344848633,
+        0.010099999606609344,
+        -0.7095400094985962
+      ],
+      "start_rotation": [
+        0.0,
+        0.8718400001525879,
+        0.0,
+        0.4897800087928772
+      ],
+      "start_geodesic_m": 4.956,
+      "expert_steps": 24,
+      "expert_walked_m": 4.11,
+      "expert_final_geodesic_m": 0.972,
+      "junctions_on_route": 7
+    },
+    {
+      "scene": "00009-vLpv2VX547B",
+      "episode_id": "1",
+      "object": "toilet",
+      "start_position": [
+        -3.4043900966644287,
+        0.010099999606609344,
+        -3.180840015411377
+      ],
+      "start_rotation": [
+        0.0,
+        0.7561500072479248,
+        0.0,
+        -0.6543999910354614
+      ],
+      "start_geodesic_m": 10.002,
+      "expert_steps": 53,
+      "expert_walked_m": 9.28,
+      "expert_final_geodesic_m": 0.972,
+      "junctions_on_route": 11
+    },
+    {
+      "scene": "00009-vLpv2VX547B",
+      "episode_id": "1",
+      "object": "tv_monitor",
+      "start_position": [
+        -18.696359634399414,
+        0.060100000351667404,
+        2.081510066986084
+      ],
+      "start_rotation": [
+        0.0,
+        0.3142800033092499,
+        0.0,
+        0.9493299722671509
+      ],
+      "start_geodesic_m": 12.143,
+      "expert_steps": 60,
+      "expert_walked_m": 11.56,
+      "expert_final_geodesic_m": 0.782,
+      "junctions_on_route": 13
+    },
+    {
+      "scene": "00009-vLpv2VX547B",
+      "episode_id": "1",
+      "object": "bed",
+      "start_position": [
+        -1.9755500555038452,
+        0.010099999606609344,
+        -0.6696599721908569
+      ],
+      "start_rotation": [
+        0.0,
+        0.9572700262069702,
+        0.0,
+        0.28918999433517456
+      ],
+      "start_geodesic_m": 3.438,
+      "expert_steps": 20,
+      "expert_walked_m": 2.62,
+      "expert_final_geodesic_m": 0.982,
+      "junctions_on_route": 4
+    },
+    {
+      "scene": "00009-vLpv2VX547B",
+      "episode_id": "1",
+      "object": "sofa",
+      "start_position": [
+        -2.126539945602417,
+        0.010099999606609344,
+        -2.681459903717041
+      ],
+      "start_rotation": [
+        0.0,
+        0.7825800180435181,
+        0.0,
+        -0.6225500106811523
+      ],
+      "start_geodesic_m": 5.278,
+      "expert_steps": 31,
+      "expert_walked_m": 4.6,
+      "expert_final_geodesic_m": 0.913,
+      "junctions_on_route": 7
+    },
+    {
+      "scene": "00009-vLpv2VX547B",
+      "episode_id": "1",
+      "object": "plant",
+      "start_position": [
+        -3.26213002204895,
+        0.010099999606609344,
+        -3.060570001602173
+      ],
+      "start_rotation": [
+        0.0,
+        0.9648799896240234,
+        0.0,
+        -0.26271000504493713
+      ],
+      "start_geodesic_m": 8.313,
+      "expert_steps": 47,
+      "expert_walked_m": 7.64,
+      "expert_final_geodesic_m": 0.932,
+      "junctions_on_route": 4
+    },
+    {
+      "scene": "00009-vLpv2VX547B",
+      "episode_id": "1",
+      "object": "chair",
+      "start_position": [
+        -2.060529947280884,
+        0.010099999606609344,
+        -0.8103200197219849
+      ],
+      "start_rotation": [
+        0.0,
+        0.9872000217437744,
+        0.0,
+        -0.1594800055027008
+      ],
+      "start_geodesic_m": 5.045,
+      "expert_steps": 30,
+      "expert_walked_m": 4.27,
+      "expert_final_geodesic_m": 0.919,
+      "junctions_on_route": 8
+    },
+    {
+      "scene": "00016-qk9eeNeR4vw",
+      "episode_id": "0",
+      "object": "toilet",
+      "start_position": [
+        -4.024909973144531,
+        0.03976000100374222,
+        -2.83804988861084
+      ],
+      "start_rotation": [
+        0.0,
+        0.45263999700546265,
+        0.0,
+        -0.891700029373169
+      ],
+      "start_geodesic_m": 5.499,
+      "expert_steps": 33,
+      "expert_walked_m": 4.81,
+      "expert_final_geodesic_m": 0.883,
+      "junctions_on_route": 3
+    },
+    {
+      "scene": "00016-qk9eeNeR4vw",
+      "episode_id": "0",
+      "object": "tv_monitor",
+      "start_position": [
+        -6.0191497802734375,
+        0.03976000100374222,
+        -2.1070199012756348
+      ],
+      "start_rotation": [
+        0.0,
+        0.9887599945068359,
+        0.0,
+        0.14952999353408813
+      ],
+      "start_geodesic_m": 7.507,
+      "expert_steps": 42,
+      "expert_walked_m": 6.84,
+      "expert_final_geodesic_m": 0.862,
+      "junctions_on_route": 9
+    },
+    {
+      "scene": "00016-qk9eeNeR4vw",
+      "episode_id": "0",
+      "object": "bed",
+      "start_position": [
+        -4.675829887390137,
+        0.03976000100374222,
+        -3.12253999710083
+      ],
+      "start_rotation": [
+        0.0,
+        0.9965299963951111,
+        0.0,
+        0.08324000239372253
+      ],
+      "start_geodesic_m": 4.897,
+      "expert_steps": 25,
+      "expert_walked_m": 4.3,
+      "expert_final_geodesic_m": 0.809,
+      "junctions_on_route": 5
+    },
+    {
+      "scene": "00016-qk9eeNeR4vw",
+      "episode_id": "0",
+      "object": "sofa",
+      "start_position": [
+        0.7973499894142151,
+        0.03976000100374222,
+        -3.746229887008667
+      ],
+      "start_rotation": [
+        0.0,
+        0.9768499732017517,
+        0.0,
+        0.21393999457359314
+      ],
+      "start_geodesic_m": 4.491,
+      "expert_steps": 23,
+      "expert_walked_m": 3.8,
+      "expert_final_geodesic_m": 0.816,
+      "junctions_on_route": 2
+    },
+    {
+      "scene": "00016-qk9eeNeR4vw",
+      "episode_id": "0",
+      "object": "plant",
+      "start_position": [
+        -6.28957986831665,
+        0.03976000100374222,
+        -8.592829704284668
+      ],
+      "start_rotation": [
+        0.0,
+        0.7600499987602234,
+        0.0,
+        0.6498600244522095
+      ],
+      "start_geodesic_m": 4.243,
+      "expert_steps": 23,
+      "expert_walked_m": 3.55,
+      "expert_final_geodesic_m": 0.871,
+      "junctions_on_route": 3
+    },
+    {
+      "scene": "00016-qk9eeNeR4vw",
+      "episode_id": "0",
+      "object": "chair",
+      "start_position": [
+        -6.380859851837158,
+        0.03976000100374222,
+        -7.443309783935547
+      ],
+      "start_rotation": [
+        0.0,
+        0.8937900066375732,
+        0.0,
+        0.4484899938106537
+      ],
+      "start_geodesic_m": 3.276,
+      "expert_steps": 21,
+      "expert_walked_m": 2.55,
+      "expert_final_geodesic_m": 0.972,
+      "junctions_on_route": 5
+    },
+    {
+      "scene": "00016-qk9eeNeR4vw",
+      "episode_id": "1",
+      "object": "toilet",
+      "start_position": [
+        -7.244229793548584,
+        0.03976000100374222,
+        -1.8210599422454834
+      ],
+      "start_rotation": [
+        0.0,
+        0.1371700018644333,
+        0.0,
+        -0.9905499815940857
+      ],
+      "start_geodesic_m": 3.848,
+      "expert_steps": 20,
+      "expert_walked_m": 3.05,
+      "expert_final_geodesic_m": 0.89,
+      "junctions_on_route": 6
+    },
+    {
+      "scene": "00016-qk9eeNeR4vw",
+      "episode_id": "1",
+      "object": "tv_monitor",
+      "start_position": [
+        -6.327179908752441,
+        0.03976000100374222,
+        -1.2315499782562256
+      ],
+      "start_rotation": [
+        0.0,
+        0.7421000003814697,
+        0.0,
+        0.6702899932861328
+      ],
+      "start_geodesic_m": 7.259,
+      "expert_steps": 39,
+      "expert_walked_m": 6.58,
+      "expert_final_geodesic_m": 0.824,
+      "junctions_on_route": 10
+    },
+    {
+      "scene": "00016-qk9eeNeR4vw",
+      "episode_id": "1",
+      "object": "bed",
+      "start_position": [
+        -5.67080020904541,
+        0.03976000100374222,
+        -2.1880900859832764
+      ],
+      "start_rotation": [
+        0.0,
+        0.8654900193214417,
+        0.0,
+        0.5009300112724304
+      ],
+      "start_geodesic_m": 3.552,
+      "expert_steps": 15,
+      "expert_walked_m": 2.75,
+      "expert_final_geodesic_m": 0.815,
+      "junctions_on_route": 4
+    },
+    {
+      "scene": "00016-qk9eeNeR4vw",
+      "episode_id": "1",
+      "object": "sofa",
+      "start_position": [
+        1.0687199831008911,
+        0.03976000100374222,
+        -3.9074900150299072
+      ],
+      "start_rotation": [
+        0.0,
+        0.9206299781799316,
+        0.0,
+        0.39041998982429504
+      ],
+      "start_geodesic_m": 4.706,
+      "expert_steps": 21,
+      "expert_walked_m": 4.05,
+      "expert_final_geodesic_m": 0.787,
+      "junctions_on_route": 2
+    },
+    {
+      "scene": "00016-qk9eeNeR4vw",
+      "episode_id": "1",
+      "object": "plant",
+      "start_position": [
+        -6.337550163269043,
+        0.03976000100374222,
+        -8.388790130615234
+      ],
+      "start_rotation": [
+        0.0,
+        0.842710018157959,
+        0.0,
+        0.5383700132369995
+      ],
+      "start_geodesic_m": 4.036,
+      "expert_steps": 20,
+      "expert_walked_m": 3.3,
+      "expert_final_geodesic_m": 0.9,
+      "junctions_on_route": 4
+    },
+    {
+      "scene": "00016-qk9eeNeR4vw",
+      "episode_id": "1",
+      "object": "chair",
+      "start_position": [
+        -5.7072601318359375,
+        0.03976000100374222,
+        -6.427410125732422
+      ],
+      "start_rotation": [
+        0.0,
+        0.14782999455928802,
+        0.0,
+        0.9890099763870239
+      ],
+      "start_geodesic_m": 2.82,
+      "expert_steps": 14,
+      "expert_walked_m": 2.05,
+      "expert_final_geodesic_m": 0.947,
+      "junctions_on_route": 4
+    },
+    {
+      "scene": "00017-oEPjPNSPmzL",
+      "episode_id": "0",
+      "object": "toilet",
+      "start_position": [
+        -8.851530075073242,
+        0.014519999735057354,
+        -0.11332999914884567
+      ],
+      "start_rotation": [
+        0.0,
+        0.13857999444007874,
+        0.0,
+        -0.9903500080108643
+      ],
+      "start_geodesic_m": 4.68,
+      "expert_steps": 27,
+      "expert_walked_m": 4.0,
+      "expert_final_geodesic_m": 0.751,
+      "junctions_on_route": 7
+    },
+    {
+      "scene": "00017-oEPjPNSPmzL",
+      "episode_id": "0",
+      "object": "tv_monitor",
+      "start_position": [
+        -8.659000396728516,
+        0.014519999735057354,
+        0.5711100101470947
+      ],
+      "start_rotation": [
+        0.0,
+        0.7838799953460693,
+        0.0,
+        -0.6209099888801575
+      ],
+      "start_geodesic_m": 12.628,
+      "expert_steps": 66,
+      "expert_walked_m": 12.06,
+      "expert_final_geodesic_m": 0.925,
+      "junctions_on_route": 11
+    },
+    {
+      "scene": "00017-oEPjPNSPmzL",
+      "episode_id": "0",
+      "object": "bed",
+      "start_position": [
+        2.950200080871582,
+        0.014519999735057354,
+        1.1039899587631226
+      ],
+      "start_rotation": [
+        0.0,
+        0.1445399969816208,
+        0.0,
+        -0.9894999861717224
+      ],
+      "start_geodesic_m": 12.547,
+      "expert_steps": 63,
+      "expert_walked_m": 12.05,
+      "expert_final_geodesic_m": 0.8,
+      "junctions_on_route": 8
+    },
+    {
+      "scene": "00017-oEPjPNSPmzL",
+      "episode_id": "0",
+      "object": "sofa",
+      "start_position": [
+        -8.784859657287598,
+        0.014519999735057354,
+        -1.4954500198364258
+      ],
+      "start_rotation": [
+        0.0,
+        0.7718600034713745,
+        0.0,
+        0.6358000040054321
+      ],
+      "start_geodesic_m": 10.597,
+      "expert_steps": 54,
+      "expert_walked_m": 10.0,
+      "expert_final_geodesic_m": 0.811,
+      "junctions_on_route": 11
+    },
+    {
+      "scene": "00017-oEPjPNSPmzL",
+      "episode_id": "0",
+      "object": "plant",
+      "start_position": [
+        -8.726269721984863,
+        0.014519999735057354,
+        -0.3098999857902527
+      ],
+      "start_rotation": [
+        0.0,
+        0.8653600215911865,
+        0.0,
+        -0.5011500120162964
+      ],
+      "start_geodesic_m": 1.147,
+      "expert_steps": 5,
+      "expert_walked_m": 0.25,
+      "expert_final_geodesic_m": 0.9,
+      "junctions_on_route": 2
+    },
+    {
+      "scene": "00017-oEPjPNSPmzL",
+      "episode_id": "1",
+      "object": "toilet",
+      "start_position": [
+        -8.785269737243652,
+        0.014519999735057354,
+        -0.9314799904823303
+      ],
+      "start_rotation": [
+        0.0,
+        0.3239099979400635,
+        0.0,
+        -0.9460899829864502
+      ],
+      "start_geodesic_m": 5.416,
+      "expert_steps": 35,
+      "expert_walked_m": 4.76,
+      "expert_final_geodesic_m": 0.785,
+      "junctions_on_route": 7
+    },
+    {
+      "scene": "00017-oEPjPNSPmzL",
+      "episode_id": "1",
+      "object": "tv_monitor",
+      "start_position": [
+        -8.852479934692383,
+        0.014519999735057354,
+        -1.5838099718093872
+      ],
+      "start_rotation": [
+        0.0,
+        0.8794599771499634,
+        0.0,
+        0.4759800136089325
+      ],
+      "start_geodesic_m": 14.684,
+      "expert_steps": 83,
+      "expert_walked_m": 14.3,
+      "expert_final_geodesic_m": 0.799,
+      "junctions_on_route": 14
+    },
+    {
+      "scene": "00017-oEPjPNSPmzL",
+      "episode_id": "1",
+      "object": "bed",
+      "start_position": [
+        2.4444899559020996,
+        0.014519999735057354,
+        1.5506900548934937
+      ],
+      "start_rotation": [
+        0.0,
+        0.7993900179862976,
+        0.0,
+        0.6008099913597107
+      ],
+      "start_geodesic_m": 13.071,
+      "expert_steps": 73,
+      "expert_walked_m": 12.55,
+      "expert_final_geodesic_m": 0.867,
+      "junctions_on_route": 10
+    },
+    {
+      "scene": "00017-oEPjPNSPmzL",
+      "episode_id": "1",
+      "object": "sofa",
+      "start_position": [
+        -8.392219543457031,
+        0.014519999735057354,
+        -0.27987000346183777
+      ],
+      "start_rotation": [
+        0.0,
+        0.7181000113487244,
+        0.0,
+        0.6959400177001953
+      ],
+      "start_geodesic_m": 9.331,
+      "expert_steps": 40,
+      "expert_walked_m": 8.5,
+      "expert_final_geodesic_m": 0.944,
+      "junctions_on_route": 10
+    },
+    {
+      "scene": "00017-oEPjPNSPmzL",
+      "episode_id": "1",
+      "object": "plant",
+      "start_position": [
+        -8.315959930419922,
+        0.014519999735057354,
+        -1.2909400463104248
+      ],
+      "start_rotation": [
+        0.0,
+        0.42715001106262207,
+        0.0,
+        0.9041799902915955
+      ],
+      "start_geodesic_m": 2.162,
+      "expert_steps": 10,
+      "expert_walked_m": 1.25,
+      "expert_final_geodesic_m": 0.943,
+      "junctions_on_route": 0
+    },
+    {
+      "scene": "00017-oEPjPNSPmzL",
+      "episode_id": "2",
+      "object": "toilet",
+      "start_position": [
+        -8.628479957580566,
+        0.014519999735057354,
+        -0.8376700282096863
+      ],
+      "start_rotation": [
+        0.0,
+        0.9909200072288513,
+        0.0,
+        -0.1344500035047531
+      ],
+      "start_geodesic_m": 5.287,
+      "expert_steps": 24,
+      "expert_walked_m": 4.52,
+      "expert_final_geodesic_m": 0.81,
+      "junctions_on_route": 7
+    },
+    {
+      "scene": "00017-oEPjPNSPmzL",
+      "episode_id": "2",
+      "object": "tv_monitor",
+      "start_position": [
+        -8.861920356750488,
+        0.014519999735057354,
+        -1.0533000230789185
+      ],
+      "start_rotation": [
+        0.0,
+        0.45361998677253723,
+        0.0,
+        -0.8912000060081482
+      ],
+      "start_geodesic_m": 14.174,
+      "expert_steps": 81,
+      "expert_walked_m": 13.82,
+      "expert_final_geodesic_m": 0.785,
+      "junctions_on_route": 12
+    },
+    {
+      "scene": "00020-XYyR54sxe6b",
+      "episode_id": "0",
+      "object": "toilet",
+      "start_position": [
+        -2.975019931793213,
+        0.017079999670386314,
+        0.9714900255203247
+      ],
+      "start_rotation": [
+        0.0,
+        0.6803200244903564,
+        0.0,
+        0.7329099774360657
+      ],
+      "start_geodesic_m": 5.129,
+      "expert_steps": 30,
+      "expert_walked_m": 4.61,
+      "expert_final_geodesic_m": 0.767,
+      "junctions_on_route": 4
+    },
+    {
+      "scene": "00020-XYyR54sxe6b",
+      "episode_id": "0",
+      "object": "tv_monitor",
+      "start_position": [
+        -1.185960054397583,
+        0.017079999670386314,
+        -3.168450117111206
+      ],
+      "start_rotation": [
+        0.0,
+        0.9556300044059753,
+        0.0,
+        0.29458001255989075
+      ],
+      "start_geodesic_m": 5.151,
+      "expert_steps": 29,
+      "expert_walked_m": 4.61,
+      "expert_final_geodesic_m": 0.731,
+      "junctions_on_route": 7
+    },
+    {
+      "scene": "00020-XYyR54sxe6b",
+      "episode_id": "0",
+      "object": "bed",
+      "start_position": [
+        0.9386199712753296,
+        2.8394699096679688,
+        -4.371079921722412
+      ],
+      "start_rotation": [
+        0.0,
+        0.3336000144481659,
+        0.0,
+        0.9427199959754944
+      ],
+      "start_geodesic_m": 1.474,
+      "expert_steps": 5,
+      "expert_walked_m": 0.58,
+      "expert_final_geodesic_m": 0.976,
+      "junctions_on_route": 0
+    },
+    {
+      "scene": "00020-XYyR54sxe6b",
+      "episode_id": "0",
+      "object": "sofa",
+      "start_position": [
+        2.7716100215911865,
+        -0.032919999212026596,
+        -5.408380031585693
+      ],
+      "start_rotation": [
+        0.0,
+        0.7138199806213379,
+        0.0,
+        0.7003300189971924
+      ],
+      "start_geodesic_m": 4.836,
+      "expert_steps": 21,
+      "expert_walked_m": 4.15,
+      "expert_final_geodesic_m": 0.934,
+      "junctions_on_route": 4
+    },
+    {
+      "scene": "00020-XYyR54sxe6b",
+      "episode_id": "0",
+      "object": "plant",
+      "start_position": [
+        -3.327239990234375,
+        0.017079999670386314,
+        0.2834399938583374
+      ],
+      "start_rotation": [
+        0.0,
+        0.8863599896430969,
+        0.0,
+        0.4629899859428406
+      ],
+      "start_geodesic_m": 7.563,
+      "expert_steps": 45,
+      "expert_walked_m": 6.88,
+      "expert_final_geodesic_m": 0.924,
+      "junctions_on_route": 8
+    },
+    {
+      "scene": "00020-XYyR54sxe6b",
+      "episode_id": "0",
+      "object": "chair",
+      "start_position": [
+        -2.1240999698638916,
+        0.017079999670386314,
+        -1.4473600387573242
+      ],
+      "start_rotation": [
+        0.0,
+        0.08918999880552292,
+        0.0,
+        0.9960100054740906
+      ],
+      "start_geodesic_m": 3.646,
+      "expert_steps": 20,
+      "expert_walked_m": 2.85,
+      "expert_final_geodesic_m": 0.97,
+      "junctions_on_route": 5
+    },
+    {
+      "scene": "00020-XYyR54sxe6b",
+      "episode_id": "1",
+      "object": "toilet",
+      "start_position": [
+        -4.257840156555176,
+        0.017079999670386314,
+        -0.5690500140190125
+      ],
+      "start_rotation": [
+        0.0,
+        0.89028000831604,
+        0.0,
+        0.45541998744010925
+      ],
+      "start_geodesic_m": 5.192,
+      "expert_steps": 33,
+      "expert_walked_m": 4.6,
+      "expert_final_geodesic_m": 0.834,
+      "junctions_on_route": 5
+    },
+    {
+      "scene": "00020-XYyR54sxe6b",
+      "episode_id": "1",
+      "object": "tv_monitor",
+      "start_position": [
+        -2.4890499114990234,
+        0.031369999051094055,
+        -4.181670188903809
+      ],
+      "start_rotation": [
+        0.0,
+        0.9667900204658508,
+        0.0,
+        -0.25558000802993774
+      ],
+      "start_geodesic_m": 6.807,
+      "expert_steps": 37,
+      "expert_walked_m": 6.1,
+      "expert_final_geodesic_m": 0.939,
+      "junctions_on_route": 7
+    },
+    {
+      "scene": "00020-XYyR54sxe6b",
+      "episode_id": "1",
+      "object": "bed",
+      "start_position": [
+        0.9686899781227112,
+        2.8374199867248535,
+        -4.435739994049072
+      ],
+      "start_rotation": [
+        0.0,
+        0.41784000396728516,
+        0.0,
+        0.908519983291626
+      ],
+      "start_geodesic_m": 1.541,
+      "expert_steps": 6,
+      "expert_walked_m": 0.83,
+      "expert_final_geodesic_m": 0.796,
+      "junctions_on_route": 0
+    },
+    {
+      "scene": "00020-XYyR54sxe6b",
+      "episode_id": "1",
+      "object": "sofa",
+      "start_position": [
+        3.3651599884033203,
+        -0.032919999212026596,
+        -5.507030010223389
+      ],
+      "start_rotation": [
+        0.0,
+        0.23683999478816986,
+        0.0,
+        0.9715499877929688
+      ],
+      "start_geodesic_m": 5.427,
+      "expert_steps": 33,
+      "expert_walked_m": 4.92,
+      "expert_final_geodesic_m": 0.798,
+      "junctions_on_route": 4
+    },
+    {
+      "scene": "00020-XYyR54sxe6b",
+      "episode_id": "1",
+      "object": "plant",
+      "start_position": [
+        -3.129650115966797,
+        0.017079999670386314,
+        0.37018001079559326
+      ],
+      "start_rotation": [
+        0.0,
+        0.10741999745368958,
+        0.0,
+        0.9942100048065186
+      ],
+      "start_geodesic_m": 7.507,
+      "expert_steps": 48,
+      "expert_walked_m": 6.86,
+      "expert_final_geodesic_m": 0.919,
+      "junctions_on_route": 9
+    },
+    {
+      "scene": "00020-XYyR54sxe6b",
+      "episode_id": "1",
+      "object": "chair",
+      "start_position": [
+        -3.6570799350738525,
+        0.017079999670386314,
+        -0.22536000609397888
+      ],
+      "start_rotation": [
+        0.0,
+        0.12648999691009521,
+        0.0,
+        0.9919700026512146
+      ],
+      "start_geodesic_m": 5.611,
+      "expert_steps": 28,
+      "expert_walked_m": 4.85,
+      "expert_final_geodesic_m": 0.998,
+      "junctions_on_route": 5
+    },
+    {
+      "scene": "00022-gmuS7Wgsbrx",
+      "episode_id": "0",
+      "object": "toilet",
+      "start_position": [
+        18.081390380859375,
+        -0.12860000133514404,
+        1.5239900350570679
+      ],
+      "start_rotation": [
+        0.0,
+        0.4622899889945984,
+        0.0,
+        0.8867300152778625
+      ],
+      "start_geodesic_m": 17.888,
+      "expert_steps": 90,
+      "expert_walked_m": 17.38,
+      "expert_final_geodesic_m": 0.838,
+      "junctions_on_route": 13
+    },
+    {
+      "scene": "00022-gmuS7Wgsbrx",
+      "episode_id": "0",
+      "object": "tv_monitor",
+      "start_position": [
+        18.278640747070312,
+        -0.12860000133514404,
+        1.670639991760254
+      ],
+      "start_rotation": [
+        0.0,
+        0.9186300039291382,
+        0.0,
+        -0.3951199948787689
+      ],
+      "start_geodesic_m": 13.531,
+      "expert_steps": 78,
+      "expert_walked_m": 12.86,
+      "expert_final_geodesic_m": 0.973,
+      "junctions_on_route": 9
+    },
+    {
+      "scene": "00022-gmuS7Wgsbrx",
+      "episode_id": "0",
+      "object": "bed",
+      "start_position": [
+        17.191770553588867,
+        -0.12860000133514404,
+        0.07422000169754028
+      ],
+      "start_rotation": [
+        0.0,
+        0.9620199799537659,
+        0.0,
+        -0.27298998832702637
+      ],
+      "start_geodesic_m": 24.213,
+      "expert_steps": 132,
+      "expert_walked_m": 23.9,
+      "expert_final_geodesic_m": 0.876,
+      "junctions_on_route": 18
+    },
+    {
+      "scene": "00022-gmuS7Wgsbrx",
+      "episode_id": "0",
+      "object": "plant",
+      "start_position": [
+        -0.1134599968791008,
+        0.021400000900030136,
+        -2.4694299697875977
+      ],
+      "start_rotation": [
+        0.0,
+        0.6326000094413757,
+        0.0,
+        0.7744799852371216
+      ],
+      "start_geodesic_m": 7.964,
+      "expert_steps": 42,
+      "expert_walked_m": 7.3,
+      "expert_final_geodesic_m": 0.857,
+      "junctions_on_route": 1
+    },
+    {
+      "scene": "00022-gmuS7Wgsbrx",
+      "episode_id": "0",
+      "object": "chair",
+      "start_position": [
+        1.0003700256347656,
+        0.021400000900030136,
+        0.6308799982070923
+      ],
+      "start_rotation": [
+        0.0,
+        0.16380000114440918,
+        0.0,
+        0.98649001121521
+      ],
+      "start_geodesic_m": 5.206,
+      "expert_steps": 31,
+      "expert_walked_m": 4.57,
+      "expert_final_geodesic_m": 0.755,
+      "junctions_on_route": 4
+    },
+    {
+      "scene": "00022-gmuS7Wgsbrx",
+      "episode_id": "1",
+      "object": "toilet",
+      "start_position": [
+        18.131450653076172,
+        -0.11407999694347382,
+        0.03319999948143959
+      ],
+      "start_rotation": [
+        0.0,
+        0.4907299876213074,
+        0.0,
+        -0.8713099956512451
+      ],
+      "start_geodesic_m": 17.336,
+      "expert_steps": 90,
+      "expert_walked_m": 16.88,
+      "expert_final_geodesic_m": 0.981,
+      "junctions_on_route": 16
+    },
+    {
+      "scene": "00022-gmuS7Wgsbrx",
+      "episode_id": "1",
+      "object": "tv_monitor",
+      "start_position": [
+        19.363319396972656,
+        -0.09160000085830688,
+        -0.24783000349998474
+      ],
+      "start_rotation": [
+        0.0,
+        0.6352999806404114,
+        0.0,
+        -0.7722700238227844
+      ],
+      "start_geodesic_m": 12.949,
+      "expert_steps": 74,
+      "expert_walked_m": 12.44,
+      "expert_final_geodesic_m": 0.86,
+      "junctions_on_route": 9
+    },
+    {
+      "scene": "00022-gmuS7Wgsbrx",
+      "episode_id": "1",
+      "object": "bed",
+      "start_position": [
+        19.589380264282227,
+        -0.10183999687433243,
+        0.9953500032424927
+      ],
+      "start_rotation": [
+        0.0,
+        0.16356000304222107,
+        0.0,
+        0.9865300059318542
+      ],
+      "start_geodesic_m": 26.778,
+      "expert_steps": 155,
+      "expert_walked_m": 26.83,
+      "expert_final_geodesic_m": 0.778,
+      "junctions_on_route": 20
+    },
+    {
+      "scene": "00022-gmuS7Wgsbrx",
+      "episode_id": "1",
+      "object": "plant",
+      "start_position": [
+        -0.13726000487804413,
+        0.021400000900030136,
+        -3.9559500217437744
+      ],
+      "start_rotation": [
+        0.0,
+        0.6163899898529053,
+        0.0,
+        -0.7874400019645691
+      ],
+      "start_geodesic_m": 8.639,
+      "expert_steps": 42,
+      "expert_walked_m": 8.01,
+      "expert_final_geodesic_m": 0.811,
+      "junctions_on_route": 6
+    },
+    {
+      "scene": "00022-gmuS7Wgsbrx",
+      "episode_id": "1",
+      "object": "chair",
+      "start_position": [
+        1.2279900312423706,
+        0.021400000900030136,
+        0.6226099729537964
+      ],
+      "start_rotation": [
+        0.0,
+        0.9996200203895569,
+        0.0,
+        -0.027489999309182167
+      ],
+      "start_geodesic_m": 4.999,
+      "expert_steps": 25,
+      "expert_walked_m": 4.32,
+      "expert_final_geodesic_m": 0.811,
+      "junctions_on_route": 6
+    },
+    {
+      "scene": "00022-gmuS7Wgsbrx",
+      "episode_id": "2",
+      "object": "toilet",
+      "start_position": [
+        19.601900100708008,
+        -0.08821000158786774,
+        -0.3578999936580658
+      ],
+      "start_rotation": [
+        0.0,
+        0.6034600138664246,
+        0.0,
+        0.7973899841308594
+      ],
+      "start_geodesic_m": 17.747,
+      "expert_steps": 97,
+      "expert_walked_m": 17.46,
+      "expert_final_geodesic_m": 0.82,
+      "junctions_on_route": 15
+    },
+    {
+      "scene": "00022-gmuS7Wgsbrx",
+      "episode_id": "2",
+      "object": "tv_monitor",
+      "start_position": [
+        19.3989200592041,
+        -0.12612000107765198,
+        2.912489891052246
+      ],
+      "start_rotation": [
+        0.0,
+        0.8171700239181519,
+        0.0,
+        0.5763900279998779
+      ],
+      "start_geodesic_m": 15.168,
+      "expert_steps": 73,
+      "expert_walked_m": 14.58,
+      "expert_final_geodesic_m": 0.777,
+      "junctions_on_route": 11
+    },
+    {
+      "scene": "00023-zepmXAdrpjR",
+      "episode_id": "0",
+      "object": "toilet",
+      "start_position": [
+        8.953749656677246,
+        0.02751000039279461,
+        6.4926300048828125
+      ],
+      "start_rotation": [
+        0.0,
+        0.7840499877929688,
+        0.0,
+        0.6207000017166138
+      ],
+      "start_geodesic_m": 4.722,
+      "expert_steps": 26,
+      "expert_walked_m": 3.91,
+      "expert_final_geodesic_m": 0.948,
+      "junctions_on_route": 6
+    },
+    {
+      "scene": "00023-zepmXAdrpjR",
+      "episode_id": "0",
+      "object": "tv_monitor",
+      "start_position": [
+        9.178079605102539,
+        0.02751000039279461,
+        6.955480098724365
+      ],
+      "start_rotation": [
+        0.0,
+        0.8512600064277649,
+        0.0,
+        0.5247399806976318
+      ],
+      "start_geodesic_m": 14.384,
+      "expert_steps": 83,
+      "expert_walked_m": 13.93,
+      "expert_final_geodesic_m": 0.755,
+      "junctions_on_route": 18
+    },
+    {
+      "scene": "00023-zepmXAdrpjR",
+      "episode_id": "0",
+      "object": "bed",
+      "start_position": [
+        -2.8603200912475586,
+        0.02751000039279461,
+        2.7796499729156494
+      ],
+      "start_rotation": [
+        0.0,
+        0.9369900226593018,
+        0.0,
+        0.34935998916625977
+      ],
+      "start_geodesic_m": 10.094,
+      "expert_steps": 59,
+      "expert_walked_m": 9.61,
+      "expert_final_geodesic_m": 0.862,
+      "junctions_on_route": 12
+    },
+    {
+      "scene": "00023-zepmXAdrpjR",
+      "episode_id": "0",
+      "object": "sofa",
+      "start_position": [
+        9.696439743041992,
+        -0.04952000081539154,
+        6.216370105743408
+      ],
+      "start_rotation": [
+        0.0,
+        0.7472900152206421,
+        0.0,
+        -0.6644999980926514
+      ],
+      "start_geodesic_m": 6.181,
+      "expert_steps": 41,
+      "expert_walked_m": 5.64,
+      "expert_final_geodesic_m": 0.76,
+      "junctions_on_route": 7
+    },
+    {
+      "scene": "00023-zepmXAdrpjR",
+      "episode_id": "0",
+      "object": "plant",
+      "start_position": [
+        9.435409545898438,
+        0.023280000314116478,
+        7.1267900466918945
+      ],
+      "start_rotation": [
+        0.0,
+        0.7551800012588501,
+        0.0,
+        -0.6555100083351135
+      ],
+      "start_geodesic_m": 12.514,
+      "expert_steps": 75,
+      "expert_walked_m": 12.1,
+      "expert_final_geodesic_m": 0.874,
+      "junctions_on_route": 18
+    },
+    {
+      "scene": "00023-zepmXAdrpjR",
+      "episode_id": "0",
+      "object": "chair",
+      "start_position": [
+        5.965429782867432,
+        0.02751000039279461,
+        2.964210033416748
+      ],
+      "start_rotation": [
+        0.0,
+        0.9957600235939026,
+        0.0,
+        0.09194999933242798
+      ],
+      "start_geodesic_m": 2.059,
+      "expert_steps": 11,
+      "expert_walked_m": 1.35,
+      "expert_final_geodesic_m": 0.886,
+      "junctions_on_route": 3
+    },
+    {
+      "scene": "00023-zepmXAdrpjR",
+      "episode_id": "1",
+      "object": "toilet",
+      "start_position": [
+        9.461099624633789,
+        0.010540000163018703,
+        6.213230133056641
+      ],
+      "start_rotation": [
+        0.0,
+        0.9997100234031677,
+        0.0,
+        0.024140000343322754
+      ],
+      "start_geodesic_m": 4.936,
+      "expert_steps": 28,
+      "expert_walked_m": 4.13,
+      "expert_final_geodesic_m": 0.95,
+      "junctions_on_route": 7
+    },
+    {
+      "scene": "00023-zepmXAdrpjR",
+      "episode_id": "1",
+      "object": "tv_monitor",
+      "start_position": [
+        8.101659774780273,
+        0.02751000039279461,
+        5.934239864349365
+      ],
+      "start_rotation": [
+        0.0,
+        0.9997699856758118,
+        0.0,
+        -0.02151999995112419
+      ],
+      "start_geodesic_m": 12.972,
+      "expert_steps": 80,
+      "expert_walked_m": 12.6,
+      "expert_final_geodesic_m": 0.878,
+      "junctions_on_route": 18
+    },
+    {
+      "scene": "00023-zepmXAdrpjR",
+      "episode_id": "1",
+      "object": "bed",
+      "start_position": [
+        -4.1561198234558105,
+        0.02751000039279461,
+        2.660979986190796
+      ],
+      "start_rotation": [
+        0.0,
+        0.9158899784088135,
+        0.0,
+        0.40143001079559326
+      ],
+      "start_geodesic_m": 11.376,
+      "expert_steps": 58,
+      "expert_walked_m": 10.88,
+      "expert_final_geodesic_m": 0.773,
+      "junctions_on_route": 10
+    },
+    {
+      "scene": "00023-zepmXAdrpjR",
+      "episode_id": "1",
+      "object": "sofa",
+      "start_position": [
+        9.199390411376953,
+        0.02751000039279461,
+        6.664899826049805
+      ],
+      "start_rotation": [
+        0.0,
+        0.9525700211524963,
+        0.0,
+        0.30430999398231506
+      ],
+      "start_geodesic_m": 6.039,
+      "expert_steps": 37,
+      "expert_walked_m": 5.35,
+      "expert_final_geodesic_m": 0.933,
+      "junctions_on_route": 7
+    },
+    {
+      "scene": "00023-zepmXAdrpjR",
+      "episode_id": "1",
+      "object": "plant",
+      "start_position": [
+        8.18297004699707,
+        0.02751000039279461,
+        7.095560073852539
+      ],
+      "start_rotation": [
+        0.0,
+        0.10572999715805054,
+        0.0,
+        0.9944000244140625
+      ],
+      "start_geodesic_m": 11.959,
+      "expert_steps": 61,
+      "expert_walked_m": 11.3,
+      "expert_final_geodesic_m": 0.868,
+      "junctions_on_route": 15
+    },
+    {
+      "scene": "00023-zepmXAdrpjR",
+      "episode_id": "1",
+      "object": "chair",
+      "start_position": [
+        6.351769924163818,
+        0.02751000039279461,
+        2.7455599308013916
+      ],
+      "start_rotation": [
+        0.0,
+        0.9996500015258789,
+        0.0,
+        0.02645000070333481
+      ],
+      "start_geodesic_m": 2.029,
+      "expert_steps": 10,
+      "expert_walked_m": 1.12,
+      "expert_final_geodesic_m": 0.992,
+      "junctions_on_route": 3
+    },
+    {
+      "scene": "00025-ixTj1aTMup2",
+      "episode_id": "0",
+      "object": "toilet",
+      "start_position": [
+        2.4372899532318115,
+        3.2079200744628906,
+        0.28665000200271606
+      ],
+      "start_rotation": [
+        0.0,
+        0.9781500101089478,
+        0.0,
+        0.2079000025987625
+      ],
+      "start_geodesic_m": 1.639,
+      "expert_steps": 7,
+      "expert_walked_m": 0.75,
+      "expert_final_geodesic_m": 0.994,
+      "junctions_on_route": 2
+    },
+    {
+      "scene": "00025-ixTj1aTMup2",
+      "episode_id": "0",
+      "object": "tv_monitor",
+      "start_position": [
+        3.1036698818206787,
+        0.00791999977082014,
+        -4.389820098876953
+      ],
+      "start_rotation": [
+        0.0,
+        0.9997100234031677,
+        0.0,
+        0.024140000343322754
+      ],
+      "start_geodesic_m": 7.006,
+      "expert_steps": 34,
+      "expert_walked_m": 6.32,
+      "expert_final_geodesic_m": 0.854,
+      "junctions_on_route": 6
+    },
+    {
+      "scene": "00025-ixTj1aTMup2",
+      "episode_id": "0",
+      "object": "bed",
+      "start_position": [
+        -2.2083399295806885,
+        -2.7920799255371094,
+        0.330020010471344
+      ],
+      "start_rotation": [
+        0.0,
+        0.7948600053787231,
+        0.0,
+        -0.6067900061607361
+      ],
+      "start_geodesic_m": 5.257,
+      "expert_steps": 25,
+      "expert_walked_m": 4.5,
+      "expert_final_geodesic_m": 0.856,
+      "junctions_on_route": 7
+    },
+    {
+      "scene": "00025-ixTj1aTMup2",
+      "episode_id": "0",
+      "object": "sofa",
+      "start_position": [
+        2.830090045928955,
+        -2.7920799255371094,
+        -2.6364200115203857
+      ],
+      "start_rotation": [
+        0.0,
+        0.9477199912071228,
+        0.0,
+        0.3190999925136566
+      ],
+      "start_geodesic_m": 2.135,
+      "expert_steps": 6,
+      "expert_walked_m": 1.24,
+      "expert_final_geodesic_m": 0.865,
+      "junctions_on_route": 2
+    },
+    {
+      "scene": "00025-ixTj1aTMup2",
+      "episode_id": "0",
+      "object": "plant",
+      "start_position": [
+        3.0085299015045166,
+        3.2079200744628906,
+        -0.06560000032186508
+      ],
+      "start_rotation": [
+        0.0,
+        0.4310399889945984,
+        0.0,
+        -0.9023299813270569
+      ],
+      "start_geodesic_m": 4.225,
+      "expert_steps": 19,
+      "expert_walked_m": 3.26,
+      "expert_final_geodesic_m": 0.975,
+      "junctions_on_route": 5
+    },
+    {
+      "scene": "00025-ixTj1aTMup2",
+      "episode_id": "0",
+      "object": "chair",
+      "start_position": [
+        1.964169979095459,
+        3.2079200744628906,
+        0.041030000895261765
+      ],
+      "start_rotation": [
+        0.0,
+        0.9733899831771851,
+        0.0,
+        -0.2291399985551834
+      ],
+      "start_geodesic_m": 2.679,
+      "expert_steps": 10,
+      "expert_walked_m": 1.75,
+      "expert_final_geodesic_m": 0.977,
+      "junctions_on_route": 3
+    },
+    {
+      "scene": "00025-ixTj1aTMup2",
+      "episode_id": "1",
+      "object": "toilet",
+      "start_position": [
+        4.846499919891357,
+        3.192780017852783,
+        0.431549996137619
+      ],
+      "start_rotation": [
+        0.0,
+        0.5372400283813477,
+        0.0,
+        0.8434299826622009
+      ],
+      "start_geodesic_m": 4.07,
+      "expert_steps": 24,
+      "expert_walked_m": 3.52,
+      "expert_final_geodesic_m": 0.78,
+      "junctions_on_route": 5
+    },
+    {
+      "scene": "00025-ixTj1aTMup2",
+      "episode_id": "1",
+      "object": "tv_monitor",
+      "start_position": [
+        4.371819972991943,
+        0.00791999977082014,
+        -3.6696600914001465
+      ],
+      "start_rotation": [
+        0.0,
+        0.9461600184440613,
+        0.0,
+        -0.3237000107765198
+      ],
+      "start_geodesic_m": 8.203,
+      "expert_steps": 48,
+      "expert_walked_m": 7.5,
+      "expert_final_geodesic_m": 0.957,
+      "junctions_on_route": 7
+    },
+    {
+      "scene": "00025-ixTj1aTMup2",
+      "episode_id": "1",
+      "object": "bed",
+      "start_position": [
+        -2.535020112991333,
+        -2.7920799255371094,
+        0.005520000122487545
+      ],
+      "start_rotation": [
+        0.0,
+        0.7500799894332886,
+        0.0,
+        0.6613500118255615
+      ],
+      "start_geodesic_m": 5.145,
+      "expert_steps": 30,
+      "expert_walked_m": 4.26,
+      "expert_final_geodesic_m": 0.989,
+      "junctions_on_route": 8
+    },
+    {
+      "scene": "00025-ixTj1aTMup2",
+      "episode_id": "1",
+      "object": "sofa",
+      "start_position": [
+        3.3858399391174316,
+        -2.7920799255371094,
+        -4.248310089111328
+      ],
+      "start_rotation": [
+        0.0,
+        0.7189599871635437,
+        0.0,
+        0.6950500011444092
+      ],
+      "start_geodesic_m": 3.84,
+      "expert_steps": 21,
+      "expert_walked_m": 3.0,
+      "expert_final_geodesic_m": 0.889,
+      "junctions_on_route": 2
+    },
+    {
+      "scene": "00025-ixTj1aTMup2",
+      "episode_id": "1",
+      "object": "plant",
+      "start_position": [
+        4.0030999183654785,
+        3.162220001220703,
+        0.07969000190496445
+      ],
+      "start_rotation": [
+        0.0,
+        0.2998200058937073,
+        0.0,
+        -0.9539899826049805
+      ],
+      "start_geodesic_m": 5.214,
+      "expert_steps": 27,
+      "expert_walked_m": 4.55,
+      "expert_final_geodesic_m": 0.777,
+      "junctions_on_route": 6
+    },
+    {
+      "scene": "00025-ixTj1aTMup2",
+      "episode_id": "1",
+      "object": "chair",
+      "start_position": [
+        1.8844900131225586,
+        3.2079200744628906,
+        -1.9061700105667114
+      ],
+      "start_rotation": [
+        0.0,
+        0.534850001335144,
+        0.0,
+        0.8449500203132629
+      ],
+      "start_geodesic_m": 2.438,
+      "expert_steps": 14,
+      "expert_walked_m": 1.77,
+      "expert_final_geodesic_m": 0.732,
+      "junctions_on_route": 3
+    }
+  ]
+}

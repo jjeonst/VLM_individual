@@ -1,0 +1,480 @@
+{
+  "config": {
+    "scenes": 5,
+    "episodes_per_scene": 5,
+    "max_steps": 250,
+    "min_steps": 10,
+    "success_dist": 1.0,
+    "mode": "both",
+    "gen_text": false
+  },
+  "note": "single-object data -> IN-DISTRIBUTION rollout (start->object), not yet cross-object stitching",
+  "policy_summary": {
+    "n": 25,
+    "success_rate": 0.12,
+    "spl": 0.044,
+    "stop_rate": 0.88,
+    "mean_final_geo": 4.932
+  },
+  "policy_rollouts": [
+    {
+      "scene": "00006-HkseAnWCgqk",
+      "success": false,
+      "stopped": true,
+      "start_geo": 4.605,
+      "final_geo": 6.545,
+      "steps": 8,
+      "spl": 0.0
+    },
+    {
+      "scene": "00006-HkseAnWCgqk",
+      "success": false,
+      "stopped": false,
+      "start_geo": 3.396,
+      "final_geo": 3.717,
+      "steps": 249,
+      "spl": 0.0
+    },
+    {
+      "scene": "00006-HkseAnWCgqk",
+      "success": false,
+      "stopped": true,
+      "start_geo": 3.139,
+      "final_geo": 3.375,
+      "steps": 10,
+      "spl": 0.0
+    },
+    {
+      "scene": "00006-HkseAnWCgqk",
+      "success": false,
+      "stopped": false,
+      "start_geo": 3.083,
+      "final_geo": 3.717,
+      "steps": 248,
+      "spl": 0.0
+    },
+    {
+      "scene": "00006-HkseAnWCgqk",
+      "success": false,
+      "stopped": true,
+      "start_geo": 4.018,
+      "final_geo": 6.335,
+      "steps": 10,
+      "spl": 0.0
+    },
+    {
+      "scene": "00009-vLpv2VX547B",
+      "success": true,
+      "stopped": true,
+      "start_geo": 4.956,
+      "final_geo": 0.103,
+      "steps": 78,
+      "spl": 0.254
+    },
+    {
+      "scene": "00009-vLpv2VX547B",
+      "success": false,
+      "stopped": true,
+      "start_geo": 5.045,
+      "final_geo": 3.678,
+      "steps": 45,
+      "spl": 0.0
+    },
+    {
+      "scene": "00009-vLpv2VX547B",
+      "success": false,
+      "stopped": true,
+      "start_geo": 5.947,
+      "final_geo": 7.677,
+      "steps": 11,
+      "spl": 0.0
+    },
+    {
+      "scene": "00009-vLpv2VX547B",
+      "success": false,
+      "stopped": true,
+      "start_geo": 5.281,
+      "final_geo": 6.679,
+      "steps": 6,
+      "spl": 0.0
+    },
+    {
+      "scene": "00009-vLpv2VX547B",
+      "success": false,
+      "stopped": true,
+      "start_geo": 5.793,
+      "final_geo": 3.76,
+      "steps": 41,
+      "spl": 0.0
+    },
+    {
+      "scene": "00016-qk9eeNeR4vw",
+      "success": false,
+      "stopped": true,
+      "start_geo": 4.243,
+      "final_geo": 1.783,
+      "steps": 12,
+      "spl": 0.0
+    },
+    {
+      "scene": "00016-qk9eeNeR4vw",
+      "success": false,
+      "stopped": true,
+      "start_geo": 4.036,
+      "final_geo": 2.295,
+      "steps": 11,
+      "spl": 0.0
+    },
+    {
+      "scene": "00016-qk9eeNeR4vw",
+      "success": true,
+      "stopped": true,
+      "start_geo": 4.232,
+      "final_geo": 0.758,
+      "steps": 60,
+      "spl": 0.282
+    },
+    {
+      "scene": "00016-qk9eeNeR4vw",
+      "success": false,
+      "stopped": true,
+      "start_geo": 2.769,
+      "final_geo": 2.231,
+      "steps": 29,
+      "spl": 0.0
+    },
+    {
+      "scene": "00016-qk9eeNeR4vw",
+      "success": false,
+      "stopped": true,
+      "start_geo": 2.66,
+      "final_geo": 5.712,
+      "steps": 41,
+      "spl": 0.0
+    },
+    {
+      "scene": "00017-oEPjPNSPmzL",
+      "success": false,
+      "stopped": true,
+      "start_geo": 10.597,
+      "final_geo": 9.48,
+      "steps": 9,
+      "spl": 0.0
+    },
+    {
+      "scene": "00017-oEPjPNSPmzL",
+      "success": false,
+      "stopped": true,
+      "start_geo": 9.331,
+      "final_geo": 8.115,
+      "steps": 8,
+      "spl": 0.0
+    },
+    {
+      "scene": "00017-oEPjPNSPmzL",
+      "success": false,
+      "stopped": true,
+      "start_geo": 8.901,
+      "final_geo": 10.536,
+      "steps": 7,
+      "spl": 0.0
+    },
+    {
+      "scene": "00017-oEPjPNSPmzL",
+      "success": true,
+      "stopped": true,
+      "start_geo": 8.928,
+      "final_geo": 0.057,
+      "steps": 64,
+      "spl": 0.558
+    },
+    {
+      "scene": "00017-oEPjPNSPmzL",
+      "success": false,
+      "stopped": true,
+      "start_geo": 9.39,
+      "final_geo": 8.878,
+      "steps": 11,
+      "spl": 0.0
+    },
+    {
+      "scene": "00020-XYyR54sxe6b",
+      "success": false,
+      "stopped": true,
+      "start_geo": 5.151,
+      "final_geo": 7.085,
+      "steps": 8,
+      "spl": 0.0
+    },
+    {
+      "scene": "00020-XYyR54sxe6b",
+      "success": false,
+      "stopped": true,
+      "start_geo": 6.807,
+      "final_geo": 4.503,
+      "steps": 18,
+      "spl": 0.0
+    },
+    {
+      "scene": "00020-XYyR54sxe6b",
+      "success": false,
+      "stopped": true,
+      "start_geo": 6.25,
+      "final_geo": 8.99,
+      "steps": 18,
+      "spl": 0.0
+    },
+    {
+      "scene": "00020-XYyR54sxe6b",
+      "success": false,
+      "stopped": false,
+      "start_geo": 6.446,
+      "final_geo": 1.629,
+      "steps": 237,
+      "spl": 0.0
+    },
+    {
+      "scene": "00020-XYyR54sxe6b",
+      "success": false,
+      "stopped": true,
+      "start_geo": 6.359,
+      "final_geo": 5.661,
+      "steps": 22,
+      "spl": 0.0
+    }
+  ],
+  "follower_summary": {
+    "n": 25,
+    "success_rate": 1.0,
+    "spl": 1.0,
+    "stop_rate": 1.0,
+    "mean_final_geo": 0.881
+  },
+  "follower_rollouts": [
+    {
+      "scene": "00006-HkseAnWCgqk",
+      "success": true,
+      "stopped": true,
+      "start_geo": 4.605,
+      "final_geo": 0.965,
+      "steps": 15,
+      "spl": 1.0
+    },
+    {
+      "scene": "00006-HkseAnWCgqk",
+      "success": true,
+      "stopped": true,
+      "start_geo": 3.396,
+      "final_geo": 0.937,
+      "steps": 10,
+      "spl": 1.0
+    },
+    {
+      "scene": "00006-HkseAnWCgqk",
+      "success": true,
+      "stopped": true,
+      "start_geo": 3.139,
+      "final_geo": 0.912,
+      "steps": 9,
+      "spl": 1.0
+    },
+    {
+      "scene": "00006-HkseAnWCgqk",
+      "success": true,
+      "stopped": true,
+      "start_geo": 3.083,
+      "final_geo": 0.874,
+      "steps": 9,
+      "spl": 1.0
+    },
+    {
+      "scene": "00006-HkseAnWCgqk",
+      "success": true,
+      "stopped": true,
+      "start_geo": 4.018,
+      "final_geo": 0.766,
+      "steps": 13,
+      "spl": 1.0
+    },
+    {
+      "scene": "00009-vLpv2VX547B",
+      "success": true,
+      "stopped": true,
+      "start_geo": 4.956,
+      "final_geo": 0.972,
+      "steps": 16,
+      "spl": 1.0
+    },
+    {
+      "scene": "00009-vLpv2VX547B",
+      "success": true,
+      "stopped": true,
+      "start_geo": 5.045,
+      "final_geo": 0.919,
+      "steps": 17,
+      "spl": 1.0
+    },
+    {
+      "scene": "00009-vLpv2VX547B",
+      "success": true,
+      "stopped": true,
+      "start_geo": 5.947,
+      "final_geo": 0.982,
+      "steps": 21,
+      "spl": 1.0
+    },
+    {
+      "scene": "00009-vLpv2VX547B",
+      "success": true,
+      "stopped": true,
+      "start_geo": 5.281,
+      "final_geo": 0.838,
+      "steps": 18,
+      "spl": 1.0
+    },
+    {
+      "scene": "00009-vLpv2VX547B",
+      "success": true,
+      "stopped": true,
+      "start_geo": 5.793,
+      "final_geo": 0.858,
+      "steps": 20,
+      "spl": 1.0
+    },
+    {
+      "scene": "00016-qk9eeNeR4vw",
+      "success": true,
+      "stopped": true,
+      "start_geo": 4.243,
+      "final_geo": 0.871,
+      "steps": 14,
+      "spl": 1.0
+    },
+    {
+      "scene": "00016-qk9eeNeR4vw",
+      "success": true,
+      "stopped": true,
+      "start_geo": 4.036,
+      "final_geo": 0.9,
+      "steps": 13,
+      "spl": 1.0
+    },
+    {
+      "scene": "00016-qk9eeNeR4vw",
+      "success": true,
+      "stopped": true,
+      "start_geo": 4.232,
+      "final_geo": 0.841,
+      "steps": 14,
+      "spl": 1.0
+    },
+    {
+      "scene": "00016-qk9eeNeR4vw",
+      "success": true,
+      "stopped": true,
+      "start_geo": 2.769,
+      "final_geo": 0.773,
+      "steps": 8,
+      "spl": 1.0
+    },
+    {
+      "scene": "00016-qk9eeNeR4vw",
+      "success": true,
+      "stopped": true,
+      "start_geo": 2.66,
+      "final_geo": 0.895,
+      "steps": 7,
+      "spl": 1.0
+    },
+    {
+      "scene": "00017-oEPjPNSPmzL",
+      "success": true,
+      "stopped": true,
+      "start_geo": 10.597,
+      "final_geo": 0.838,
+      "steps": 40,
+      "spl": 1.0
+    },
+    {
+      "scene": "00017-oEPjPNSPmzL",
+      "success": true,
+      "stopped": true,
+      "start_geo": 9.331,
+      "final_geo": 0.944,
+      "steps": 34,
+      "spl": 1.0
+    },
+    {
+      "scene": "00017-oEPjPNSPmzL",
+      "success": true,
+      "stopped": true,
+      "start_geo": 8.901,
+      "final_geo": 0.886,
+      "steps": 33,
+      "spl": 1.0
+    },
+    {
+      "scene": "00017-oEPjPNSPmzL",
+      "success": true,
+      "stopped": true,
+      "start_geo": 8.928,
+      "final_geo": 0.933,
+      "steps": 33,
+      "spl": 1.0
+    },
+    {
+      "scene": "00017-oEPjPNSPmzL",
+      "success": true,
+      "stopped": true,
+      "start_geo": 9.39,
+      "final_geo": 0.913,
+      "steps": 35,
+      "spl": 1.0
+    },
+    {
+      "scene": "00020-XYyR54sxe6b",
+      "success": true,
+      "stopped": true,
+      "start_geo": 5.151,
+      "final_geo": 0.731,
+      "steps": 18,
+      "spl": 1.0
+    },
+    {
+      "scene": "00020-XYyR54sxe6b",
+      "success": true,
+      "stopped": true,
+      "start_geo": 6.807,
+      "final_geo": 0.939,
+      "steps": 24,
+      "spl": 1.0
+    },
+    {
+      "scene": "00020-XYyR54sxe6b",
+      "success": true,
+      "stopped": true,
+      "start_geo": 6.25,
+      "final_geo": 0.716,
+      "steps": 22,
+      "spl": 1.0
+    },
+    {
+      "scene": "00020-XYyR54sxe6b",
+      "success": true,
+      "stopped": true,
+      "start_geo": 6.446,
+      "final_geo": 0.953,
+      "steps": 22,
+      "spl": 1.0
+    },
+    {
+      "scene": "00020-XYyR54sxe6b",
+      "success": true,
+      "stopped": true,
+      "start_geo": 6.359,
+      "final_geo": 0.877,
+      "steps": 22,
+      "spl": 1.0
+    }
+  ]
+}

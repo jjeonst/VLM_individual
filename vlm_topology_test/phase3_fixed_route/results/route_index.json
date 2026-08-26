@@ -1,0 +1,866 @@
+[
+  {
+    "rule": "random",
+    "scene": "00006-HkseAnWCgqk",
+    "object": "tv_monitor",
+    "episode_id": "2",
+    "viewpoints": 201,
+    "start_geodesic_median_m": 2.11,
+    "walked_median_m": 2.41,
+    "steps_median": 16,
+    "expert_final_median_m": 0.042,
+    "expert_final_min_m": 0.002,
+    "expert_final_max_m": 0.097,
+    "expert_reached": [
+      20,
+      20
+    ],
+    "scores": {
+      "oracle@0.1": [
+        4,
+        5
+      ],
+      "oracle@0.25": [
+        4,
+        5
+      ],
+      "vlm@0.1": [
+        4,
+        5
+      ],
+      "vlm@0.25": [
+        5,
+        5
+      ]
+    },
+    "image": "route_maps/random_00006-HkseAnWCgqk.png"
+  },
+  {
+    "rule": "random",
+    "scene": "00009-vLpv2VX547B",
+    "object": "tv_monitor",
+    "episode_id": "1",
+    "viewpoints": 409,
+    "start_geodesic_median_m": 12.1,
+    "walked_median_m": 12.57,
+    "steps_median": 79,
+    "expert_final_median_m": 0.126,
+    "expert_final_min_m": 0.1,
+    "expert_final_max_m": 0.171,
+    "expert_reached": [
+      0,
+      20
+    ],
+    "scores": {
+      "oracle@0.1": [
+        0,
+        5
+      ],
+      "oracle@0.25": [
+        1,
+        5
+      ],
+      "vlm@0.1": [
+        0,
+        5
+      ],
+      "vlm@0.25": [
+        3,
+        5
+      ]
+    },
+    "image": "route_maps/random_00009-vLpv2VX547B.png"
+  },
+  {
+    "rule": "random",
+    "scene": "00016-qk9eeNeR4vw",
+    "object": "sofa",
+    "episode_id": "0",
+    "viewpoints": 1022,
+    "start_geodesic_median_m": 4.57,
+    "walked_median_m": 4.8,
+    "steps_median": 28,
+    "expert_final_median_m": 0.06,
+    "expert_final_min_m": 0.05,
+    "expert_final_max_m": 0.094,
+    "expert_reached": [
+      20,
+      20
+    ],
+    "scores": {
+      "oracle@0.1": [
+        4,
+        5
+      ],
+      "oracle@0.25": [
+        4,
+        5
+      ],
+      "vlm@0.1": [
+        4,
+        5
+      ],
+      "vlm@0.25": [
+        4,
+        5
+      ]
+    },
+    "image": "route_maps/random_00016-qk9eeNeR4vw.png"
+  },
+  {
+    "rule": "random",
+    "scene": "00017-oEPjPNSPmzL",
+    "object": "toilet",
+    "episode_id": "0",
+    "viewpoints": 25,
+    "start_geodesic_median_m": 4.73,
+    "walked_median_m": 4.77,
+    "steps_median": 34,
+    "expert_final_median_m": 0.047,
+    "expert_final_min_m": 0.005,
+    "expert_final_max_m": 0.089,
+    "expert_reached": [
+      20,
+      20
+    ],
+    "scores": {
+      "oracle@0.1": [
+        4,
+        5
+      ],
+      "oracle@0.25": [
+        5,
+        5
+      ],
+      "vlm@0.1": [
+        2,
+        5
+      ],
+      "vlm@0.25": [
+        4,
+        5
+      ]
+    },
+    "image": "route_maps/random_00017-oEPjPNSPmzL.png"
+  },
+  {
+    "rule": "random",
+    "scene": "00020-XYyR54sxe6b",
+    "object": "toilet",
+    "episode_id": "0",
+    "viewpoints": 124,
+    "start_geodesic_median_m": 5.17,
+    "walked_median_m": 5.37,
+    "steps_median": 34,
+    "expert_final_median_m": 0.11,
+    "expert_final_min_m": 0.101,
+    "expert_final_max_m": 0.136,
+    "expert_reached": [
+      0,
+      20
+    ],
+    "scores": {
+      "oracle@0.1": [
+        0,
+        5
+      ],
+      "oracle@0.25": [
+        4,
+        5
+      ],
+      "vlm@0.1": [
+        0,
+        5
+      ],
+      "vlm@0.25": [
+        5,
+        5
+      ]
+    },
+    "image": "route_maps/random_00020-XYyR54sxe6b.png"
+  },
+  {
+    "rule": "random",
+    "scene": "00022-gmuS7Wgsbrx",
+    "object": "chair",
+    "episode_id": "1",
+    "viewpoints": 6414,
+    "start_geodesic_median_m": 4.94,
+    "walked_median_m": 5.08,
+    "steps_median": 33,
+    "expert_final_median_m": 0.071,
+    "expert_final_min_m": 0.054,
+    "expert_final_max_m": 0.105,
+    "expert_reached": [
+      17,
+      20
+    ],
+    "scores": {
+      "oracle@0.1": [
+        4,
+        5
+      ],
+      "oracle@0.25": [
+        5,
+        5
+      ],
+      "vlm@0.1": [
+        4,
+        5
+      ],
+      "vlm@0.25": [
+        5,
+        5
+      ]
+    },
+    "image": "route_maps/random_00022-gmuS7Wgsbrx.png"
+  },
+  {
+    "rule": "random",
+    "scene": "00023-zepmXAdrpjR",
+    "object": "plant",
+    "episode_id": "1",
+    "viewpoints": 975,
+    "start_geodesic_median_m": 11.99,
+    "walked_median_m": 12.34,
+    "steps_median": 75,
+    "expert_final_median_m": 0.107,
+    "expert_final_min_m": 0.1,
+    "expert_final_max_m": 0.123,
+    "expert_reached": [
+      0,
+      20
+    ],
+    "scores": {
+      "oracle@0.1": [
+        0,
+        5
+      ],
+      "oracle@0.25": [
+        4,
+        5
+      ],
+      "vlm@0.1": [
+        0,
+        5
+      ],
+      "vlm@0.25": [
+        2,
+        5
+      ]
+    },
+    "image": "route_maps/random_00023-zepmXAdrpjR.png"
+  },
+  {
+    "rule": "random",
+    "scene": "00025-ixTj1aTMup2",
+    "object": "tv_monitor",
+    "episode_id": "1",
+    "viewpoints": 115,
+    "start_geodesic_median_m": 8.14,
+    "walked_median_m": 8.25,
+    "steps_median": 47,
+    "expert_final_median_m": 0.051,
+    "expert_final_min_m": 0.013,
+    "expert_final_max_m": 0.09,
+    "expert_reached": [
+      20,
+      20
+    ],
+    "scores": {
+      "oracle@0.1": [
+        1,
+        5
+      ],
+      "oracle@0.25": [
+        2,
+        5
+      ],
+      "vlm@0.1": [
+        1,
+        5
+      ],
+      "vlm@0.25": [
+        4,
+        5
+      ]
+    },
+    "image": "route_maps/random_00025-ixTj1aTMup2.png"
+  },
+  {
+    "rule": "matched",
+    "scene": "00006-HkseAnWCgqk",
+    "object": "toilet",
+    "episode_id": "2",
+    "viewpoints": 4,
+    "start_geodesic_median_m": 5.39,
+    "walked_median_m": 5.6,
+    "steps_median": 35,
+    "expert_final_median_m": 0.163,
+    "expert_final_min_m": 0.151,
+    "expert_final_max_m": 0.172,
+    "expert_reached": [
+      0,
+      20
+    ],
+    "scores": {
+      "oracle@0.1": [
+        0,
+        5
+      ],
+      "oracle@0.25": [
+        3,
+        5
+      ],
+      "vlm@0.1": [
+        0,
+        5
+      ],
+      "vlm@0.25": [
+        4,
+        5
+      ]
+    },
+    "image": "route_maps/matched_00006-HkseAnWCgqk.png"
+  },
+  {
+    "rule": "matched",
+    "scene": "00009-vLpv2VX547B",
+    "object": "sofa",
+    "episode_id": "1",
+    "viewpoints": 1267,
+    "start_geodesic_median_m": 5.29,
+    "walked_median_m": 5.6,
+    "steps_median": 33,
+    "expert_final_median_m": 0.104,
+    "expert_final_min_m": 0.101,
+    "expert_final_max_m": 0.126,
+    "expert_reached": [
+      0,
+      20
+    ],
+    "scores": {
+      "oracle@0.1": [
+        0,
+        5
+      ],
+      "oracle@0.25": [
+        1,
+        5
+      ],
+      "vlm@0.1": [
+        0,
+        5
+      ],
+      "vlm@0.25": [
+        3,
+        5
+      ]
+    },
+    "image": "route_maps/matched_00009-vLpv2VX547B.png"
+  },
+  {
+    "rule": "matched",
+    "scene": "00016-qk9eeNeR4vw",
+    "object": "toilet",
+    "episode_id": "0",
+    "viewpoints": 199,
+    "start_geodesic_median_m": 5.52,
+    "walked_median_m": 5.81,
+    "steps_median": 40,
+    "expert_final_median_m": 0.059,
+    "expert_final_min_m": 0.051,
+    "expert_final_max_m": 0.072,
+    "expert_reached": [
+      20,
+      20
+    ],
+    "scores": {
+      "oracle@0.1": [
+        4,
+        5
+      ],
+      "oracle@0.25": [
+        4,
+        5
+      ],
+      "vlm@0.1": [
+        3,
+        5
+      ],
+      "vlm@0.25": [
+        4,
+        5
+      ]
+    },
+    "image": "route_maps/matched_00016-qk9eeNeR4vw.png"
+  },
+  {
+    "rule": "matched",
+    "scene": "00017-oEPjPNSPmzL",
+    "object": "toilet",
+    "episode_id": "1",
+    "viewpoints": 25,
+    "start_geodesic_median_m": 5.46,
+    "walked_median_m": 5.51,
+    "steps_median": 39,
+    "expert_final_median_m": 0.051,
+    "expert_final_min_m": 0.02,
+    "expert_final_max_m": 0.092,
+    "expert_reached": [
+      20,
+      20
+    ],
+    "scores": {
+      "oracle@0.1": [
+        2,
+        5
+      ],
+      "oracle@0.25": [
+        2,
+        5
+      ],
+      "vlm@0.1": [
+        3,
+        5
+      ],
+      "vlm@0.25": [
+        5,
+        5
+      ]
+    },
+    "image": "route_maps/matched_00017-oEPjPNSPmzL.png"
+  },
+  {
+    "rule": "matched",
+    "scene": "00020-XYyR54sxe6b",
+    "object": "tv_monitor",
+    "episode_id": "0",
+    "viewpoints": 242,
+    "start_geodesic_median_m": 5.25,
+    "walked_median_m": 5.61,
+    "steps_median": 37,
+    "expert_final_median_m": 0.105,
+    "expert_final_min_m": 0.1,
+    "expert_final_max_m": 0.113,
+    "expert_reached": [
+      0,
+      20
+    ],
+    "scores": {
+      "oracle@0.1": [
+        0,
+        5
+      ],
+      "oracle@0.25": [
+        5,
+        5
+      ],
+      "vlm@0.1": [
+        0,
+        5
+      ],
+      "vlm@0.25": [
+        4,
+        5
+      ]
+    },
+    "image": "route_maps/matched_00020-XYyR54sxe6b.png"
+  },
+  {
+    "rule": "matched",
+    "scene": "00022-gmuS7Wgsbrx",
+    "object": "chair",
+    "episode_id": "0",
+    "viewpoints": 6414,
+    "start_geodesic_median_m": 5.19,
+    "walked_median_m": 5.33,
+    "steps_median": 37,
+    "expert_final_median_m": 0.063,
+    "expert_final_min_m": 0.056,
+    "expert_final_max_m": 0.103,
+    "expert_reached": [
+      19,
+      20
+    ],
+    "scores": {
+      "oracle@0.1": [
+        3,
+        5
+      ],
+      "oracle@0.25": [
+        4,
+        5
+      ],
+      "vlm@0.1": [
+        3,
+        5
+      ],
+      "vlm@0.25": [
+        5,
+        5
+      ]
+    },
+    "image": "route_maps/matched_00022-gmuS7Wgsbrx.png"
+  },
+  {
+    "rule": "matched",
+    "scene": "00023-zepmXAdrpjR",
+    "object": "sofa",
+    "episode_id": "1",
+    "viewpoints": 1151,
+    "start_geodesic_median_m": 6.11,
+    "walked_median_m": 6.36,
+    "steps_median": 40,
+    "expert_final_median_m": 0.106,
+    "expert_final_min_m": 0.102,
+    "expert_final_max_m": 0.132,
+    "expert_reached": [
+      0,
+      20
+    ],
+    "scores": {
+      "oracle@0.1": [
+        0,
+        5
+      ],
+      "oracle@0.25": [
+        3,
+        5
+      ],
+      "vlm@0.1": [
+        0,
+        5
+      ],
+      "vlm@0.25": [
+        2,
+        5
+      ]
+    },
+    "image": "route_maps/matched_00023-zepmXAdrpjR.png"
+  },
+  {
+    "rule": "matched",
+    "scene": "00025-ixTj1aTMup2",
+    "object": "plant",
+    "episode_id": "1",
+    "viewpoints": 1412,
+    "start_geodesic_median_m": 5.17,
+    "walked_median_m": 5.31,
+    "steps_median": 33,
+    "expert_final_median_m": 0.041,
+    "expert_final_min_m": 0.022,
+    "expert_final_max_m": 0.08,
+    "expert_reached": [
+      20,
+      20
+    ],
+    "scores": {
+      "oracle@0.1": [
+        4,
+        5
+      ],
+      "oracle@0.25": [
+        4,
+        5
+      ],
+      "vlm@0.1": [
+        5,
+        5
+      ],
+      "vlm@0.25": [
+        5,
+        5
+      ]
+    },
+    "image": "route_maps/matched_00025-ixTj1aTMup2.png"
+  },
+  {
+    "rule": "junction",
+    "scene": "00006-HkseAnWCgqk",
+    "object": "chair",
+    "episode_id": "0",
+    "viewpoints": 1924,
+    "start_geodesic_median_m": 4.64,
+    "walked_median_m": 5.0,
+    "steps_median": 29,
+    "expert_final_median_m": 0.069,
+    "expert_final_min_m": 0.046,
+    "expert_final_max_m": 0.103,
+    "expert_reached": [
+      19,
+      20
+    ],
+    "scores": {
+      "oracle@0.1": [
+        2,
+        5
+      ],
+      "oracle@0.25": [
+        4,
+        5
+      ],
+      "vlm@0.1": [
+        3,
+        5
+      ],
+      "vlm@0.25": [
+        5,
+        5
+      ]
+    },
+    "image": "route_maps/junction_00006-HkseAnWCgqk.png"
+  },
+  {
+    "rule": "junction",
+    "scene": "00009-vLpv2VX547B",
+    "object": "tv_monitor",
+    "episode_id": "0",
+    "viewpoints": 409,
+    "start_geodesic_median_m": 13.78,
+    "walked_median_m": 14.32,
+    "steps_median": 90,
+    "expert_final_median_m": 0.133,
+    "expert_final_min_m": 0.1,
+    "expert_final_max_m": 0.177,
+    "expert_reached": [
+      0,
+      20
+    ],
+    "scores": {
+      "oracle@0.1": [
+        0,
+        5
+      ],
+      "oracle@0.25": [
+        2,
+        5
+      ],
+      "vlm@0.1": [
+        0,
+        5
+      ],
+      "vlm@0.25": [
+        2,
+        5
+      ]
+    },
+    "image": "route_maps/junction_00009-vLpv2VX547B.png"
+  },
+  {
+    "rule": "junction",
+    "scene": "00016-qk9eeNeR4vw",
+    "object": "tv_monitor",
+    "episode_id": "1",
+    "viewpoints": 15,
+    "start_geodesic_median_m": 7.24,
+    "walked_median_m": 7.55,
+    "steps_median": 49,
+    "expert_final_median_m": 0.066,
+    "expert_final_min_m": 0.051,
+    "expert_final_max_m": 0.098,
+    "expert_reached": [
+      20,
+      20
+    ],
+    "scores": {
+      "oracle@0.1": [
+        1,
+        5
+      ],
+      "oracle@0.25": [
+        1,
+        5
+      ],
+      "vlm@0.1": [
+        1,
+        5
+      ],
+      "vlm@0.25": [
+        1,
+        5
+      ]
+    },
+    "image": "route_maps/junction_00016-qk9eeNeR4vw.png"
+  },
+  {
+    "rule": "junction",
+    "scene": "00017-oEPjPNSPmzL",
+    "object": "tv_monitor",
+    "episode_id": "1",
+    "viewpoints": 332,
+    "start_geodesic_median_m": 14.69,
+    "walked_median_m": 15.19,
+    "steps_median": 86,
+    "expert_final_median_m": 0.034,
+    "expert_final_min_m": 0.01,
+    "expert_final_max_m": 0.072,
+    "expert_reached": [
+      20,
+      20
+    ],
+    "scores": {
+      "oracle@0.1": [
+        4,
+        5
+      ],
+      "oracle@0.25": [
+        4,
+        5
+      ],
+      "vlm@0.1": [
+        1,
+        5
+      ],
+      "vlm@0.25": [
+        3,
+        5
+      ]
+    },
+    "image": "route_maps/junction_00017-oEPjPNSPmzL.png"
+  },
+  {
+    "rule": "junction",
+    "scene": "00020-XYyR54sxe6b",
+    "object": "plant",
+    "episode_id": "1",
+    "viewpoints": 129,
+    "start_geodesic_median_m": 7.49,
+    "walked_median_m": 7.88,
+    "steps_median": 49,
+    "expert_final_median_m": 0.068,
+    "expert_final_min_m": 0.05,
+    "expert_final_max_m": 0.108,
+    "expert_reached": [
+      18,
+      20
+    ],
+    "scores": {
+      "oracle@0.1": [
+        0,
+        5
+      ],
+      "oracle@0.25": [
+        0,
+        5
+      ],
+      "vlm@0.1": [
+        4,
+        5
+      ],
+      "vlm@0.25": [
+        5,
+        5
+      ]
+    },
+    "image": "route_maps/junction_00020-XYyR54sxe6b.png"
+  },
+  {
+    "rule": "junction",
+    "scene": "00022-gmuS7Wgsbrx",
+    "object": "bed",
+    "episode_id": "1",
+    "viewpoints": 3437,
+    "start_geodesic_median_m": 26.79,
+    "walked_median_m": 27.57,
+    "steps_median": 154,
+    "expert_final_median_m": 0.061,
+    "expert_final_min_m": 0.05,
+    "expert_final_max_m": 0.089,
+    "expert_reached": [
+      20,
+      20
+    ],
+    "scores": {
+      "oracle@0.1": [
+        0,
+        5
+      ],
+      "oracle@0.25": [
+        0,
+        5
+      ],
+      "vlm@0.1": [
+        1,
+        5
+      ],
+      "vlm@0.25": [
+        2,
+        5
+      ]
+    },
+    "image": "route_maps/junction_00022-gmuS7Wgsbrx.png"
+  },
+  {
+    "rule": "junction",
+    "scene": "00023-zepmXAdrpjR",
+    "object": "tv_monitor",
+    "episode_id": "0",
+    "viewpoints": 127,
+    "start_geodesic_median_m": 14.39,
+    "walked_median_m": 14.88,
+    "steps_median": 88,
+    "expert_final_median_m": 0.108,
+    "expert_final_min_m": 0.102,
+    "expert_final_max_m": 0.136,
+    "expert_reached": [
+      0,
+      20
+    ],
+    "scores": {
+      "oracle@0.1": [
+        0,
+        5
+      ],
+      "oracle@0.25": [
+        5,
+        5
+      ],
+      "vlm@0.1": [
+        0,
+        5
+      ],
+      "vlm@0.25": [
+        5,
+        5
+      ]
+    },
+    "image": "route_maps/junction_00023-zepmXAdrpjR.png"
+  },
+  {
+    "rule": "junction",
+    "scene": "00025-ixTj1aTMup2",
+    "object": "bed",
+    "episode_id": "1",
+    "viewpoints": 2346,
+    "start_geodesic_median_m": 5.15,
+    "walked_median_m": 5.26,
+    "steps_median": 37,
+    "expert_final_median_m": 0.033,
+    "expert_final_min_m": 0.016,
+    "expert_final_max_m": 0.085,
+    "expert_reached": [
+      20,
+      20
+    ],
+    "scores": {
+      "oracle@0.1": [
+        2,
+        5
+      ],
+      "oracle@0.25": [
+        3,
+        5
+      ],
+      "vlm@0.1": [
+        3,
+        5
+      ],
+      "vlm@0.25": [
+        4,
+        5
+      ]
+    },
+    "image": "route_maps/junction_00025-ixTj1aTMup2.png"
+  }
+]

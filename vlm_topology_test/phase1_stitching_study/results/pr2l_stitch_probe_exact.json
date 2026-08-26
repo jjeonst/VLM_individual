@@ -1,0 +1,236 @@
+{
+  "representation": "PR2L exact: layers=-2,-1 pool=4 bank=mean pca:1024 gen_text=True, token-mean-pooled",
+  "num_pairs": 24,
+  "VLM_embedding": {
+    "junction_sim_mean": 0.359,
+    "nonjunction_sim_mean": 0.071,
+    "separation": 0.288,
+    "AUC": 0.758,
+    "pct_junction_ranked_top": 62.5,
+    "junction_sim_min": -0.112,
+    "junction_sim_max": 0.969
+  },
+  "raw_pixel_baseline": {
+    "junction_sim_mean": 0.114,
+    "nonjunction_sim_mean": 0.036,
+    "AUC": 0.627
+  },
+  "per_pair": [
+    {
+      "scene": "00378-DqJKU7YU7dA",
+      "epA": "hm3d_v0.2_train_00378-DqJKU7YU7dA_DqJKU7YU7dA.basis.glb_26",
+      "epB": "hm3d_v0.2_train_00378-DqJKU7YU7dA_DqJKU7YU7dA.basis.glb_27",
+      "junction_sim": 0.239,
+      "neg_start": -0.035,
+      "neg_goal": -0.197,
+      "correct_ranked_top": true
+    },
+    {
+      "scene": "00210-j2EJhFEQGCL",
+      "epA": "hm3d_v0.2_train_00210-j2EJhFEQGCL_j2EJhFEQGCL.basis.glb_4",
+      "epB": "hm3d_v0.2_train_00210-j2EJhFEQGCL_j2EJhFEQGCL.basis.glb_37",
+      "junction_sim": 0.158,
+      "neg_start": 0.12,
+      "neg_goal": 0.317,
+      "correct_ranked_top": false
+    },
+    {
+      "scene": "00378-DqJKU7YU7dA",
+      "epA": "hm3d_v0.2_train_00378-DqJKU7YU7dA_DqJKU7YU7dA.basis.glb_22",
+      "epB": "hm3d_v0.2_train_00378-DqJKU7YU7dA_DqJKU7YU7dA.basis.glb_35",
+      "junction_sim": 0.258,
+      "neg_start": 0.258,
+      "neg_goal": 0.084,
+      "correct_ranked_top": false
+    },
+    {
+      "scene": "00434-L5QEsaVqwrY",
+      "epA": "hm3d_v0.2_train_00434-L5QEsaVqwrY_L5QEsaVqwrY.basis.glb_30",
+      "epB": "hm3d_v0.2_train_00434-L5QEsaVqwrY_L5QEsaVqwrY.basis.glb_47",
+      "junction_sim": -0.03,
+      "neg_start": -0.057,
+      "neg_goal": 0.105,
+      "correct_ranked_top": false
+    },
+    {
+      "scene": "00210-j2EJhFEQGCL",
+      "epA": "hm3d_v0.2_train_00210-j2EJhFEQGCL_j2EJhFEQGCL.basis.glb_4",
+      "epB": "hm3d_v0.2_train_00210-j2EJhFEQGCL_j2EJhFEQGCL.basis.glb_34",
+      "junction_sim": 0.249,
+      "neg_start": 0.257,
+      "neg_goal": 0.291,
+      "correct_ranked_top": false
+    },
+    {
+      "scene": "00172-bB6nKqfsb1z",
+      "epA": "hm3d_v0.2_train_00172-bB6nKqfsb1z_bB6nKqfsb1z.basis.glb_8",
+      "epB": "hm3d_v0.2_train_00172-bB6nKqfsb1z_bB6nKqfsb1z.basis.glb_48",
+      "junction_sim": -0.102,
+      "neg_start": 0.043,
+      "neg_goal": 0.46,
+      "correct_ranked_top": false
+    },
+    {
+      "scene": "00466-xAHnY3QzFUN",
+      "epA": "hm3d_v0.2_train_00466-xAHnY3QzFUN_xAHnY3QzFUN.basis.glb_24",
+      "epB": "hm3d_v0.2_train_00466-xAHnY3QzFUN_xAHnY3QzFUN.basis.glb_41",
+      "junction_sim": 0.909,
+      "neg_start": 0.601,
+      "neg_goal": -0.119,
+      "correct_ranked_top": true
+    },
+    {
+      "scene": "00466-xAHnY3QzFUN",
+      "epA": "hm3d_v0.2_train_00466-xAHnY3QzFUN_xAHnY3QzFUN.basis.glb_0",
+      "epB": "hm3d_v0.2_train_00466-xAHnY3QzFUN_xAHnY3QzFUN.basis.glb_41",
+      "junction_sim": 0.755,
+      "neg_start": 0.546,
+      "neg_goal": -0.214,
+      "correct_ranked_top": true
+    },
+    {
+      "scene": "00547-9h5JJxM6E5S",
+      "epA": "hm3d_v0.2_train_00547-9h5JJxM6E5S_9h5JJxM6E5S.basis.glb_10",
+      "epB": "hm3d_v0.2_train_00547-9h5JJxM6E5S_9h5JJxM6E5S.basis.glb_50",
+      "junction_sim": 0.325,
+      "neg_start": -0.113,
+      "neg_goal": -0.305,
+      "correct_ranked_top": true
+    },
+    {
+      "scene": "00547-9h5JJxM6E5S",
+      "epA": "hm3d_v0.2_train_00547-9h5JJxM6E5S_9h5JJxM6E5S.basis.glb_10",
+      "epB": "hm3d_v0.2_train_00547-9h5JJxM6E5S_9h5JJxM6E5S.basis.glb_18",
+      "junction_sim": 0.008,
+      "neg_start": 0.136,
+      "neg_goal": -0.371,
+      "correct_ranked_top": false
+    },
+    {
+      "scene": "00262-1xGrZPxG1Hz",
+      "epA": "hm3d_v0.2_train_00262-1xGrZPxG1Hz_1xGrZPxG1Hz.basis.glb_0",
+      "epB": "hm3d_v0.2_train_00262-1xGrZPxG1Hz_1xGrZPxG1Hz.basis.glb_10",
+      "junction_sim": 0.441,
+      "neg_start": 0.161,
+      "neg_goal": 0.072,
+      "correct_ranked_top": true
+    },
+    {
+      "scene": "00105-xWvSkKiWQpC",
+      "epA": "hm3d_v0.2_train_00105-xWvSkKiWQpC_xWvSkKiWQpC.basis.glb_0",
+      "epB": "hm3d_v0.2_train_00105-xWvSkKiWQpC_xWvSkKiWQpC.basis.glb_6",
+      "junction_sim": 0.476,
+      "neg_start": 0.457,
+      "neg_goal": 0.329,
+      "correct_ranked_top": true
+    },
+    {
+      "scene": "00569-YJDUB7hWg9h",
+      "epA": "hm3d_v0.2_train_00569-YJDUB7hWg9h_YJDUB7hWg9h.basis.glb_12",
+      "epB": "hm3d_v0.2_train_00569-YJDUB7hWg9h_YJDUB7hWg9h.basis.glb_22",
+      "junction_sim": 0.929,
+      "neg_start": 0.126,
+      "neg_goal": -0.133,
+      "correct_ranked_top": true
+    },
+    {
+      "scene": "00569-YJDUB7hWg9h",
+      "epA": "hm3d_v0.2_train_00569-YJDUB7hWg9h_YJDUB7hWg9h.basis.glb_12",
+      "epB": "hm3d_v0.2_train_00569-YJDUB7hWg9h_YJDUB7hWg9h.basis.glb_37",
+      "junction_sim": 0.969,
+      "neg_start": 0.004,
+      "neg_goal": -0.201,
+      "correct_ranked_top": true
+    },
+    {
+      "scene": "00172-bB6nKqfsb1z",
+      "epA": "hm3d_v0.2_train_00172-bB6nKqfsb1z_bB6nKqfsb1z.basis.glb_22",
+      "epB": "hm3d_v0.2_train_00172-bB6nKqfsb1z_bB6nKqfsb1z.basis.glb_48",
+      "junction_sim": 0.622,
+      "neg_start": -0.038,
+      "neg_goal": 0.173,
+      "correct_ranked_top": true
+    },
+    {
+      "scene": "00434-L5QEsaVqwrY",
+      "epA": "hm3d_v0.2_train_00434-L5QEsaVqwrY_L5QEsaVqwrY.basis.glb_42",
+      "epB": "hm3d_v0.2_train_00434-L5QEsaVqwrY_L5QEsaVqwrY.basis.glb_44",
+      "junction_sim": 0.333,
+      "neg_start": -0.103,
+      "neg_goal": -0.299,
+      "correct_ranked_top": true
+    },
+    {
+      "scene": "00016-qk9eeNeR4vw",
+      "epA": "hm3d_v0.2_train_00016-qk9eeNeR4vw_qk9eeNeR4vw.basis.glb_14",
+      "epB": "hm3d_v0.2_train_00016-qk9eeNeR4vw_qk9eeNeR4vw.basis.glb_21",
+      "junction_sim": 0.495,
+      "neg_start": -0.003,
+      "neg_goal": 0.076,
+      "correct_ranked_top": true
+    },
+    {
+      "scene": "00745-yX5efd48dLf",
+      "epA": "hm3d_v0.2_train_00745-yX5efd48dLf_yX5efd48dLf.basis.glb_21",
+      "epB": "hm3d_v0.2_train_00745-yX5efd48dLf_yX5efd48dLf.basis.glb_44",
+      "junction_sim": 0.2,
+      "neg_start": -0.049,
+      "neg_goal": 0.419,
+      "correct_ranked_top": false
+    },
+    {
+      "scene": "00612-GsQBY83r3hb",
+      "epA": "hm3d_v0.2_train_00612-GsQBY83r3hb_GsQBY83r3hb.basis.glb_22",
+      "epB": "hm3d_v0.2_train_00612-GsQBY83r3hb_GsQBY83r3hb.basis.glb_32",
+      "junction_sim": -0.112,
+      "neg_start": 0.003,
+      "neg_goal": 0.035,
+      "correct_ranked_top": false
+    },
+    {
+      "scene": "00155-iLDo95ZbDJq",
+      "epA": "hm3d_v0.2_train_00155-iLDo95ZbDJq_iLDo95ZbDJq.basis.glb_0",
+      "epB": "hm3d_v0.2_train_00155-iLDo95ZbDJq_iLDo95ZbDJq.basis.glb_30",
+      "junction_sim": 0.096,
+      "neg_start": 0.053,
+      "neg_goal": -0.425,
+      "correct_ranked_top": true
+    },
+    {
+      "scene": "00401-H8rQCnvBgo6",
+      "epA": "hm3d_v0.2_train_00401-H8rQCnvBgo6_H8rQCnvBgo6.basis.glb_26",
+      "epB": "hm3d_v0.2_train_00401-H8rQCnvBgo6_H8rQCnvBgo6.basis.glb_33",
+      "junction_sim": 0.306,
+      "neg_start": 0.249,
+      "neg_goal": -0.18,
+      "correct_ranked_top": true
+    },
+    {
+      "scene": "00612-GsQBY83r3hb",
+      "epA": "hm3d_v0.2_train_00612-GsQBY83r3hb_GsQBY83r3hb.basis.glb_0",
+      "epB": "hm3d_v0.2_train_00612-GsQBY83r3hb_GsQBY83r3hb.basis.glb_23",
+      "junction_sim": 0.81,
+      "neg_start": -0.086,
+      "neg_goal": 0.262,
+      "correct_ranked_top": true
+    },
+    {
+      "scene": "00155-iLDo95ZbDJq",
+      "epA": "hm3d_v0.2_train_00155-iLDo95ZbDJq_iLDo95ZbDJq.basis.glb_0",
+      "epB": "hm3d_v0.2_train_00155-iLDo95ZbDJq_iLDo95ZbDJq.basis.glb_28",
+      "junction_sim": 0.111,
+      "neg_start": -0.017,
+      "neg_goal": -0.281,
+      "correct_ranked_top": true
+    },
+    {
+      "scene": "00016-qk9eeNeR4vw",
+      "epA": "hm3d_v0.2_train_00016-qk9eeNeR4vw_qk9eeNeR4vw.basis.glb_15",
+      "epB": "hm3d_v0.2_train_00016-qk9eeNeR4vw_qk9eeNeR4vw.basis.glb_37",
+      "junction_sim": 0.178,
+      "neg_start": 0.124,
+      "neg_goal": 0.874,
+      "correct_ranked_top": false
+    }
+  ]
+}

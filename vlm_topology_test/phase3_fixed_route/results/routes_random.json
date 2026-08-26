@@ -1,0 +1,173 @@
+{
+  "rule": "random",
+  "routes": [
+    {
+      "scene": "00006-HkseAnWCgqk",
+      "episode_id": "2",
+      "object": "tv_monitor",
+      "start_position": [
+        -7.558690071105957,
+        0.0392099991440773,
+        2.6938700675964355
+      ],
+      "start_rotation": [
+        0.0,
+        0.9929999709129333,
+        0.0,
+        0.11808999627828598
+      ],
+      "start_geodesic_m": 2.088,
+      "expert_steps": 8,
+      "expert_walked_m": 1.48,
+      "expert_final_geodesic_m": 0.843,
+      "junctions_on_route": 2
+    },
+    {
+      "scene": "00009-vLpv2VX547B",
+      "episode_id": "1",
+      "object": "tv_monitor",
+      "start_position": [
+        -18.696359634399414,
+        0.060100000351667404,
+        2.081510066986084
+      ],
+      "start_rotation": [
+        0.0,
+        0.3142800033092499,
+        0.0,
+        0.9493299722671509
+      ],
+      "start_geodesic_m": 12.143,
+      "expert_steps": 60,
+      "expert_walked_m": 11.56,
+      "expert_final_geodesic_m": 0.782,
+      "junctions_on_route": 13
+    },
+    {
+      "scene": "00016-qk9eeNeR4vw",
+      "episode_id": "0",
+      "object": "sofa",
+      "start_position": [
+        0.7973499894142151,
+        0.03976000100374222,
+        -3.746229887008667
+      ],
+      "start_rotation": [
+        0.0,
+        0.9768499732017517,
+        0.0,
+        0.21393999457359314
+      ],
+      "start_geodesic_m": 4.491,
+      "expert_steps": 23,
+      "expert_walked_m": 3.8,
+      "expert_final_geodesic_m": 0.816,
+      "junctions_on_route": 2
+    },
+    {
+      "scene": "00017-oEPjPNSPmzL",
+      "episode_id": "0",
+      "object": "toilet",
+      "start_position": [
+        -8.851530075073242,
+        0.014519999735057354,
+        -0.11332999914884567
+      ],
+      "start_rotation": [
+        0.0,
+        0.13857999444007874,
+        0.0,
+        -0.9903500080108643
+      ],
+      "start_geodesic_m": 4.68,
+      "expert_steps": 27,
+      "expert_walked_m": 4.0,
+      "expert_final_geodesic_m": 0.751,
+      "junctions_on_route": 7
+    },
+    {
+      "scene": "00020-XYyR54sxe6b",
+      "episode_id": "0",
+      "object": "toilet",
+      "start_position": [
+        -2.975019931793213,
+        0.017079999670386314,
+        0.9714900255203247
+      ],
+      "start_rotation": [
+        0.0,
+        0.6803200244903564,
+        0.0,
+        0.7329099774360657
+      ],
+      "start_geodesic_m": 5.129,
+      "expert_steps": 30,
+      "expert_walked_m": 4.61,
+      "expert_final_geodesic_m": 0.767,
+      "junctions_on_route": 4
+    },
+    {
+      "scene": "00022-gmuS7Wgsbrx",
+      "episode_id": "1",
+      "object": "chair",
+      "start_position": [
+        1.2279900312423706,
+        0.021400000900030136,
+        0.6226099729537964
+      ],
+      "start_rotation": [
+        0.0,
+        0.9996200203895569,
+        0.0,
+        -0.027489999309182167
+      ],
+      "start_geodesic_m": 4.999,
+      "expert_steps": 25,
+      "expert_walked_m": 4.32,
+      "expert_final_geodesic_m": 0.811,
+      "junctions_on_route": 6
+    },
+    {
+      "scene": "00023-zepmXAdrpjR",
+      "episode_id": "1",
+      "object": "plant",
+      "start_position": [
+        8.18297004699707,
+        0.02751000039279461,
+        7.095560073852539
+      ],
+      "start_rotation": [
+        0.0,
+        0.10572999715805054,
+        0.0,
+        0.9944000244140625
+      ],
+      "start_geodesic_m": 11.959,
+      "expert_steps": 61,
+      "expert_walked_m": 11.3,
+      "expert_final_geodesic_m": 0.868,
+      "junctions_on_route": 15
+    },
+    {
+      "scene": "00025-ixTj1aTMup2",
+      "episode_id": "1",
+      "object": "tv_monitor",
+      "start_position": [
+        4.371819972991943,
+        0.00791999977082014,
+        -3.6696600914001465
+      ],
+      "start_rotation": [
+        0.0,
+        0.9461600184440613,
+        0.0,
+        -0.3237000107765198
+      ],
+      "start_geodesic_m": 8.203,
+      "expert_steps": 48,
+      "expert_walked_m": 7.5,
+      "expert_final_geodesic_m": 0.957,
+      "junctions_on_route": 7
+    }
+  ]
+}

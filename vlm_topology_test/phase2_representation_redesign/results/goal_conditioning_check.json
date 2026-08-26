@@ -1,0 +1,216 @@
+{
+  "config": {
+    "frames": 4,
+    "goals": [
+      "chair",
+      "toilet",
+      "bed",
+      "plant"
+    ],
+    "generate_answer": true,
+    "prompt": "Would a {goal} be found here? Why or why not?"
+  },
+  "verdict": {
+    "visual_token_representation_is_goal_independent": true,
+    "last_token_representation_is_goal_independent": false,
+    "interpretation": "Visual-token representations are byte-identical across goals, so the extraction point the repository uses carries no goal or language information."
+  },
+  "per_frame": [
+    {
+      "frame": 0,
+      "answers": {
+        "chair": "No, because it is a kitchen.",
+        "toilet": "No, a toilet is not found in the kitchen.",
+        "bed": "No, a bed would not be found here because this is a kitchen.",
+        "plant": "No, there is no plant in the image."
+      },
+      "visual_tokens": {
+        "chair_vs_toilet": {
+          "max_abs_diff": 0.0,
+          "mean_abs_diff": 0.0,
+          "cosine": 1.0,
+          "identical": true
+        },
+        "chair_vs_bed": {
+          "max_abs_diff": 0.0,
+          "mean_abs_diff": 0.0,
+          "cosine": 1.0,
+          "identical": true
+        },
+        "chair_vs_plant": {
+          "max_abs_diff": 0.0,
+          "mean_abs_diff": 0.0,
+          "cosine": 1.0,
+          "identical": true
+        }
+      },
+      "last_token": {
+        "chair_vs_toilet": {
+          "max_abs_diff": 14.84375,
+          "mean_abs_diff": 1.52979541,
+          "cosine": 0.391239,
+          "identical": false
+        },
+        "chair_vs_bed": {
+          "max_abs_diff": 11.15625,
+          "mean_abs_diff": 1.48287034,
+          "cosine": 0.428392,
+          "identical": false
+        },
+        "chair_vs_plant": {
+          "max_abs_diff": 11.96875,
+          "mean_abs_diff": 1.49239707,
+          "cosine": 0.40321,
+          "identical": false
+        }
+      }
+    },
+    {
+      "frame": 1,
+      "answers": {
+        "chair": "No, because it is a kitchen area.",
+        "toilet": "No, a toilet is not found in the kitchen.",
+        "bed": "No, because it is a kitchen.",
+        "plant": "No, because it is a kitchen and plants are not typically found in kitchens."
+      },
+      "visual_tokens": {
+        "chair_vs_toilet": {
+          "max_abs_diff": 0.0,
+          "mean_abs_diff": 0.0,
+          "cosine": 1.0,
+          "identical": true
+        },
+        "chair_vs_bed": {
+          "max_abs_diff": 0.0,
+          "mean_abs_diff": 0.0,
+          "cosine": 1.0,
+          "identical": true
+        },
+        "chair_vs_plant": {
+          "max_abs_diff": 0.0,
+          "mean_abs_diff": 0.0,
+          "cosine": 1.0,
+          "identical": true
+        }
+      },
+      "last_token": {
+        "chair_vs_toilet": {
+          "max_abs_diff": 9.75,
+          "mean_abs_diff": 1.36231053,
+          "cosine": 0.504612,
+          "identical": false
+        },
+        "chair_vs_bed": {
+          "max_abs_diff": 13.71875,
+          "mean_abs_diff": 1.36589789,
+          "cosine": 0.479172,
+          "identical": false
+        },
+        "chair_vs_plant": {
+          "max_abs_diff": 9.05957031,
+          "mean_abs_diff": 1.33348787,
+          "cosine": 0.455073,
+          "identical": false
+        }
+      }
+    },
+    {
+      "frame": 2,
+      "answers": {
+        "chair": "No, there is no chair in the image.",
+        "toilet": "No, a toilet is not found in the kitchen.",
+        "bed": "No, a bed would not be found here because this is a kitchen.",
+        "plant": "Yes, a plant could be found in the corner of the room for decoration."
+      },
+      "visual_tokens": {
+        "chair_vs_toilet": {
+          "max_abs_diff": 0.0,
+          "mean_abs_diff": 0.0,
+          "cosine": 1.0,
+          "identical": true
+        },
+        "chair_vs_bed": {
+          "max_abs_diff": 0.0,
+          "mean_abs_diff": 0.0,
+          "cosine": 1.0,
+          "identical": true
+        },
+        "chair_vs_plant": {
+          "max_abs_diff": 0.0,
+          "mean_abs_diff": 0.0,
+          "cosine": 1.0,
+          "identical": true
+        }
+      },
+      "last_token": {
+        "chair_vs_toilet": {
+          "max_abs_diff": 9.75,
+          "mean_abs_diff": 1.37646079,
+          "cosine": 0.507845,
+          "identical": false
+        },
+        "chair_vs_bed": {
+          "max_abs_diff": 14.34375,
+          "mean_abs_diff": 1.51590061,
+          "cosine": 0.38587,
+          "identical": false
+        },
+        "chair_vs_plant": {
+          "max_abs_diff": 9.6875,
+          "mean_abs_diff": 1.40792966,
+          "cosine": 0.466095,
+          "identical": false
+        }
+      }
+    },
+    {
+      "frame": 3,
+      "answers": {
+        "chair": "No, because it is a kitchen.",
+        "toilet": "No, a toilet is not found in the kitchen.",
+        "bed": "No, a bed would not be found here because this is a kitchen.",
+        "plant": "No, there is no plant in the image."
+      },
+      "visual_tokens": {
+        "chair_vs_toilet": {
+          "max_abs_diff": 0.0,
+          "mean_abs_diff": 0.0,
+          "cosine": 1.0,
+          "identical": true
+        },
+        "chair_vs_bed": {
+          "max_abs_diff": 0.0,
+          "mean_abs_diff": 0.0,
+          "cosine": 1.0,
+          "identical": true
+        },
+        "chair_vs_plant": {
+          "max_abs_diff": 0.0,
+          "mean_abs_diff": 0.0,
+          "cosine": 1.0,
+          "identical": true
+        }
+      },
+      "last_token": {
+        "chair_vs_toilet": {
+          "max_abs_diff": 14.28125,
+          "mean_abs_diff": 1.53337359,
+          "cosine": 0.385573,
+          "identical": false
+        },
+        "chair_vs_bed": {
+          "max_abs_diff": 11.484375,
+          "mean_abs_diff": 1.4782784,
+          "cosine": 0.431583,
+          "identical": false
+        },
+        "chair_vs_plant": {
+          "max_abs_diff": 12.671875,
+          "mean_abs_diff": 1.5282104,
+          "cosine": 0.390571,
+          "identical": false
+        }
+      }
+    }
+  ]
+}
