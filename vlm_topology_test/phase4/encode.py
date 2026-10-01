@@ -28,13 +28,13 @@ from pathlib import Path
 import numpy as np
 
 import pca
-from vlm_features import (LAYERS, MAX_NEW_TOKENS, MIN_NEW_TOKENS, TEMPERATURE,
-                          encode_vision_batch,
+from vlm_features import (COT_CONDITIONS, LAYERS, MAX_NEW_TOKENS, MIN_NEW_TOKENS, STORE_DTYPE,
+                          min_new_tokens_for,
+                          TEMPERATURE, encode_vision_batch,
                           encode_batch, frame_seed, load_vlm, load_vision_backbone)
 
 HABITAT_ROOT = Path("/data/topovlm/habitat")
 MANIFEST = HABITAT_ROOT / "episodes" / "pr2l_habitat_web_hd" / "train" / "manifest.jsonl"
-STORE_DTYPE = np.float16          # chosen with the user; the paper does not state a precision
 
 
 def output_root(condition: str) -> Path:
@@ -59,7 +59,8 @@ def sample_frame_index(record: dict) -> int:
 
 
 def encode_trajectory(vlm, record: dict, batch_size: int, with_cot: bool,
-                      indices: list[int] | None = None, vision_only: bool = False):
+                      indices: list[int] | None = None, vision_only: bool = False,
+                      min_new_tokens: int = MIN_NEW_TOKENS):
     """Yield this trajectory's frames' representations, a batch at a time.
 
     `vision_only` takes the image-encoder route, which never touches the language model.
@@ -73,7 +74,8 @@ def encode_trajectory(vlm, record: dict, batch_size: int, with_cot: bool,
             yield encode_vision_batch(vlm, batch)
         else:
             yield encode_batch(vlm, batch, record["object_category"],
-                               record["episode_id"], chunk, with_cot=with_cot)
+                               record["episode_id"], chunk, with_cot=with_cot,
+                               min_new_tokens=min_new_tokens)
 
 
 # --------------------------------------------------------------------------- check
@@ -120,7 +122,8 @@ def run_fit(vlm, records: list[dict], with_cot: bool, condition: str, limit: int
     started = time.time()
     for position, record in enumerate(records, start=1):
         index = sample_frame_index(record)
-        features = next(encode_trajectory(vlm, record, 1, with_cot, indices=[index]))[0]
+        features = next(encode_trajectory(vlm, record, 1, with_cot, indices=[index],
+                                          min_new_tokens=min_new_tokens_for(condition)))[0]
         for layer in range(len(LAYERS)):
             vectors = features.tokens[:, layer]
             pooled.update(vectors)
@@ -148,7 +151,7 @@ def run_fit(vlm, records: list[dict], with_cot: bool, condition: str, limit: int
         "explained": shared.explained,
         "per_layer_retained_shared": [pca.retained_fraction(shared, m) for m in per_layer],
         "per_layer_retained_own": [b.explained for b in separate],
-        "temperature": TEMPERATURE, "min_new_tokens": MIN_NEW_TOKENS,
+        "temperature": TEMPERATURE, "min_new_tokens": min_new_tokens_for(condition),
         "max_new_tokens": MAX_NEW_TOKENS, "with_cot": with_cot,
     })
     for layer, basis in zip(LAYERS, separate):
@@ -207,7 +210,8 @@ def run_encode(vlm, records: list[dict], with_cot: bool, condition: str,
             continue
         pieces, counts, answers = [], [], []
         for batch in encode_trajectory(vlm, record, batch_size, with_cot,
-                                       vision_only=vision_only):
+                                       vision_only=vision_only,
+                                       min_new_tokens=min_new_tokens_for(condition)):
             for features in batch:
                 if vision_only:
                     reduced = features.tokens
@@ -253,7 +257,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("mode", choices=["check", "fit", "encode"])
     parser.add_argument("--condition", default="cot",
-                        choices=["cot", "nocot", "image_encoder"])
+                        choices=["cot", "cot_fixed", "nocot", "nocot_min0", "image_encoder"])
     parser.add_argument("--batch-size", type=int, default=8)
     parser.add_argument("--limit", type=int, default=None,
                         help="use only the first N trajectories (pilots)")
@@ -262,7 +266,7 @@ def main() -> int:
     args = parser.parse_args()
 
     records = read_manifest()
-    with_cot = args.condition == "cot"
+    with_cot = args.condition in COT_CONDITIONS
     # The image-encoder condition needs the vision half only, which fits on a much
     # smaller card and leaves the 3090s to the language model's work.
     vlm = load_vision_backbone() if args.condition == "image_encoder" else load_vlm()

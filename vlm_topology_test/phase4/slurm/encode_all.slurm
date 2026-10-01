@@ -26,6 +26,12 @@ cd /home/jonghoon/Projects/VLM_individual/vlm_topology_test/phase4
 # but unusable memory.
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export HF_HOME=/data/topovlm/vlm_weights/hf_cache
+# The cluster points XDG_CACHE_HOME at a per-job scratch directory, and huggingface_hub
+# resolves its hub cache through that unless told otherwise -- so every job re-downloaded the
+# 3.5 GB SigLIP weights, and shard 16382_0 sat in that download for three and a half hours with
+# the GPU idle before it was requeued. Naming the shared cache outright makes the weights a
+# read from /data instead of a fetch from the network.
+export HF_HUB_CACHE=$HF_HOME/hub
 # Prismatic builds an empty Llama-2 shell from the gated meta-llama repo before loading
 # the VLM checkpoint, so the request has to be authenticated or it fails with a 401.
 export HF_TOKEN=$(cat /data/topovlm/vlm_weights/hf_token)

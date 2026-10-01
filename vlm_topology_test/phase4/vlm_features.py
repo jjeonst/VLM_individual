@@ -80,6 +80,16 @@ TEMPERATURE = 0.4
 MIN_NEW_TOKENS = 32
 MAX_NEW_TOKENS = 48
 
+# The precision the reduced tokens are rounded to. The paper does not state one; float16 was
+# chosen with the user because it halves 1.5 TB of embeddings and the values are hidden states,
+# whose narrow range costs little in a shorter exponent.
+#
+# It lives here rather than in `encode.py` because *both* sides of the pipeline have to apply it.
+# `encode.py` writes the training data through it, and `evaluate.py` builds the same
+# representation live during a rollout -- if only one rounds, the policy is evaluated on inputs
+# it never saw in training (Appendix Z.2).
+STORE_DTYPE = np.float16
+
 # Appendix C.2, general item 5: the 16x16 grid of visual tokens is average-pooled with a 4x4
 # kernel, leaving 16. Note this happens *after* the model has read all 256 of them.
 VISUAL_GRID = 16
@@ -89,6 +99,25 @@ POOLED_VISUAL_TOKENS = (VISUAL_GRID // POOL) ** 2
 # Section 4.3. The chain-of-thought condition asks for the reason; the ablation drops it.
 PROMPT_WITH_COT = "Would a {goal} be found here? Why or why not?"
 PROMPT_WITHOUT_COT = "Would a {goal} be found here?"
+
+# Which condition names carry the chain-of-thought prompt. `cot_fixed` is the same condition
+# re-encoded after the visual slice in `_assemble` was corrected (Appendix Z.1): the prompt is
+# identical and only the representation differs, so it needs its own name to keep its embeddings,
+# PCA basis and checkpoints apart from the ones built before the fix. Naming the set once means a
+# third name later cannot be added to the encoder and forgotten in the evaluator.
+COT_CONDITIONS = ("cot", "cot_fixed")
+
+# Conditions whose answers may stop as soon as the model does. Appendix C.2 PR2L 4 gives "32 - 48
+# new tokens" for generating "in response to our task-relevant prompt", and Section 4.3 names that
+# prompt as the chain-of-thought question; the no-CoT ablation's generation length is not stated
+# (Appendix C.7 ③, re-correction of 2026-09-15). `nocot` was encoded with the 32-token floor, the
+# reading that the setting is shared; `nocot_min0` is the other reading, where it belongs to the CoT
+# prompt alone. The maximum of 48 applies to both.
+NO_MINIMUM_CONDITIONS = ("nocot_min0",)
+
+
+def min_new_tokens_for(condition: str) -> int:
+    return 0 if condition in NO_MINIMUM_CONDITIONS else MIN_NEW_TOKENS
 
 
 @dataclass
@@ -219,7 +248,8 @@ def _sample(logits: torch.Tensor, generators: list[torch.Generator],
 @torch.inference_mode()
 def encode_batch(vlm, frames: np.ndarray, goal: str, episode_id: str | Sequence[str],
                  frame_indices: list[int], with_cot: bool = True,
-                 template: str | None = None) -> list[FrameFeatures]:
+                 template: str | None = None,
+                 min_new_tokens: int = MIN_NEW_TOKENS) -> list[FrameFeatures]:
     """Run one batch of frames through the model and return their representations.
 
     All frames must share a goal, which they do when they come from one trajectory, so the
@@ -289,7 +319,7 @@ def encode_batch(vlm, frames: np.ndarray, goal: str, episode_id: str | Sequence[
             finished |= (token == eos_id)
             if bool(finished.all()):
                 break
-            forbid = (lengths < MIN_NEW_TOKENS) | finished
+            forbid = (lengths < min_new_tokens) | finished
             token = _sample(output.logits[:, -1], generators, forbid, eos_id)
 
     return _assemble(prefix, generated_hidden, generated_ids, lengths, prompt_length,

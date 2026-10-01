@@ -41,8 +41,9 @@ from policy import NavigationPolicy
 from render import (AGENT_HEIGHT, AGENT_RADIUS, CAMERA_HEIGHT, HFOV_DEG, MAX_CLIMB,
                     MAX_SLOPE, RGB_HEIGHT, RGB_WIDTH, SUCCESS_DISTANCE_M, TURN_DEG,
                     FORWARD_M, ALLOW_SLIDING, agent_pose, geodesic_to_viewpoints)
-from vlm_features import (LAYERS, encode_batch, encode_vision_batch, load_vlm,
-                          load_vision_backbone)
+from vlm_features import (COT_CONDITIONS, LAYERS, STORE_DTYPE, encode_batch, encode_vision_batch,
+                          min_new_tokens_for,
+                          load_vlm, load_vision_backbone)
 
 HABITAT_ROOT = Path("/data/topovlm/habitat")
 EPISODE_ROOT = HABITAT_ROOT / "datasets/objectnav/hm3d/v1/objectnav_hm3d_v1"
@@ -362,8 +363,8 @@ class Rollout:
 
 @torch.inference_mode()
 def run_scene(vlm, policy, basis, episodes: list[dict], scene_config: Path, scratch: Path,
-              parallel: int, condition: str, device, rng: np.random.Generator | None = None
-              ) -> list[dict]:
+              parallel: int, condition: str, device, rng: np.random.Generator | None = None,
+              match_precision: bool = False) -> list[dict]:
     """Roll out every episode of one building, stepping several at a time.
 
     One simulator serves them all -- see `Rollout` for why there cannot be more than one -- and
@@ -425,7 +426,8 @@ def run_scene(vlm, policy, basis, episodes: list[dict], scene_config: Path, scra
                         encoded = encode_batch(vlm, frames[indices], goal,
                                                [live[i].episode["episode_id"] for i in indices],
                                                [live[i].steps for i in indices],
-                                               with_cot=condition == "cot")
+                                               with_cot=condition in COT_CONDITIONS,
+                                               min_new_tokens=min_new_tokens_for(condition))
                         for slot, item in zip(indices, encoded):
                             features[slot] = item
 
@@ -451,6 +453,16 @@ def run_scene(vlm, policy, basis, episodes: list[dict], scene_config: Path, scra
                         reduced = (features[slot].tokens if basis is None else
                                    np.concatenate([basis.apply(features[slot].tokens[:, layer])
                                                    for layer in range(len(LAYERS))], axis=1))
+                        # Round the way the training data was rounded. `encode.py` stores its
+                        # output as float16 and the policy therefore learned on values carrying
+                        # that error; a rollout builds the same representation live and would
+                        # otherwise hand over the unrounded one (Appendix Z.2). The difference is
+                        # about 1e-3 relative and falls on every condition alike, so nothing
+                        # compared before this was distorted -- which is also why the flag
+                        # exists: every number reported so far was produced without it, and a
+                        # run meant to sit beside those has to be able to leave it off.
+                        if match_precision:
+                            reduced = reduced.astype(STORE_DTYPE)
                         count = reduced.shape[0]
                         tokens[slot, 0, :count] = torch.from_numpy(reduced).to(device)
                         padding[slot, 0, :count] = False
@@ -468,8 +480,11 @@ def run_scene(vlm, policy, basis, episodes: list[dict], scene_config: Path, scra
                               torch.cat([s[1] for s in states], dim=1))
                 logits, memory = policy(tokens, padding, gps, compass, previous, goals, memory)
                 for slot, rollout in enumerate(live):
-                    rollout.memory = (memory[0][:, slot:slot + 1].contiguous(),
-                                      memory[1][:, slot:slot + 1].contiguous())
+                    # A policy built without recurrence returns no state to carry (Appendix X's
+                    # XS run), and there is then nothing to split back out per episode.
+                    rollout.memory = None if memory is None else (
+                        memory[0][:, slot:slot + 1].contiguous(),
+                        memory[1][:, slot:slot + 1].contiguous())
                     rollout.apply(sim, int(logits[slot, 0].argmax()))
             results.extend(r.result(sim) for r in active)
     finally:
@@ -508,12 +523,24 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--run-name", required=True)
     parser.add_argument("--condition", default="cot",
-                        choices=["cot", "nocot", "image_encoder"])
+                        choices=["cot", "cot_fixed", "nocot", "nocot_min0", "image_encoder"])
     parser.add_argument("--split", default="val", choices=["val", "train"],
                         help="val is the paper's evaluation set; train removes the demand to "
                              "generalise and only asks whether the loop behaves")
     parser.add_argument("--episodes", type=int, default=None,
                         help="stratified subset size; default is every episode in the split")
+    parser.add_argument("--episode-ids", type=Path, default=None,
+                        help="JSON list of episode ids to run, instead of drawing a subset. "
+                             "`stratified_subset` is not nested -- asking it for 200 does not "
+                             "return 200 of the 500 it would return for 500, because the draws "
+                             "come off one generator at different sizes -- so a smaller run "
+                             "cannot be compared against a larger one that already happened "
+                             "unless the episodes are named outright")
+    parser.add_argument("--match-train-precision", action="store_true",
+                        help="round the live representation to the precision the training data "
+                             "was stored at (Appendix Z.2). Off by default because every number "
+                             "reported so far was produced without it; turn it on only for a "
+                             "set of runs that will be compared against each other")
     parser.add_argument("--parallel", type=int, default=8)
     parser.add_argument("--check-success", action="store_true",
                         help="compare this file's success test against habitat-lab's and exit")
@@ -583,7 +610,10 @@ def main() -> int:
         # defaults say.
         policy = NavigationPolicy(heading_encoding=checkpoint.get("heading_encoding", "angle"),
                                   num_heads=checkpoint.get("num_heads", 1),
-                                  token_dim=checkpoint.get("token_dim", 2048))
+                                  token_dim=checkpoint.get("token_dim", 2048),
+                              lstm_hidden=checkpoint.get("lstm_hidden", 2048),
+                              lstm_layers=checkpoint.get("lstm_layers", 2),
+                              side_dim=checkpoint.get("side_dim", 32))
         policy.load_state_dict(checkpoint["policy"])
         policy.to(device).eval()
     # Only as much model as the condition needs: nothing for the two controls, the vision half
@@ -603,8 +633,17 @@ def main() -> int:
         scenes = {row["scene_key"].split("-", 1)[-1]
                   for row in dataset.read_manifest(embedding_root)}
         print(f"[eval] 학습에 쓴 장면 {len(scenes)}개로 제한", flush=True)
-    episodes = stratified_subset(
-        limit_scenes(load_episodes(args.split, scenes), args.max_scenes), args.episodes)
+    pool = limit_scenes(load_episodes(args.split, scenes), args.max_scenes)
+    if args.episode_ids is not None:
+        wanted = set(json.loads(args.episode_ids.read_text()))
+        episodes = [episode for episode in pool if episode["episode_id"] in wanted]
+        missing = wanted - {episode["episode_id"] for episode in episodes}
+        if missing:
+            raise SystemExit(f"[eval] 목록의 {len(missing)}개를 이 split에서 찾을 수 없다: "
+                             f"{sorted(missing)[:3]}")
+        print(f"[eval] 지정된 목록 {len(episodes)} 에피소드", flush=True)
+    else:
+        episodes = stratified_subset(pool, args.episodes)
     by_scene = defaultdict(list)
     for episode in episodes:
         by_scene[episode["scene_id"]].append(episode)
@@ -624,7 +663,8 @@ def main() -> int:
     for index, (scene, group) in enumerate(sorted(by_scene.items()), start=1):
         results.extend(run_scene(vlm, policy, basis, group,
                                  SCENE_ROOT / SCENE_CONFIG_NAME, args.scratch,
-                                 args.parallel, condition, device, rng))
+                                 args.parallel, condition, device, rng,
+                                 match_precision=args.match_train_precision))
         done = sum(r["success"] for r in results)
         print(f"[eval] 장면 {index}/{len(by_scene)} | 누적 {len(results)} 에피소드, "
               f"성공 {done} ({100 * done / len(results):.1f}%), "

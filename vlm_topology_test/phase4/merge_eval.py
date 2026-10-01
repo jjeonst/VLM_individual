@@ -24,6 +24,9 @@ def main() -> int:
     parser.add_argument("--run-name", required=True)
     parser.add_argument("--split", default="val")
     parser.add_argument("--episodes", type=int, default=500)
+    parser.add_argument("--episode-ids", type=Path, default=None,
+                        help="the same list the shards were given; coverage is checked against "
+                             "it rather than against a freshly drawn subset")
     parser.add_argument("--out", type=Path, default=None)
     args = parser.parse_args()
 
@@ -40,8 +43,12 @@ def main() -> int:
 
     ids = [row["episode_id"] for row in rows]
     duplicates = [name for name, count in Counter(ids).items() if count > 1]
-    expected = stratified_subset(limit_scenes(load_episodes(args.split), None), args.episodes)
-    wanted = {episode["episode_id"] for episode in expected}
+    if args.episode_ids is not None:
+        wanted = set(json.loads(args.episode_ids.read_text()))
+    else:
+        expected = stratified_subset(limit_scenes(load_episodes(args.split), None),
+                                     args.episodes)
+        wanted = {episode["episode_id"] for episode in expected}
     missing = wanted - set(ids)
 
     print(f"\n[merge] 샤드 {len(shards)}개 | 에피소드 {len(rows)} | 고유 {len(set(ids))} | "

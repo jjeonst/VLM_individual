@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import torch
 from torch import nn
+from torch.utils.checkpoint import checkpoint
 
 NUM_ACTIONS = 4          # stop, move forward, turn left, turn right (Appendix C.1)
 NUM_OBJECTS = 6          # chair, bed, plant, toilet, tv_monitor, sofa (Section 4.2)
@@ -39,6 +40,15 @@ DROPOUT = 0.1
 SIDE_EMBED_DIM = 32      # per non-visual input, following PIRLNav section 3
 LSTM_HIDDEN = 2048       # PIRLNav section 3; the paper says only "the same LSTM as [43]"
 LSTM_LAYERS = 2
+
+# These three are the ones the paper does not fix, and the recurrent width dominates: at the
+# defaults `memory` is 59.8 M of the policy's 78.8 M parameters, 75.8 %, while the four side
+# embeddings together are 544. So "policy capacity" here means the LSTM and little else. They
+# are constructor arguments rather than constants only so that Appendix X can vary them; every
+# run that is not that experiment leaves them alone.
+#
+# `LSTM_LAYERS = 0` builds no recurrence at all -- the frame summary goes straight to the action
+# head, which is the shape of the paper's own Minecraft policy (Listing 1).
 
 
 class FrameSummary(nn.Module):
@@ -63,11 +73,26 @@ class FrameSummary(nn.Module):
     settle on the visual tokens and another on the model's written reasoning, instead of one
     blend having to serve both. Head count does not change the parameter count -- the projection
     is 1024 by 3072 either way -- only how the attention is partitioned.
+
+    **`summary_chunk` trades arithmetic for memory, and changes nothing else.** A frame's
+    summary depends on that frame alone, so the `B*T` frames can be run in groups of any size
+    and concatenated: measured on a 2080 Ti, the two paths agree to 0.000e+00. Wrapping each
+    group in `torch.utils.checkpoint` then discards its activations and recomputes them during
+    the backward pass, which makes peak memory a function of the group size rather than of the
+    trajectory's length. The longest demonstration here is 2,612 steps and needs 21.2 GB in
+    float32 without this; with a group of 256 it needs 4.0 GB, and eleven of the 7,824
+    trajectories are past what an 11 GB card holds otherwise. The cost is about 18% more
+    compute -- affordable because this run is bounded by reading, not by arithmetic.
+
+    `None` leaves the original single-pass path in place, which is what every run before
+    2026-09-10 used.
     """
 
-    def __init__(self, num_heads: int = NUM_HEADS, token_dim: int = TOKEN_DIM) -> None:
+    def __init__(self, num_heads: int = NUM_HEADS, token_dim: int = TOKEN_DIM,
+                 summary_chunk: int | None = None) -> None:
         super().__init__()
         self.token_dim = token_dim
+        self.summary_chunk = summary_chunk
         self.project = nn.Linear(token_dim, MODEL_DIM)
         self.transformer = nn.Transformer(
             d_model=MODEL_DIM, nhead=num_heads,
@@ -94,11 +119,29 @@ class FrameSummary(nn.Module):
             mask = mask.clone()
             mask[empty, 0] = False
 
-        query = self.query(torch.zeros(batch * steps, 1, dtype=torch.long,
-                                       device=tokens.device))
-        summary = self.transformer(flat, query,
-                                   src_key_padding_mask=mask,
-                                   memory_key_padding_mask=mask)
+        def attend(projected: torch.Tensor, keys: torch.Tensor) -> torch.Tensor:
+            query = self.query(torch.zeros(projected.shape[0], 1, dtype=torch.long,
+                                           device=projected.device))
+            return self.transformer(projected, query,
+                                    src_key_padding_mask=keys,
+                                    memory_key_padding_mask=keys)
+
+        if not self.summary_chunk:
+            summary = attend(flat, mask)
+        else:
+            # `use_reentrant=False` because the reentrant implementation needs an input that
+            # requires grad, and `flat` does not on the first layer of a frozen-input model.
+            # RNG state is preserved by default, so the dropout drawn during recomputation is
+            # the same one drawn in the forward pass.
+            pieces = []
+            for start in range(0, flat.shape[0], self.summary_chunk):
+                piece = flat[start:start + self.summary_chunk]
+                keys = mask[start:start + self.summary_chunk]
+                if self.training and torch.is_grad_enabled():
+                    pieces.append(checkpoint(attend, piece, keys, use_reentrant=False))
+                else:
+                    pieces.append(attend(piece, keys))
+            summary = torch.cat(pieces, dim=0)
         return summary.reshape(batch, steps, MODEL_DIM)
 
 
@@ -126,19 +169,21 @@ class SideChannels(nn.Module):
     switching between them changes only how easily the network can use it.
     """
 
-    def __init__(self, heading_encoding: str = "angle") -> None:
+    def __init__(self, heading_encoding: str = "angle",
+                 embed_dim: int = SIDE_EMBED_DIM) -> None:
         super().__init__()
         if heading_encoding not in ("angle", "sincos"):
             raise ValueError(f"unknown heading encoding {heading_encoding!r}")
         self.heading_encoding = heading_encoding
-        self.position = nn.Linear(2, SIDE_EMBED_DIM)
-        self.heading = nn.Linear(1 if heading_encoding == "angle" else 2, SIDE_EMBED_DIM)
-        self.previous_action = nn.Linear(NUM_ACTIONS, SIDE_EMBED_DIM)
-        self.goal = nn.Linear(NUM_OBJECTS, SIDE_EMBED_DIM)
+        self.embed_dim = embed_dim
+        self.position = nn.Linear(2, embed_dim)
+        self.heading = nn.Linear(1 if heading_encoding == "angle" else 2, embed_dim)
+        self.previous_action = nn.Linear(NUM_ACTIONS, embed_dim)
+        self.goal = nn.Linear(NUM_OBJECTS, embed_dim)
 
     @property
     def width(self) -> int:
-        return 4 * SIDE_EMBED_DIM
+        return 4 * self.embed_dim
 
     def forward(self, position: torch.Tensor, heading: torch.Tensor,
                 previous_action: torch.Tensor, goal: torch.Tensor) -> torch.Tensor:
@@ -155,13 +200,24 @@ class NavigationPolicy(nn.Module):
     """Frame summary and side channels, read in sequence, turned into an action."""
 
     def __init__(self, heading_encoding: str = "angle", num_heads: int = NUM_HEADS,
-                 token_dim: int = TOKEN_DIM) -> None:
+                 token_dim: int = TOKEN_DIM, lstm_hidden: int = LSTM_HIDDEN,
+                 lstm_layers: int = LSTM_LAYERS, side_dim: int = SIDE_EMBED_DIM,
+                 summary_chunk: int | None = None) -> None:
         super().__init__()
-        self.summary = FrameSummary(num_heads=num_heads, token_dim=token_dim)
-        self.side = SideChannels(heading_encoding=heading_encoding)
-        self.memory = nn.LSTM(MODEL_DIM + self.side.width, LSTM_HIDDEN,
-                              num_layers=LSTM_LAYERS, batch_first=True)
-        self.action = nn.Linear(LSTM_HIDDEN, NUM_ACTIONS)
+        self.summary = FrameSummary(num_heads=num_heads, token_dim=token_dim,
+                                    summary_chunk=summary_chunk)
+        self.side = SideChannels(heading_encoding=heading_encoding, embed_dim=side_dim)
+        width = MODEL_DIM + self.side.width
+        self.lstm_layers = lstm_layers
+        if lstm_layers > 0:
+            self.memory = nn.LSTM(width, lstm_hidden, num_layers=lstm_layers,
+                                  batch_first=True)
+            self.action = nn.Linear(lstm_hidden, NUM_ACTIONS)
+        else:
+            # No recurrence: each step is decided from its own frame. Keeping the attribute as
+            # None rather than dropping it lets `forward` stay one code path.
+            self.memory = None
+            self.action = nn.Linear(width, NUM_ACTIONS)
 
     def forward(self, tokens: torch.Tensor, padding: torch.Tensor,
                 position: torch.Tensor, heading: torch.Tensor,
@@ -176,6 +232,8 @@ class NavigationPolicy(nn.Module):
         summary = self.summary(tokens, padding)
         combined = torch.cat([summary, self.side(position, heading, previous_action, goal)],
                              dim=-1)
+        if self.memory is None:
+            return self.action(combined), None
         recurrent, state = self.memory(combined, state)
         return self.action(recurrent), state
 

@@ -55,7 +55,7 @@ OUT_ROOT = HABITAT_ROOT / "figure_embeddings"
 # difference between columns is a difference in what the rooms look like, not in what was asked.
 PROMPT_ROOM = "What room is this?"
 
-STORE_DTYPE = np.float16          # as in `encode.py`; the paper does not state a precision
+from vlm_features import STORE_DTYPE  # noqa: E402  (one definition, in vlm_features)
 
 
 def rollouts() -> list[dict]:

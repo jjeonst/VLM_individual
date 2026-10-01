@@ -66,11 +66,13 @@ LSTM이 아니라 인과 마스킹 Transformer였고, 시각 백본 해상도가
 
 | 항목 | 채택값 | 근거 |
 |---|---|---|
-| LSTM 은닉 크기 | **2048** (2층) | PR2L 부록 C.2가 이탈 사항 7가지를 열거하면서 순환망 폭을 넣지 않음 → 선행 연구값 유지. PIRLNav([arXiv:2301.07302](https://arxiv.org/abs/2301.07302)) §3이 "2층 2048-d"로 명시. 파라미터 약 59 M |
+| LSTM 층수 | **2층** | VC-1 부록 A.2가 **직접 명시**한다 — "which is a **2-layer LSTM** for navigation and a 2-layer GRU for manipulation". PR2L 본문 4.2가 "the same LSTM-based recurrent architecture used by that work [VC-1]"이라 했으므로 추적된 값이다 |
+| LSTM 은닉 폭 | **2048** | **VC-1 공개 코드와 일치한다.** 논문 본문에는 폭이 없지만(`2048`도 hidden size 언급도 전무), `facebookresearch/eai-vc`의 `cortexbench/habitat_vc/configs/experiments/objectnav_il.yaml`이 `STATE_ENCODER: {hidden_size: 2048, rnn_type: LSTM, num_recurrent_layers: 2}`로 적는다. 즉 층수·폭·셀 종류 셋 다 저자들이 실제로 쓴 값과 같다. 파라미터 약 59 M |
 | 비시각 관찰 임베딩 | 위치 → FC 32-d, 나침반 → FC 32-d, 목표 one-hot → FC 32-d, 직전행동 → 32-d | PIRLNav §3 |
 | 옵티마이저 | **AdamW, weight decay 1e-6** | VC-1([arXiv:2303.18240](https://arxiv.org/abs/2303.18240)) 부록 A.3 |
 | 스케줄러 | 선형 감쇠, **전체 길이를 400M 전이로 가정**하고 40M에서 중단 (→ 학습률이 약 10 %만 내려감) | PR2L 부록 C.2 4의 문장을 그대로 구현 |
-| 배치 크기 | **16,384 전이** | VC-1 부록 A.3의 400M 전이 / 25,000 업데이트 / 512 병렬환경에서 유도. PR2L 본문의 "24k gradient steps ≈ 400M"과 일치 |
+| 배치 크기 | **16,384 전이** | VC-1 부록 A.3의 "approximate total of 400 million steps, utilizing 25,000 updates and 512 parallel environments"에서 유도. 나눗셈만 하면 16,000이지만 512 × 32 = 16,384가 25,000회로 409.6M이 되어 "approximately 400 million"에 더 맞는다. PR2L 본문의 "24k gradient steps ≈ 400M"과도 일치 |
+| 평가할 체크포인트 | **최종 40 epoch** | **VC-1과 다르다.** VC-1 부록 A.3은 "evaluated checkpoints after every 10M steps and only reported metrics for the checkpoints with the **highest validation success rate**"로 최고값을 보고한다. PR2L이 이 규약까지 물려받았는지는 밝히지 않았다. 최고값 보고는 상대 수치를 **높이는** 방향이라 우리 성공률이 높은 이유는 아니지만, 비교할 때 밝혀야 하는 차이다 |
 
 > **정정 (2026-08-22).** 이 표에 한때 "정책 Transformer — nhead 8"이 있었다. 부록 I의
 > Listing 1을 다시 읽은 결과 `torch.nn.Transformer(1024, 1, ...)`로 **헤드 수가 명시**돼

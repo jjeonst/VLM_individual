@@ -40,6 +40,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import shutil
 import time
 from pathlib import Path
@@ -60,6 +61,17 @@ CHECKPOINT_ROOT = Path("/data/topovlm/checkpoints/pr2l_phase4")
 # Appendix C.2, item 2, and VC-1 Appendix A.3 for the optimiser the paper adopts.
 LEARNING_RATE = 1e-4
 WEIGHT_DECAY = 1e-6
+
+# VC-1's behaviour-cloning config clips the gradient norm at 0.2 and runs AdamW with eps 1e-5
+# (`cortexbench/habitat_vc/configs/experiments/objectnav_il.yaml`). PR2L says it takes "the same
+# optimizer, scheduler, and associated hyperparameters" from that work and lists seven deviations
+# without mentioning either, so it presumably kept both. This reproduction had neither: no
+# clipping at all, and torch's default eps of 1e-8, a thousand times smaller.
+#
+# Both are off by default so that every number measured before this was found stays reproducible.
+# Appendix C varies them.
+GRAD_CLIP = None         # 0.2 reproduces VC-1
+ADAM_EPS = 1e-8          # 1e-5 reproduces VC-1
 # Appendix C.2, item 3: the same number of transitions per update as the work it follows,
 # derived there from 400M transitions over ~25k updates with 512 environments.
 TRANSITIONS_PER_UPDATE = 16_384
@@ -112,6 +124,15 @@ def stage_locally(records: list[dict], embedding_root: Path, target: Path,
     The two per-trajectory arrays that are not embeddings -- actions and pose -- are a few
     kilobytes each and get copied too. Small files are what a network filesystem handles worst,
     and there are two of them per trajectory per epoch.
+
+    **Several runs may stage the same directory at once.** The capacity experiment trains four
+    policies on one condition's embeddings side by side, and they share this target. A plain
+    `copyfile` writes into the destination, so a second run checking "does it exist and is it the
+    right size" can find a file another run is still filling and read a truncated array for forty
+    epochs without ever raising. Each copy therefore lands on a private temporary name and is
+    moved into place with `os.replace`, which is atomic on one filesystem: a destination either
+    is not there or is complete. Two runs may copy the same file twice, which costs bandwidth
+    once and nothing after.
     """
     from concurrent.futures import ThreadPoolExecutor
 
@@ -135,9 +156,15 @@ def stage_locally(records: list[dict], embedding_root: Path, target: Path,
         print(f"[stage] {target} 에 이미 전부 있다", flush=True)
         return local_embeddings, target
 
+    def copy_atomically(pair: tuple[Path, Path]) -> None:
+        source, destination = pair
+        scratch = destination.with_name(f"{destination.name}.{os.getpid()}.part")
+        shutil.copyfile(source, scratch)
+        os.replace(scratch, destination)
+
     started = time.time()
     with ThreadPoolExecutor(max_workers=workers) as pool:
-        list(pool.map(lambda pair: shutil.copyfile(pair[0], pair[1]), jobs))
+        list(pool.map(copy_atomically, jobs))
     elapsed = time.time() - started
     print(f"[stage] {len(jobs):,}개 파일 {total/1e9:.1f} GB → {target} "
           f"({elapsed:.0f}초, {total/1e6/max(elapsed, 1e-9):.0f} MB/s)", flush=True)
@@ -195,7 +222,8 @@ def accuracy_by_action(logits: torch.Tensor, batch: dict[str, torch.Tensor],
 
 
 def run_epoch(policy, optimiser, loader, device, seen: int, rate_at, update_every: int,
-              zero_tokens: bool = False):
+              zero_tokens: bool = False, grad_clip: float | None = None,
+              amp_dtype: torch.dtype | None = torch.bfloat16):
     """One pass over the data; returns the running totals the caller reports.
 
     `zero_tokens` blanks the frame representations and leaves everything else -- the pose, the
@@ -220,7 +248,11 @@ def run_epoch(policy, optimiser, loader, device, seen: int, rate_at, update_ever
         # GPU-side cast of a tensor that is already here, rather than a CPU-side one that
         # doubles what has to be carried across. The values are identical either way.
         batch["tokens"] = batch["tokens"].float()
-        with torch.autocast("cuda", dtype=torch.bfloat16, enabled=device.type == "cuda"):
+        # `--amp fp32` disables autocast entirely rather than switching to float16: the 2080's
+        # Turing chips have no bf16 units, and float16 without a GradScaler risks silent
+        # underflow. fp32 changes only speed, not the arithmetic's meaning.
+        with torch.autocast("cuda", dtype=amp_dtype or torch.bfloat16,
+                            enabled=device.type == "cuda" and amp_dtype is not None):
             logits, _ = policy(batch["tokens"], batch["token_padding"], batch["gps"],
                                batch["compass"], batch["previous_action"], batch["goal"])
         logits = logits.float()
@@ -237,6 +269,10 @@ def run_epoch(policy, optimiser, loader, device, seen: int, rate_at, update_ever
         if pending >= update_every:
             for group in optimiser.param_groups:
                 group["lr"] = rate_at(seen)
+            # After the whole accumulation window, never per micro-batch: the norm being capped
+            # is the one that is about to be applied.
+            if grad_clip:
+                torch.nn.utils.clip_grad_norm_(policy.parameters(), grad_clip)
             optimiser.step()
             optimiser.zero_grad(set_to_none=True)
             pending, updates = 0, updates + 1
@@ -246,6 +282,8 @@ def run_epoch(policy, optimiser, loader, device, seen: int, rate_at, update_ever
     if pending:
         for group in optimiser.param_groups:
             group["lr"] = rate_at(seen)
+        if grad_clip:
+            torch.nn.utils.clip_grad_norm_(policy.parameters(), grad_clip)
         optimiser.step()
         optimiser.zero_grad(set_to_none=True)
         updates += 1
@@ -267,6 +305,30 @@ def main() -> int:
     parser.add_argument("--heading-encoding", default="angle", choices=["angle", "sincos"])
     parser.add_argument("--num-heads", type=int, default=policy_module.NUM_HEADS,
                         help="attention heads in the frame-summary layer; Listing 1 uses 1")
+    # Appendix X varies these three; nothing else does. The paper fixes none of them -- it says
+    # only "the same LSTM as [43]" -- so the defaults come from PIRLNav and the experiment asks
+    # what happens when they are wrong.
+    parser.add_argument("--lstm-hidden", type=int, default=policy_module.LSTM_HIDDEN)
+    parser.add_argument("--lstm-layers", type=int, default=policy_module.LSTM_LAYERS,
+                        help="0 removes the recurrence entirely (Listing 1's shape)")
+    parser.add_argument("--side-dim", type=int, default=policy_module.SIDE_EMBED_DIM)
+    parser.add_argument("--grad-clip", type=float, default=GRAD_CLIP,
+                        help="기울기 노름 상한. VC-1의 BC 설정은 0.2")
+    parser.add_argument("--summary-chunk", type=int, default=None,
+                        help="run the frame summary in groups of this many frames, each "
+                             "recomputed during the backward pass. Peak memory then follows "
+                             "the group size instead of the trajectory length, which is what "
+                             "lets an 11 GB card hold the 2,612-step demonstrations. Output is "
+                             "identical; compute rises about 18%%")
+    parser.add_argument("--amp", choices=["bf16", "fp32"], default="bf16",
+                        help="bf16 is what every result so far used; fp32 turns autocast off "
+                             "so the policy can train on Turing cards (rtx2080), which have "
+                             "no bf16 units")
+    parser.add_argument("--adam-eps", type=float, default=ADAM_EPS,
+                        help="AdamW의 eps. VC-1의 BC 설정은 1e-5")
+    parser.add_argument("--seed", type=int, default=0,
+                        help="initialisation seed; the capacity experiment needs a second run "
+                             "at the same size to tell a capacity effect from an unlucky draw")
     parser.add_argument("--stage-to", type=Path, default=None,
                         help="copy this run's trajectories to a local disk first and read "
                              "from there; see stage_locally for the measurements")
@@ -318,15 +380,23 @@ def main() -> int:
     print(f"[train] 모드 {args.mode} | 궤적 {len(records)} | 스텝 {total_steps:,} | "
           f"forward {len(groups)}회/epoch | epoch {epochs} | "
           f"헤드 {args.num_heads} | 나침반 {args.heading_encoding} | 폭 {token_dim} | "
+          f"LSTM {args.lstm_hidden}x{args.lstm_layers} 부가 {args.side_dim} 시드 {args.seed} | "
+          f"클리핑 {args.grad_clip or '없음'} eps {args.adam_eps:g} amp {args.amp} "
+          f"요약조각 {args.summary_chunk or '없음'} | "
           f"워커 {args.workers} prefetch {args.prefetch}"
           + (" | 토큰 0 대조군" if args.zero_tokens else ""), flush=True)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    torch.manual_seed(args.seed)
     policy = NavigationPolicy(heading_encoding=args.heading_encoding,
                               num_heads=args.num_heads,
-                              token_dim=token_dim).to(device)
+                              token_dim=token_dim,
+                              lstm_hidden=args.lstm_hidden,
+                              lstm_layers=args.lstm_layers,
+                              side_dim=args.side_dim,
+                              summary_chunk=args.summary_chunk).to(device)
     optimiser = torch.optim.AdamW(policy.parameters(), lr=LEARNING_RATE,
-                                  weight_decay=WEIGHT_DECAY)
+                                  weight_decay=WEIGHT_DECAY, eps=args.adam_eps)
 
     def rate_at(seen: int) -> float:
         return LEARNING_RATE * max(0.0, 1.0 - seen / SCHEDULE_TRANSITIONS)
@@ -385,6 +455,8 @@ def main() -> int:
     for epoch in range(first_epoch, epochs + 1):
         started = time.time()
         stats = run_epoch(policy, optimiser, loader, device, seen, rate_at, update_every,
+                          grad_clip=args.grad_clip,
+                          amp_dtype=torch.bfloat16 if args.amp == "bf16" else None,
                           zero_tokens=args.zero_tokens)
         seen = stats["seen"]
 
@@ -405,7 +477,17 @@ def main() -> int:
                    "optimiser": optimiser.state_dict(), "seen": seen, "history": history,
                    "heading_encoding": args.heading_encoding, "num_heads": args.num_heads,
                    "zero_tokens": args.zero_tokens, "condition": args.condition,
-                   "token_dim": token_dim}
+                   "token_dim": token_dim,
+                   # `evaluate.py` rebuilds the policy from the checkpoint, so a size that is
+                   # not written here cannot be loaded back -- the state dict would meet a
+                   # network of the default shape and fail.
+                   "lstm_hidden": args.lstm_hidden, "lstm_layers": args.lstm_layers,
+                   "side_dim": args.side_dim, "seed": args.seed,
+                   "grad_clip": args.grad_clip, "adam_eps": args.adam_eps,
+                   # Recorded for provenance only. It changes nothing the evaluation has to
+                   # reproduce -- the weights are the same either way, and a rollout takes one
+                   # step at a time, so there is nothing to chunk.
+                   "amp": args.amp, "summary_chunk": args.summary_chunk}
         torch.save(payload, CHECKPOINT_ROOT / f"{args.run_name}.pt")
         # Keep a few checkpoints along the way. Where the summary layer's query chooses to look
         # is the one thing about this policy that the parameter counts cannot check, and it can
