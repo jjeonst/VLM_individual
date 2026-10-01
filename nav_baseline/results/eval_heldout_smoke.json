@@ -1,0 +1,58 @@
+{
+  "checkpoint": "/data/topovlm/nav_baseline/checkpoints/nav_smoke/model.pt",
+  "config": {
+    "split": "heldout",
+    "scenes": [
+      "00016-qk9eeNeR4vw"
+    ],
+    "episodes_per_scene": 3,
+    "max_steps": 250,
+    "min_steps": 4,
+    "success_distance_m": 1.0
+  },
+  "policy": {
+    "episodes": 3,
+    "success_rate": 0.0,
+    "spl": 0.0,
+    "stop_rate": 0.0,
+    "mean_final_geodesic_m": 1.599,
+    "mean_steps": 250.0
+  },
+  "expert_upper_bound": {
+    "episodes": 3,
+    "success_rate": 1.0,
+    "spl": 1.0,
+    "stop_rate": 1.0,
+    "mean_final_geodesic_m": 0.871,
+    "mean_steps": 23.0
+  },
+  "policy_rollouts": [
+    {
+      "scene": "00016-qk9eeNeR4vw",
+      "success": false,
+      "stopped": false,
+      "spl": 0.0,
+      "start_geodesic": 4.243,
+      "final_geodesic": 0.10213833302259445,
+      "steps": 250
+    },
+    {
+      "scene": "00016-qk9eeNeR4vw",
+      "success": false,
+      "stopped": false,
+      "spl": 0.0,
+      "start_geodesic": 4.036,
+      "final_geodesic": 0.24656812846660614,
+      "steps": 250
+    },
+    {
+      "scene": "00016-qk9eeNeR4vw",
+      "success": false,
+      "stopped": false,
+      "spl": 0.0,
+      "start_geodesic": 4.232,
+      "final_geodesic": 4.449295997619629,
+      "steps": 250
+    }
+  ]
+}

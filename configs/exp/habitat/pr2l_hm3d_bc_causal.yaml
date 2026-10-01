@@ -1,0 +1,23 @@
+defaults:
+  - train: pr2l_hm3d_bc
+  - data: pr2l_hm3d_objectnav
+  - model: pr2l_prismatic_hm3d
+  - objectives: pr2l_bc_hm3d
+  - eval: default
+
+config_name: habitat/pr2l_hm3d_bc_causal
+
+# causal retraining: policy attends only to past nodes (rollout-matched), separate checkpoint
+run_name: pr2l_hm3d_bc_causal
+wandb: false
+
+data:
+  episode_selection_manifest: episode_selections/pr2l_hm3d_objectnav/train_scene_object_balanced_6000.jsonl
+  balanced_subset_size: 6000
+
+model:
+  policy:
+    causal: true
+
+eval:
+  episode_timeout_seconds: 30

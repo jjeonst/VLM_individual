@@ -94,6 +94,7 @@ class PolicyConfig:
     num_actions: int = 4
     prediction_target: str = "graph"
     max_positions: int = 2048
+    causal: bool = False  # if True, each node attends only to past nodes (rollout-matched training)
 
 
 @dataclass
@@ -145,7 +146,7 @@ class TopoVLMConfig:
     seed: int = 42
     debug: bool = False
     wandb: bool = False
-    wandb_entity: str = "topovlm"
+    wandb_entity: str = "topohilp"
     wandb_project: str = "TopoVLM"
     wandb_group: Optional[str] = "prismatic_graph_policy"
     wandb_run_name: Optional[str] = None

@@ -41,7 +41,9 @@ class GraphTransformerPolicy(torch.nn.Module):
             return self._forward_token_nodes(graph_nodes, graph_mask)
         node_features = self._add_positions(self.input_proj(graph_nodes))
         if self.config.prediction_target == "nodes":
-            encoded = self.encoder(node_features, src_key_padding_mask=~graph_mask.bool())
+            attn_mask = self._causal_node_mask(node_features.shape[1], node_features.device) \
+                if self.config.causal else None
+            encoded = self.encoder(node_features, mask=attn_mask, src_key_padding_mask=~graph_mask.bool())
             return self.action_head(self.norm(encoded))
         if self.config.prediction_target != "graph":
             raise ValueError(f"Unsupported prediction target: {self.config.prediction_target}")
@@ -66,10 +68,26 @@ class GraphTransformerPolicy(torch.nn.Module):
         token_mask = graph_mask[:, :, None].expand(batch_size, node_count, token_count).reshape(
             batch_size, node_count * token_count
         )
-        encoded = self.encoder(token_features, src_key_padding_mask=~token_mask.bool())
+        attn_mask = self._causal_token_mask(node_count, token_count, token_features.device) \
+            if self.config.causal else None
+        encoded = self.encoder(token_features, mask=attn_mask, src_key_padding_mask=~token_mask.bool())
         encoded = encoded.reshape(batch_size, node_count, token_count, self.config.hidden_dim)
         node_features = self.norm(encoded.mean(dim=2))
         return self.action_head(node_features)
+
+    def _causal_node_mask(self, node_count, device):
+        """Additive float mask [N,N]: node i attends only to nodes 0..i."""
+        return torch.triu(
+            torch.full((node_count, node_count), float("-inf"), device=device), diagonal=1
+        )
+
+    def _causal_token_mask(self, node_count, token_count, device):
+        """Block-causal float mask over flattened [node*token] positions: a token in
+        node i attends to all tokens of nodes 0..i (full attention within/across past nodes)."""
+        node_of_pos = torch.arange(node_count, device=device).repeat_interleave(token_count)  # [S]
+        allowed = node_of_pos[:, None] >= node_of_pos[None, :]  # [query, key]: key's node <= query's node
+        mask = torch.zeros(allowed.shape, device=device)
+        return mask.masked_fill(~allowed, float("-inf"))
 
     def _add_positions(self, sequence):
         sequence_len = sequence.shape[1]

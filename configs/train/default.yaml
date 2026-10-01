@@ -1,7 +1,7 @@
 seed: 42
 debug: false
 wandb: false
-wandb_entity: topovlm
+wandb_entity: topohilp
 wandb_project: TopoVLM
 wandb_group: prismatic_graph_policy
 wandb_run_name: null

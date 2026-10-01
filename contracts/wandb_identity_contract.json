@@ -1,7 +1,7 @@
 {
   "additional_entities": [],
   "artifact_type": "wandb_identity_contract",
-  "canonical_entity": "topovlm",
+  "canonical_entity": "topohilp",
   "forbidden_tokens": [
     "3090",
     "4090",
@@ -47,7 +47,7 @@
         {
           "seed": 42,
           "sweep_name": null,
-          "wandb_entity": "topovlm",
+          "wandb_entity": "topohilp",
           "wandb_group": "pr2l_prismatic_policy",
           "wandb_project": "TopoVLM",
           "wandb_run_name": "pr2l_prismatic_policy_seed42_20260530-000000"
@@ -55,7 +55,7 @@
         {
           "seed": 7,
           "sweep_name": null,
-          "wandb_entity": "topovlm",
+          "wandb_entity": "topohilp",
           "wandb_group": "pr2l_prismatic_policy",
           "wandb_project": "TopoVLM",
           "wandb_run_name": "pr2l_prismatic_policy_seed7_20260530-000000"
@@ -90,7 +90,7 @@
         {
           "seed": null,
           "sweep_name": "prompt_cot_axis",
-          "wandb_entity": "topovlm",
+          "wandb_entity": "topohilp",
           "wandb_group": null,
           "wandb_project": "TopoVLM-sweep",
           "wandb_run_name": null
@@ -98,7 +98,7 @@
         {
           "seed": 42,
           "sweep_name": null,
-          "wandb_entity": "topovlm",
+          "wandb_entity": "topohilp",
           "wandb_group": "prompt_cot_axis",
           "wandb_project": "TopoVLM-sweep",
           "wandb_run_name": "seed42_20260530-000000"
