@@ -238,7 +238,7 @@ def _sample(logits: torch.Tensor, generators: list[torch.Generator],
     asks for at least 32, so ending early is simply not allowed for them.
     """
     logits = logits.float()
-    logits[forbid_eos, eos_id] = float("-inf")
+    logits[forbid_eos.to(logits.device), eos_id] = float("-inf")
     probabilities = torch.softmax(logits / TEMPERATURE, dim=-1)
     drawn = [torch.multinomial(probabilities[i], 1, generator=generators[i])
              for i in range(len(generators))]
@@ -260,7 +260,12 @@ def encode_batch(vlm, frames: np.ndarray, goal: str, episode_id: str | Sequence[
     them by goal, so a batch there spans episodes, and passing a single name would give two
     different episodes standing at the same step the same decoding seed.
     """
-    device = next(vlm.parameters()).device
+    # Inputs go where the vision backbone is. On the two-card float16 split that rtx2080 nodes
+    # need (`probe_answer_length.load_split_vlm`) the logits come out on the second card, so the
+    # sampling generators are made there; on one card both are the same device and nothing here
+    # differs from what produced the training embeddings.
+    device = next(vlm.vision_backbone.parameters()).device
+    half = next(vlm.parameters()).dtype == torch.float16
     tokenizer = vlm.llm_backbone.tokenizer
     eos_id = tokenizer.eos_token_id
     batch = len(frame_indices)
@@ -270,6 +275,10 @@ def encode_batch(vlm, frames: np.ndarray, goal: str, episode_id: str | Sequence[
     prompt_length = prompt_ids.shape[1]
     input_ids = prompt_ids.expand(batch, -1).contiguous()
     pixel_values = _stack_pixel_values(vlm.vision_backbone.image_transform, frames, device)
+    if half:
+        pixel_values = ({key: value.half() for key, value in pixel_values.items()}
+                        if isinstance(pixel_values, dict) else pixel_values.half())
+    sample_device = vlm.llm_backbone.llm.lm_head.weight.device
 
     owners = [episode_id] * batch if isinstance(episode_id, str) else list(episode_id)
     if len(owners) != batch:
@@ -277,12 +286,12 @@ def encode_batch(vlm, frames: np.ndarray, goal: str, episode_id: str | Sequence[
 
     generators = []
     for owner, index in zip(owners, frame_indices):
-        generator = torch.Generator(device=device)
+        generator = torch.Generator(device=sample_device)
         generator.manual_seed(frame_seed(owner, index))
         generators.append(generator)
 
     autocast_dtype = vlm.llm_backbone.half_precision_dtype
-    with torch.autocast("cuda", dtype=autocast_dtype, enabled=device.type == "cuda"):
+    with torch.autocast("cuda", dtype=autocast_dtype, enabled=not half and device.type == "cuda"):
         output = vlm(input_ids=input_ids, attention_mask=torch.ones_like(input_ids),
                      pixel_values=pixel_values, output_hidden_states=True,
                      use_cache=True, return_dict=True)
@@ -296,7 +305,7 @@ def encode_batch(vlm, frames: np.ndarray, goal: str, episode_id: str | Sequence[
 
         finished = torch.zeros(batch, dtype=torch.bool, device=device)
         lengths = torch.zeros(batch, dtype=torch.long, device=device)
-        token = _sample(output.logits[:, -1], generators, ~finished, eos_id)
+        token = _sample(output.logits[:, -1], generators, ~finished, eos_id).to(device)
         generated_hidden, generated_ids = [], []
         past = output.past_key_values
 
@@ -320,10 +329,48 @@ def encode_batch(vlm, frames: np.ndarray, goal: str, episode_id: str | Sequence[
             if bool(finished.all()):
                 break
             forbid = (lengths < min_new_tokens) | finished
-            token = _sample(output.logits[:, -1], generators, forbid, eos_id)
+            token = _sample(output.logits[:, -1], generators, forbid, eos_id).to(device)
 
     return _assemble(prefix, generated_hidden, generated_ids, lengths, prompt_length,
                      tokenizer)
+
+
+@torch.inference_mode()
+def encode_prefix(vlm, frames: np.ndarray, goal: str, with_cot: bool = True) -> list[FrameFeatures]:
+    """The prompt read once, nothing generated: what the language ablation needs.
+
+    The pooled visual tokens come out exactly as `encode_batch` builds them -- same prompt, same
+    `_assemble` -- and they do not depend on the decoding at all, since they sit before the
+    question in a causal model. Skipping the 32-48 generation steps is what makes the ablation
+    cheap enough to run on rtx2080 cards.
+
+    Works on both loads: the single-card bfloat16 model from `load_vlm`, under autocast as in
+    `encode_batch`, and the two-card float16 split from `probe_answer_length.load_split_vlm`,
+    which Turing needs because it has no bfloat16 and one 11 GB card cannot hold the model.
+    """
+    device = next(vlm.vision_backbone.parameters()).device
+    tokenizer = vlm.llm_backbone.tokenizer
+    prompt = build_prompt(vlm, goal, with_cot=with_cot)
+    prompt_ids = tokenizer(prompt, truncation=True, return_tensors="pt").input_ids.to(device)
+    prompt_length = prompt_ids.shape[1]
+    input_ids = prompt_ids.expand(len(frames), -1).contiguous()
+    pixel_values = _stack_pixel_values(vlm.vision_backbone.image_transform, frames, device)
+    half = next(vlm.parameters()).dtype == torch.float16
+    if half:
+        pixel_values = ({key: value.half() for key, value in pixel_values.items()}
+                        if isinstance(pixel_values, dict) else pixel_values.half())
+    autocast_dtype = vlm.llm_backbone.half_precision_dtype
+    with torch.autocast("cuda", dtype=autocast_dtype, enabled=not half and device.type == "cuda"):
+        output = vlm(input_ids=input_ids, attention_mask=torch.ones_like(input_ids),
+                     pixel_values=pixel_values, output_hidden_states=True,
+                     use_cache=False, return_dict=True)
+        prefix = torch.stack([output.hidden_states[layer] for layer in LAYERS], dim=2)
+    del output
+    if prefix.shape[1] - prompt_length != VISUAL_GRID**2:
+        raise RuntimeError(f"expected {VISUAL_GRID**2} visual tokens, "
+                           f"found {prefix.shape[1] - prompt_length}")
+    lengths = torch.zeros(len(frames), dtype=torch.long)
+    return _assemble(prefix, [], [], lengths, prompt_length, tokenizer)
 
 
 def _assemble(prefix: torch.Tensor, generated_hidden: list[torch.Tensor],

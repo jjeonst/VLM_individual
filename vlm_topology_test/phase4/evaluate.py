@@ -41,8 +41,8 @@ from policy import NavigationPolicy
 from render import (AGENT_HEIGHT, AGENT_RADIUS, CAMERA_HEIGHT, HFOV_DEG, MAX_CLIMB,
                     MAX_SLOPE, RGB_HEIGHT, RGB_WIDTH, SUCCESS_DISTANCE_M, TURN_DEG,
                     FORWARD_M, ALLOW_SLIDING, agent_pose, geodesic_to_viewpoints)
-from vlm_features import (COT_CONDITIONS, LAYERS, STORE_DTYPE, encode_batch, encode_vision_batch,
-                          min_new_tokens_for,
+from vlm_features import (COT_CONDITIONS, LAYERS, POOLED_VISUAL_TOKENS, STORE_DTYPE, encode_batch,
+                          encode_prefix, encode_vision_batch, frame_seed, min_new_tokens_for,
                           load_vlm, load_vision_backbone)
 
 HABITAT_ROOT = Path("/data/topovlm/habitat")
@@ -364,7 +364,8 @@ class Rollout:
 @torch.inference_mode()
 def run_scene(vlm, policy, basis, episodes: list[dict], scene_config: Path, scratch: Path,
               parallel: int, condition: str, device, rng: np.random.Generator | None = None,
-              match_precision: bool = False) -> list[dict]:
+              match_precision: bool = False, language_pool: dict | None = None,
+              ablate: str | None = None) -> list[dict]:
     """Roll out every episode of one building, stepping several at a time.
 
     One simulator serves them all -- see `Rollout` for why there cannot be more than one -- and
@@ -423,11 +424,18 @@ def run_scene(vlm, policy, basis, episodes: list[dict], scene_config: Path, scra
                         # Each episode seeds its own decoding, exactly as during training. A
                         # batch here spans episodes, so one shared name would hand two episodes
                         # standing at the same step the same seed.
-                        encoded = encode_batch(vlm, frames[indices], goal,
-                                               [live[i].episode["episode_id"] for i in indices],
-                                               [live[i].steps for i in indices],
-                                               with_cot=condition in COT_CONDITIONS,
-                                               min_new_tokens=min_new_tokens_for(condition))
+                        if language_pool is not None and ablate in ("all", "answer"):
+                            # The answer is about to be replaced, so there is no point
+                            # generating it.
+                            encoded = encode_prefix(vlm, frames[indices], goal,
+                                                    with_cot=condition in COT_CONDITIONS)
+                        else:
+                            encoded = encode_batch(
+                                vlm, frames[indices], goal,
+                                [live[i].episode["episode_id"] for i in indices],
+                                [live[i].steps for i in indices],
+                                with_cot=condition in COT_CONDITIONS,
+                                min_new_tokens=min_new_tokens_for(condition))
                         for slot, item in zip(indices, encoded):
                             features[slot] = item
 
@@ -437,6 +445,11 @@ def run_scene(vlm, policy, basis, episodes: list[dict], scene_config: Path, scra
                 blank = condition == "zero"
                 width = 1 if blank else max(features[i].tokens.shape[0]
                                             for i in range(len(live)))
+                if language_pool is not None:
+                    # The swapped-in span can be longer than the live one, which stops after
+                    # the question. Size for the longest donor; the rest is masked as padding.
+                    width = max(width, POOLED_VISUAL_TOKENS + max(
+                        int(np.diff(offsets).max()) for _, offsets in language_pool.values()))
                 tokens = torch.zeros(len(live), 1, width, policy.summary.token_dim,
                                      device=device)
                 padding = torch.full((len(live), 1, width), not blank,
@@ -461,6 +474,28 @@ def run_scene(vlm, policy, basis, episodes: list[dict], scene_config: Path, scra
                         # compared before this was distorted -- which is also why the flag
                         # exists: every number reported so far was produced without it, and a
                         # run meant to sit beside those has to be able to leave it off.
+                        if language_pool is not None:
+                            # The language ablation: keep this frame's visual tokens, take the
+                            # question-and-answer span from a stored training frame hunting the
+                            # same object. The draw is seeded by episode and step, so a rerun
+                            # swaps in the same donors (see `build_language_pool.py`).
+                            donors, offsets = language_pool[rollout.episode["object_category"]]
+                            pick = np.random.default_rng(frame_seed(
+                                f"{rollout.episode['episode_id']}:langswap", rollout.steps)
+                            ).integers(len(offsets) - 1)
+                            donor = donors[offsets[pick]:offsets[pick + 1]].astype(np.float32)
+                            # Layout of both: [visual 16][BOS + question][answer]. The question
+                            # span has the same length in donor and live frame, the prompt being
+                            # the same for one goal.
+                            visual, asked = POOLED_VISUAL_TOKENS, features[slot].prompt_count
+                            if ablate == "all":
+                                reduced = np.concatenate([reduced[:visual], donor])
+                            elif ablate == "answer":
+                                reduced = np.concatenate([reduced[:visual + asked],
+                                                          donor[asked:]])
+                            else:   # question
+                                reduced = np.concatenate([reduced[:visual], donor[:asked],
+                                                          reduced[visual + asked:]])
                         if match_precision:
                             reduced = reduced.astype(STORE_DTYPE)
                         count = reduced.shape[0]
@@ -564,6 +599,18 @@ def main() -> int:
                         help="which slice of the scenes this process runs")
     parser.add_argument("--shards", type=int, default=1)
     parser.add_argument("--out", type=Path, default=None)
+    parser.add_argument("--ablate-language", nargs="?", const="all", default=None,
+                        choices=["all", "question", "answer"],
+                        help="keep the live visual tokens and replace language tokens with a "
+                             "stored training frame's (same goal object): the question and "
+                             "answer together (`all`, the default), or one of them alone. Needs "
+                             "`build_language_pool.py` run for the condition first")
+    parser.add_argument("--split-gpus", action="store_true",
+                        help="load the VLM in float16 across two cards, for rtx2080 nodes")
+    parser.add_argument("--layers-on-first", type=int, default=14)
+    parser.add_argument("--label", default=None,
+                        help="appended to the run name in the output file, so a variant run "
+                             "does not overwrite the checkpoint's own evaluation")
     args = parser.parse_args()
 
     # Comparing the two success tests needs a pathfinder and nothing else, so it runs
@@ -622,8 +669,21 @@ def main() -> int:
         vlm = None
     elif condition == "image_encoder":
         vlm = load_vision_backbone()
+    elif args.split_gpus:
+        from probe_answer_length import load_split_vlm
+        vlm = load_split_vlm(args.layers_on_first)
     else:
         vlm = load_vlm()
+
+    language_pool = None
+    if args.ablate_language:
+        if condition in ("random", "zero", "image_encoder"):
+            raise SystemExit("[eval] --ablate-language는 PR2L 조건에만 쓴다")
+        stored = np.load(embedding_root / "language_pool.npz")
+        language_pool = {name: (stored[f"{name}_tokens"], stored[f"{name}_offsets"])
+                         for name in OBJECTS}
+        sizes = {name: len(offsets) - 1 for name, (_, offsets) in language_pool.items()}
+        print(f"[eval] 언어 절제 ({args.ablate_language}): 기증 프레임 {sizes}", flush=True)
 
     scenes = None
     if args.split == "train":
@@ -664,15 +724,17 @@ def main() -> int:
         results.extend(run_scene(vlm, policy, basis, group,
                                  SCENE_ROOT / SCENE_CONFIG_NAME, args.scratch,
                                  args.parallel, condition, device, rng,
-                                 match_precision=args.match_train_precision))
+                                 match_precision=args.match_train_precision,
+                                 language_pool=language_pool, ablate=args.ablate_language))
         done = sum(r["success"] for r in results)
         print(f"[eval] 장면 {index}/{len(by_scene)} | 누적 {len(results)} 에피소드, "
               f"성공 {done} ({100 * done / len(results):.1f}%), "
               f"{time.time() - started:.0f}s", flush=True)
 
     summarise(results)
-    default = (f"{args.run_name}_eval.json" if args.shard is None
-               else f"{args.run_name}_eval_shard{args.shard:02d}.json")
+    stem = args.run_name + (f"_{args.label}" if args.label else "")
+    default = (f"{stem}_eval.json" if args.shard is None
+               else f"{stem}_eval_shard{args.shard:02d}.json")
     out = args.out or CHECKPOINT_ROOT / default
     out.write_text(json.dumps(results, indent=2, ensure_ascii=False) + "\n")
     print(f"\n[eval] {out} 저장")
