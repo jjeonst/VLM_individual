@@ -231,14 +231,17 @@ def _stack_pixel_values(image_transform, frames: np.ndarray, device: str):
 
 
 def _sample(logits: torch.Tensor, generators: list[torch.Generator],
-            forbid_eos: torch.Tensor, eos_id: int) -> torch.Tensor:
+            forbid_eos: torch.Tensor, eos_id: int, greedy: bool = False) -> torch.Tensor:
     """Draw one token per batch item, each from that item's own generator.
 
     `forbid_eos` marks items that have not yet produced the minimum number of tokens; the paper
-    asks for at least 32, so ending early is simply not allowed for them.
+    asks for at least 32, so ending early is simply not allowed for them. `greedy` takes the
+    most likely token instead, for the room-name question (TopoPrompt design, 4.3).
     """
     logits = logits.float()
     logits[forbid_eos.to(logits.device), eos_id] = float("-inf")
+    if greedy:
+        return logits.argmax(dim=-1)
     probabilities = torch.softmax(logits / TEMPERATURE, dim=-1)
     drawn = [torch.multinomial(probabilities[i], 1, generator=generators[i])
              for i in range(len(generators))]
@@ -249,7 +252,9 @@ def _sample(logits: torch.Tensor, generators: list[torch.Generator],
 def encode_batch(vlm, frames: np.ndarray, goal: str, episode_id: str | Sequence[str],
                  frame_indices: list[int], with_cot: bool = True,
                  template: str | None = None,
-                 min_new_tokens: int = MIN_NEW_TOKENS) -> list[FrameFeatures]:
+                 min_new_tokens: int = MIN_NEW_TOKENS, prefix_text: str | None = None,
+                 greedy: bool = False,
+                 max_new_tokens: int = MAX_NEW_TOKENS) -> list[FrameFeatures]:
     """Run one batch of frames through the model and return their representations.
 
     All frames must share a goal, which they do when they come from one trajectory, so the
@@ -259,6 +264,11 @@ def encode_batch(vlm, frames: np.ndarray, goal: str, episode_id: str | Sequence[
     per frame. Evaluation needs the second form: it steps several episodes at once and groups
     them by goal, so a batch there spans episodes, and passing a single name would give two
     different episodes standing at the same step the same decoding seed.
+
+    `prefix_text` is TopoPrompt's topology sentence, read before the question (design document,
+    4.4 and 4.5). The model reads it, but its positions are cut out of what is returned, so the
+    layout -- and the token count -- is exactly the one without it, and anything it changes has
+    to reach the question and answer positions through attention. See `_prefix_span`.
     """
     # Inputs go where the vision backbone is. On the two-card float16 split that rtx2080 nodes
     # need (`probe_answer_length.load_split_vlm`) the logits come out on the second card, so the
@@ -273,6 +283,13 @@ def encode_batch(vlm, frames: np.ndarray, goal: str, episode_id: str | Sequence[
     prompt = build_prompt(vlm, goal, with_cot=with_cot, template=template)
     prompt_ids = tokenizer(prompt, truncation=True, return_tensors="pt").input_ids.to(device)
     prompt_length = prompt_ids.shape[1]
+    span = None
+    if prefix_text is not None:
+        question = template or (PROMPT_WITH_COT if with_cot else PROMPT_WITHOUT_COT)
+        full = build_prompt(vlm, goal, template=f"{prefix_text} {question}")
+        full_ids = tokenizer(full, truncation=True, return_tensors="pt").input_ids.to(device)
+        span = _prefix_span(prompt_ids[0].tolist(), full_ids[0].tolist())
+        prompt_ids = full_ids
     input_ids = prompt_ids.expand(batch, -1).contiguous()
     pixel_values = _stack_pixel_values(vlm.vision_backbone.image_transform, frames, device)
     if half:
@@ -297,15 +314,19 @@ def encode_batch(vlm, frames: np.ndarray, goal: str, episode_id: str | Sequence[
                      use_cache=True, return_dict=True)
 
         prefix = torch.stack([output.hidden_states[layer] for layer in LAYERS], dim=2)
-        visual_count = prefix.shape[1] - prompt_length
+        visual_count = prefix.shape[1] - prompt_ids.shape[1]
         if visual_count != VISUAL_GRID**2:
             raise RuntimeError(
                 f"expected {VISUAL_GRID**2} visual tokens, found {visual_count}; the model or "
                 "its resolution is not the one the paper specifies")
+        if span is not None:
+            # Text token i sits at position 256 + i: the patches follow the opening token.
+            start, stop = (VISUAL_GRID**2 + i for i in span)
+            prefix = torch.cat([prefix[:, :start], prefix[:, stop:]], dim=1)
 
         finished = torch.zeros(batch, dtype=torch.bool, device=device)
         lengths = torch.zeros(batch, dtype=torch.long, device=device)
-        token = _sample(output.logits[:, -1], generators, ~finished, eos_id).to(device)
+        token = _sample(output.logits[:, -1], generators, ~finished, eos_id, greedy).to(device)
         generated_hidden, generated_ids = [], []
         past = output.past_key_values
 
@@ -317,7 +338,7 @@ def encode_batch(vlm, frames: np.ndarray, goal: str, episode_id: str | Sequence[
         # `token` and `past` are still needed, so the rest is released here.
         del output
 
-        for step in range(MAX_NEW_TOKENS):
+        for step in range(max_new_tokens):
             output = vlm(input_ids=token[:, None], past_key_values=past,
                          output_hidden_states=True, use_cache=True, return_dict=True)
             past = output.past_key_values
@@ -329,10 +350,28 @@ def encode_batch(vlm, frames: np.ndarray, goal: str, episode_id: str | Sequence[
             if bool(finished.all()):
                 break
             forbid = (lengths < min_new_tokens) | finished
-            token = _sample(output.logits[:, -1], generators, forbid, eos_id).to(device)
+            token = _sample(output.logits[:, -1], generators, forbid, eos_id, greedy).to(device)
 
     return _assemble(prefix, generated_hidden, generated_ids, lengths, prompt_length,
                      tokenizer)
+
+
+def _prefix_span(plain: list[int], with_prefix: list[int]) -> tuple[int, int]:
+    """Where the topology sentence's tokens sit in the prompt that has it: [start, stop).
+
+    The two prompts are `In: <question>\nOut: ` and `In: <sentence> <question>\nOut: `, so the
+    second must be the first with one run of tokens inserted. That holds only if the tokenizer
+    splits both the same way around the seam -- the sentence ends in "." and the question starts
+    with a word, which Llama's tokenizer keeps apart -- and is checked rather than assumed: the
+    question's tokens must come out identical, or the policy would be reading different ones.
+    """
+    start = 0
+    while start < len(plain) and plain[start] == with_prefix[start]:
+        start += 1
+    stop = len(with_prefix) - (len(plain) - start)
+    if stop <= start or with_prefix[stop:] != plain[start:]:
+        raise ValueError("the prefix does not splice cleanly into the prompt's tokens")
+    return start, stop
 
 
 @torch.inference_mode()

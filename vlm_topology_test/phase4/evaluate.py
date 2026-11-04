@@ -312,6 +312,7 @@ class Rollout:
         self.poses: list[np.ndarray] | None = None   # filled on the first resume
         self.previous_action = np.zeros(4, dtype=np.float32)
         self.memory = None
+        self.trace: list[tuple[np.ndarray, np.ndarray, int]] | None = None   # (h, x, action)
         self.steps = 0
         self.walked = 0.0
         self.finished = False
@@ -365,7 +366,7 @@ class Rollout:
 def run_scene(vlm, policy, basis, episodes: list[dict], scene_config: Path, scratch: Path,
               parallel: int, condition: str, device, rng: np.random.Generator | None = None,
               match_precision: bool = False, language_pool: dict | None = None,
-              ablate: str | None = None) -> list[dict]:
+              ablate: str | None = None, save_states: Path | None = None) -> list[dict]:
     """Roll out every episode of one building, stepping several at a time.
 
     One simulator serves them all -- see `Rollout` for why there cannot be more than one -- and
@@ -384,6 +385,9 @@ def run_scene(vlm, policy, basis, episodes: list[dict], scene_config: Path, scra
         while queue:
             take = min(parallel, len(queue))
             active = [Rollout(queue.pop(0)) for _ in range(take)]
+            if save_states is not None:
+                for rollout in active:
+                    rollout.trace = []
             while any(not r.finished for r in active):
                 live = [r for r in active if not r.finished]
 
@@ -514,17 +518,47 @@ def run_scene(vlm, policy, basis, episodes: list[dict], scene_config: Path, scra
                     memory = (torch.cat([s[0] for s in states], dim=1),
                               torch.cat([s[1] for s in states], dim=1))
                 logits, memory = policy(tokens, padding, gps, compass, previous, goals, memory)
+                if save_states is not None:
+                    # What `probe_lstm.py` reads off the demonstrations, now on the policy's own
+                    # walk: the LSTM's input and its top layer's output at every decision. The
+                    # summary is recomputed rather than threaded out of `forward`; it is the
+                    # same deterministic pass and costs a fraction of the VLM call.
+                    step_x = torch.cat([policy.summary(tokens, padding),
+                                        policy.side(gps, compass, previous, goals)], dim=-1)
+                    step_h = memory[0][-1]
                 for slot, rollout in enumerate(live):
                     # A policy built without recurrence returns no state to carry (Appendix X's
                     # XS run), and there is then nothing to split back out per episode.
                     rollout.memory = None if memory is None else (
                         memory[0][:, slot:slot + 1].contiguous(),
                         memory[1][:, slot:slot + 1].contiguous())
-                    rollout.apply(sim, int(logits[slot, 0].argmax()))
-            results.extend(r.result(sim) for r in active)
+                    action = int(logits[slot, 0].argmax())
+                    if rollout.trace is not None:
+                        rollout.trace.append((step_h[slot].half().cpu().numpy(),
+                                              step_x[slot, 0].half().cpu().numpy(), action))
+                    rollout.apply(sim, action)
+            for rollout in active:
+                result = rollout.result(sim)
+                results.append(result)
+                if rollout.trace is not None:
+                    save_trace(save_states, rollout, result)
     finally:
         sim.close()
     return results
+
+
+def save_trace(folder: Path, rollout: Rollout, result: dict) -> None:
+    """One episode's per-decision LSTM vectors and poses, laid out like `probe_lstm.py extract`.
+
+    A decision is made at every pose the agent stood in, and STOP is a decision that does not
+    move it, so the poses line up one-to-one with the decisions except that a run cut off at
+    the step limit has one pose more (where it stood when time ran out); that one is dropped.
+    """
+    h, x, actions = (np.stack(part) for part in zip(*rollout.trace))
+    pose = np.stack(rollout.poses)[: len(actions)].astype(np.float32)
+    np.savez(folder / f"{result['episode_id']}.npz", h=h, x=x, pose=pose,
+             actions=actions.astype(np.int64), scene=result["scene_id"],
+             success=result["success"], stopped=result["stopped"])
 
 
 def summarise(results: list[dict]) -> None:
@@ -608,6 +642,9 @@ def main() -> int:
     parser.add_argument("--split-gpus", action="store_true",
                         help="load the VLM in float16 across two cards, for rtx2080 nodes")
     parser.add_argument("--layers-on-first", type=int, default=14)
+    parser.add_argument("--save-states", type=Path, default=None,
+                        help="folder for each episode's LSTM input and output per step "
+                             "(`probe_lstm.py --source rollout` reads it)")
     parser.add_argument("--label", default=None,
                         help="appended to the run name in the output file, so a variant run "
                              "does not overwrite the checkpoint's own evaluation")
@@ -717,7 +754,10 @@ def main() -> int:
               f"에피소드 {kept}개", flush=True)
 
     args.scratch.mkdir(parents=True, exist_ok=True)
-
+    if args.save_states is not None:
+        if policy is None or policy.memory is None:
+            raise SystemExit("[eval] --save-states는 LSTM이 있는 정책에만 쓴다")
+        args.save_states.mkdir(parents=True, exist_ok=True)
 
     results, started = [], time.time()
     for index, (scene, group) in enumerate(sorted(by_scene.items()), start=1):
@@ -725,7 +765,8 @@ def main() -> int:
                                  SCENE_ROOT / SCENE_CONFIG_NAME, args.scratch,
                                  args.parallel, condition, device, rng,
                                  match_precision=args.match_train_precision,
-                                 language_pool=language_pool, ablate=args.ablate_language))
+                                 language_pool=language_pool, ablate=args.ablate_language,
+                                 save_states=args.save_states))
         done = sum(r["success"] for r in results)
         print(f"[eval] 장면 {index}/{len(by_scene)} | 누적 {len(results)} 에피소드, "
               f"성공 {done} ({100 * done / len(results):.1f}%), "
